@@ -1,0 +1,7 @@
+{
+  "name": "syrphy",
+  "private": true,
+  "dependencies": {
+    "@block65/webcrypto-web-push": "^1.0.2"
+  }
+}

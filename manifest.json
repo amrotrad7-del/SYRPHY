@@ -1,0 +1,14 @@
+{
+  "name": "SYRPHY — توصيل لباب بيتك",
+  "short_name": "SYRPHY",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B7A3E",
+  "theme_color": "#0B7A3E",
+  "dir": "rtl",
+  "lang": "ar",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
