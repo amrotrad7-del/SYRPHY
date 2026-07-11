@@ -1,0 +1,9 @@
+name = "syrphy"
+pages_build_output_dir = "."
+compatibility_date = "2025-06-01"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "syrphy-db"
+database_id = "cbf57ff3-7401-4b81-a9a4-857801f8881a"
