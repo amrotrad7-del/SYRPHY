@@ -1,5 +1,13 @@
 // إشعارات SYRPHY — Cloudflare Pages Function + WebCrypto Web Push
-import { buildPushPayload, type PushSubscription } from "@block65/webcrypto-web-push";
+// المكتبة مدموجة محلياً — ما في أي تنزيل خارجي وقت البناء
+// @ts-ignore
+import { buildPushPayload } from "./webpush.js";
+
+type PushSubscription = {
+  endpoint: string;
+  expirationTime: number | null;
+  keys: { p256dh: string; auth: string };
+};
 
 export interface Env {
   DB: D1Database;
