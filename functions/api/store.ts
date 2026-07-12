@@ -35,9 +35,6 @@ const ADMIN_CRED = "AMRO:1573";
 const USER_CRED = "USER:157";
 const ADMIN_ACC = "AMRO:971566135365"; // حساب أمرو — دخوله بالموقع بيفتح الصلاحيات
 const WINNER_COUNTER_KEY = "winner_counter";
-const FLOL_COUNTER_KEY = "flol_counter";
-const WHACK_KEY = "whack_plays";
-const WHACK_COOLDOWN = 20 * 60 * 60 * 1000;
 const MAX_FAILS = 5;
 const LOCK_MS = 15 * 60 * 1000;
 const SPIN_COOLDOWN = 29 * 60 * 60 * 1000;
@@ -426,52 +423,13 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       return json({ ok: true, code, balance: balance - 100 });
     }
 
-    if (type === "spin" || type === "whack") {
+    if (type === "spin") {
       const dev = String(body.dev || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 60);
       const acc = String(body.acc || "").replace(/[^0-9]/g, "");
       const idk = acc || dev;
       if (!idk) return json({ error: "bad_request" }, { status: 400 });
-      const isWhack = type === "whack";
-      const gkey = isWhack ? WHACK_KEY : WHEEL_KEY;
-      const cooldown = isWhack ? WHACK_COOLDOWN : SPIN_COOLDOWN;
-      const ip = clientIP(req);
-      const now = Date.now();
-      const w = ((await readKey(env, gkey, {})) || {}) as Record<string, number>;
-      const last = Math.max(w[idk] || 0, w["ip:" + ip] || 0);
-      if (now - last < cooldown) {
-        return json({ error: "cooldown", waitMs: cooldown - (now - last) }, { status: 429 });
-      }
-      w[idk] = now;
-      w["ip:" + ip] = now;
-      const keys = Object.keys(w);
-      while (keys.length > 2000) delete w[keys.shift() as string];
-      await writeKey(env, gkey, w);
-
-      const issueCode = async (counterKey: string, prefix: string, pct: number) => {
-        const counter = Number(await readKey(env, counterKey, 1)) || 1;
-        if (counter > 1500) return "";
-        const code = prefix + counter;
-        const otc = ((await readKey(env, OTC_KEY, {})) || {}) as Record<string, { pct: number; used: boolean; ts: number }>;
-        otc[code] = { pct, used: false, ts: Date.now() };
-        await writeKey(env, OTC_KEY, otc);
-        await writeKey(env, counterKey, counter + 1);
-        return code;
-      };
-
-      if (isWhack) {
-        // اضرب الجحش: 3 رميات بنسب سيرفرية 50% / 10% / 0.9%
-        const probs = [50, 10, 0.9];
-        const hits = probs.map((p) => Math.random() * 100 < p);
-        const nHits = hits.filter(Boolean).length;
-        let prize = 0;
-        if (nHits >= 3) prize = 15;
-        else if (nHits >= 2) prize = 5;
-        let code = "";
-        if (prize) code = await issueCode(FLOL_COUNTER_KEY, "FLOL", prize);
-        if (!code) prize = 0;
-        return json({ hits, prize, code, cooldownMs: cooldown });
-      }
-
+      const gkey = WHEEL_KEY;
+      const cooldown = SPIN_COOLDOWN;
       // الدولاب: 50%→0.1 · 20%→0.02 · 10%→20 · الباقي حظ أوفر
       const r = Math.random() * 100;
       let prize: number | null = null;
