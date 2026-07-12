@@ -171,7 +171,7 @@
   <div id="sr-list" style="display:flex;gap:10px;overflow-x:auto;padding:10px 2px 14px;scroll-snap-type:x mandatory"></div>
   <div style="text-align:center;margin-bottom:8px"><button class="mini" style="padding:9px 20px" onclick="rateSite()">⭐ ضيف تقييمك واكسب خصم 5%</button></div>
 </section>
-<footer>SYRPHY © <span id="yr"></span> - توصيل لكل المحافظات السورية<br>للطلب والاستفسار واتساب: <span class="num">+963 938 946 004</span><br><a href="https://wa.me/963938946004?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%20%F0%9F%91%8B%20%D8%AD%D8%A7%D8%A8%D8%A8%20%D8%A7%D9%86%D8%B6%D9%85%20%D9%84%D9%81%D8%B1%D9%8A%D9%82%20SYRPHY%20%F0%9F%9A%80" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;background:var(--green);color:#fff;padding:11px 22px;border-radius:24px;text-decoration:none;font-family:Cairo;font-weight:800;font-size:.9rem;margin:4px 0 14px">🤝 انضم إلى فريقنا</a><div style="opacity:.45;font-size:.65rem;margin-top:6px">v26.07.14.1-cf</div></footer>
+<footer>SYRPHY © <span id="yr"></span> - توصيل لكل المحافظات السورية<br>للطلب والاستفسار واتساب: <span class="num">+963 938 946 004</span><br><a href="https://wa.me/963938946004?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%20%F0%9F%91%8B%20%D8%AD%D8%A7%D8%A8%D8%A8%20%D8%A7%D9%86%D8%B6%D9%85%20%D9%84%D9%81%D8%B1%D9%8A%D9%82%20SYRPHY%20%F0%9F%9A%80" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;background:var(--green);color:#fff;padding:11px 22px;border-radius:24px;text-decoration:none;font-family:Cairo;font-weight:800;font-size:.9rem;margin:4px 0 14px">🤝 انضم إلى فريقنا</a><div style="opacity:.45;font-size:.65rem;margin-top:6px">v26.07.14.2-cf</div></footer>
 <div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
 <script id="seed" type="application/json">{"products":[],"coupons":[]}</script>
 <script>
@@ -228,6 +228,7 @@ function pvReviews(pid){
 let __prodStars=0;
 function pickProdStar(n){__prodStars=n;for(let i=1;i<=5;i++){const e=document.getElementById("pst-"+i);if(e)e.style.opacity=i<=n?"1":"0.35"}}
 async function sendProdReview(pid){
+  if(!getProfile()){window.__afterAcc="";toast("سجل حسابك أول لتقدر تقيّم 👤");return accountSheet()}
   if(!__prodStars)return toast("اختار النجوم أول ⭐");
   try{
     await fetch(API(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"prod_review",pid,stars:__prodStars,comment:(document.getElementById("pv-rev-c")?.value||"").trim()})});
@@ -247,7 +248,7 @@ function renderSiteReviews(){
   document.getElementById("sr-list").innerHTML=sr.list.map(r=>`<div style="flex:0 0 230px;scroll-snap-align:start;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px 14px;box-shadow:var(--shadow)">
     <div style="color:#D9A62E;font-size:.85rem;letter-spacing:1px">${"★".repeat(r.s||5)}${"☆".repeat(5-(r.s||5))}</div>
     <div style="font-size:.85rem;margin-top:7px;line-height:1.8">${esc(r.c||"تجربة ممتازة 👌")}</div>
-    <div style="color:var(--muted);font-size:.7rem;margin-top:8px">🛍️ زبون SYRPHY · ${new Date(r.ts).toLocaleDateString("ar-SY-u-nu-latn",{day:"numeric",month:"short"})}</div>
+    <div style="color:var(--muted);font-size:.7rem;margin-top:8px">🛍️ ${esc(r.n||"زبون SYRPHY")} · ${new Date(r.ts).toLocaleDateString("ar-SY-u-nu-latn",{day:"numeric",month:"short"})}</div>
   </div>`).join("");
 }
 function renderAll(){renderSiteReviews();renderPills();renderGrid();renderCartN();document.getElementById("yr").textContent=new Date().getFullYear()}function sheet(html){document.getElementById("sheet").innerHTML=html;document.getElementById("modal").classList.add("on")}function closeModal(){document.getElementById("modal").classList.remove("on")}document.getElementById("modal").addEventListener("click",e=>{if(e.target.id==="modal")closeModal()});
@@ -406,8 +407,13 @@ async function delOrder(id){
   if(!confirm("حذف الطلب من السجل؟"))return;
   try{await apiStore("POST",{type:"del_order",id});toast("انحذف ✓");ordersPanel()}catch(e){toast("ما زبط")}
 }
-function buildCustomers(orders){
+function buildCustomers(orders,accounts){
   const map={};
+  Object.values(accounts||{}).forEach(a=>{
+    const key=(a.phone||"").replace(/[^0-9]/g,"");
+    if(!key)return;
+    map[key]={name:a.name||"-",phone:"+"+(a.phone||""),addr:"-",orders:0,total:0,last:a.ts||0,reg:true};
+  });
   Object.values(orders||{}).forEach(o=>{
     const key=(o.phone||"").replace(/[^0-9]/g,"")||("n:"+(o.name||"?"));
     if(!map[key])map[key]={name:o.name||"-",phone:o.phone||"-",addr:o.addr||"-",orders:0,total:0,last:0};
@@ -421,10 +427,10 @@ async function customersPanel(){
   if(isUserMode())return userPanel();
   sheet(`<button class="close" onclick="adminPanel()">→ رجوع</button><h3>👥 داتا العملاء</h3><div class="empty">عم حمّل...</div>`);
   let d;try{d=await apiStore()}catch(e){return sheet(`<button class="close" onclick="adminPanel()">→ رجوع</button><div class="empty">تعذر الجلب</div>`)}
-  const cs=buildCustomers(d.orders);
+  const cs=buildCustomers(d.orders,d.accounts);
   window.__customers=cs;
   const html=cs.map(cu=>`<div class="item"><div class="t"><b>${esc(cu.name)}</b><span class="badge g num">${fmt(cu.total)} ل.س</span></div>
-    <div class="s">📞 <span class="num">${esc(cu.phone)}</span> · 🛍️ ${cu.orders} ${cu.orders>1?"طلبات":"طلب"} · 🕐 آخر طلب: ${cu.last?new Date(cu.last).toLocaleDateString("ar-SY-u-nu-latn",{day:"numeric",month:"short"}):"-"}</div>
+    <div class="s">📞 <span class="num">${esc(cu.phone)}</span> · ${cu.orders?`🛍️ ${cu.orders} ${cu.orders>1?"طلبات":"طلب"}`:`<span style="color:var(--green)">👤 حساب مسجل${cu.reg?"":""}</span>`} · 🕐 آخر طلب: ${cu.last?new Date(cu.last).toLocaleDateString("ar-SY-u-nu-latn",{day:"numeric",month:"short"}):"-"}</div>
     <div class="s">📍 ${esc(cu.addr)}</div></div>`).join("")||'<div class="empty">ما في عملاء بعد</div>';
   sheet(`<button class="close" onclick="adminPanel()">→ رجوع</button>
     <h3>👥 داتا العملاء (${cs.length})</h3>
@@ -639,7 +645,7 @@ async function saveAccount(){
     if(!r.ok)throw 0;
     localStorage.setItem("syrphy-profile",JSON.stringify({name,cc,phone}));
     const b=document.getElementById("d-acc");if(b)b.innerHTML="👤 حسابي ("+esc(name.split(" ")[0])+")";
-    closeModal();toast("✅ أهلاً فيك "+name.split(" ")[0]+"! بياناتك رح تتعبى لحالها بالطلبات");
+    closeModal();toast("✅ أهلاً فيك "+name.split(" ")[0]+"!");if(window.__afterAcc==="rate"){window.__afterAcc="";setTimeout(rateSite,400)}
   }catch(e){toast("ما زبط التسجيل — تأكد من البيانات")}
 }
 /* ==== الشكاوي ==== */
@@ -703,6 +709,7 @@ async function redeemPoints(){
 /* ==== تقييم الموقع ==== */
 let __siteStars=0;
 function rateSite(){
+  if(!getProfile()){window.__afterAcc="rate";toast("سجل حسابك أول لتقيّم وتاخد كود الخصم 🎁");return accountSheet()}
   __siteStars=0;
   sheet(`<button class="close" onclick="closeModal()">✕</button>
   <h3>⭐ قيّم SYRPHY</h3>
@@ -717,7 +724,7 @@ function pickStar(n){__siteStars=n;for(let i=1;i<=5;i++)document.getElementById(
 async function sendSiteReview(){
   if(!__siteStars)return toast("اختار عدد النجوم أول ⭐");
   try{
-    const r=await fetch(API(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"site_review",stars:__siteStars,comment:document.getElementById("rs-comment").value.trim(),dev:devId()})});
+    const r=await fetch(API(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"site_review",stars:__siteStars,comment:document.getElementById("rs-comment").value.trim(),dev:devId(),name:(getProfile()||{}).name||""})});
     const d=await r.json().catch(()=>({}));
     if(d.code){
       sheet(`<button class="close" onclick="closeModal()">✕</button>
