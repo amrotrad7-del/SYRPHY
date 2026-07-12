@@ -86,6 +86,56 @@ async function writeKey(env: Env, key: string, value: unknown) {
     .run();
 }
 
+/* ===== تخزين مجزأ للكتالوج =====
+   D1 عندها سقف لحجم الصف الواحد، وصور المنتجات (base64) بتتخطاه بسرعة.
+   فمنقسّم نص الكتالوج لقطع 600 ألف حرف، كل قطعة بصف مستقل. */
+const CHUNK = 600_000;
+
+async function writeBig(env: Env, key: string, value: unknown) {
+  const s = JSON.stringify(value);
+  const parts: string[] = [];
+  for (let i = 0; i < s.length; i += CHUNK) parts.push(s.slice(i, i + CHUNK));
+  if (!parts.length) parts.push("");
+  const stmts = [
+    env.DB.prepare(
+      "INSERT INTO store_items (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at"
+    ).bind(key, JSON.stringify({ __chunked: parts.length }), Date.now()),
+    ...parts.map((p, i) =>
+      env.DB.prepare(
+        "INSERT INTO store_items (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at"
+      ).bind(key + "__p" + i, p, Date.now())
+    ),
+  ];
+  await env.DB.batch(stmts);
+  // تنظيف قطع قديمة زائدة
+  await env.DB.prepare("DELETE FROM store_items WHERE key LIKE ?1 AND key >= ?2")
+    .bind(key + "__p%", key + "__p" + parts.length)
+    .run()
+    .catch(() => {});
+}
+
+async function readBig(env: Env, key: string, fallback: unknown) {
+  const head = await readKey(env, key, null);
+  if (!head) return fallback;
+  const h = head as { __chunked?: number };
+  if (!h || typeof h.__chunked !== "number") return head; // نسخة قديمة غير مجزأة
+  const rows = await env.DB.prepare("SELECT key, value FROM store_items WHERE key LIKE ?1")
+    .bind(key + "__p%")
+    .all<{ key: string; value: string }>();
+  const map: Record<number, string> = {};
+  (rows.results || []).forEach((r) => {
+    const n = Number(String(r.key).split("__p")[1]);
+    if (Number.isFinite(n)) map[n] = r.value || "";
+  });
+  let s = "";
+  for (let i = 0; i < h.__chunked; i++) s += map[i] ?? "";
+  try {
+    return JSON.parse(s);
+  } catch {
+    return fallback;
+  }
+}
+
 function normalizeStore(value: unknown): StoreData {
   const data = value && typeof value === "object" ? (value as Partial<StoreData>) : {};
   return {
@@ -165,7 +215,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       const hit = await cache.match(cacheKey);
       if (hit) return hit;
 
-      const catalog = normalizeStore(await readKey(env, STORE_KEY, {}));
+      const catalog = normalizeStore(await readBig(env, STORE_KEY, {}));
       const pr = ((await readKey(env, PROD_REV_KEY, {})) || {}) as Record<string, { s: number; c: string; ts: number }[]>;
       const reviews: Record<string, { avg: number; count: number; last: { s: number; c: string; ts: number }[] }> = {};
       Object.keys(pr).forEach((pid) => {
@@ -184,7 +234,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     }
 
     // المدير: كل شي بلا كاش
-    const catalog = normalizeStore(await readKey(env, STORE_KEY, {}));
+    const catalog = normalizeStore(await readBig(env, STORE_KEY, {}));
     const pr = ((await readKey(env, PROD_REV_KEY, {})) || {}) as Record<string, { s: number; c: string; ts: number }[]>;
     const reviews: Record<string, { avg: number; count: number; last: { s: number; c: string; ts: number }[] }> = {};
     Object.keys(pr).forEach((pid) => {
@@ -381,7 +431,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     if (type === "check_coupon") {
       const code = String(body.code || "").trim().toUpperCase();
       if (!code) return json({ error: "not_found" }, { status: 404 });
-      const catalog = normalizeStore(await readKey(env, STORE_KEY, {}));
+      const catalog = normalizeStore(await readBig(env, STORE_KEY, {}));
       const cp = (catalog.coupons as { code: string; pct: number }[]).find((x) => String(x.code).toUpperCase() === code);
       if (cp) return json({ pct: Number(cp.pct) || 0 });
       const otc = ((await readKey(env, OTC_KEY, {})) || {}) as Record<string, { pct: number; used: boolean }>;
@@ -621,10 +671,14 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     if (role !== "admin" && role !== "user") return json({ error: "unauthorized" }, { status: 401 });
     const data = normalizeStore(await req.json().catch(() => ({})));
     if (role === "user") {
-      const existing = normalizeStore(await readKey(env, STORE_KEY, {}));
+      const existing = normalizeStore(await readBig(env, STORE_KEY, {}));
       data.coupons = existing.coupons;
     }
-    await writeKey(env, STORE_KEY, data);
+    try {
+      await writeBig(env, STORE_KEY, data);
+    } catch (e) {
+      return json({ error: "save_failed", detail: String((e as Error)?.message || e) }, { status: 500 });
+    }
     return json(data);
   }
 
