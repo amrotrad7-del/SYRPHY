@@ -428,8 +428,32 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       const acc = String(body.acc || "").replace(/[^0-9]/g, "");
       const idk = acc || dev;
       if (!idk) return json({ error: "bad_request" }, { status: 400 });
-      const gkey = WHEEL_KEY;
-      const cooldown = SPIN_COOLDOWN;
+      // قفل الـ 29 ساعة: بالحساب + الجهاز + عنوان الشبكة
+      const ip = clientIP(req);
+      const now = Date.now();
+      const w = ((await readKey(env, WHEEL_KEY, {})) || {}) as Record<string, number>;
+      const last = Math.max(w[idk] || 0, w[dev] || 0, w["ip:" + ip] || 0);
+      if (now - last < SPIN_COOLDOWN) {
+        return json({ error: "cooldown", waitMs: SPIN_COOLDOWN - (now - last) }, { status: 429 });
+      }
+      w[idk] = now;
+      if (dev) w[dev] = now;
+      w["ip:" + ip] = now;
+      const keys = Object.keys(w).sort((a, b) => w[a] - w[b]);
+      while (keys.length > 3000) delete w[keys.shift() as string];
+      await writeKey(env, WHEEL_KEY, w);
+
+      const issueCode = async (counterKey: string, prefix: string, pct: number) => {
+        const counter = Number(await readKey(env, counterKey, 1)) || 1;
+        if (counter > 1500) return "";
+        const codeStr = prefix + counter;
+        const otc = ((await readKey(env, OTC_KEY, {})) || {}) as Record<string, { pct: number; used: boolean; ts: number }>;
+        otc[codeStr] = { pct, used: false, ts: Date.now() };
+        await writeKey(env, OTC_KEY, otc);
+        await writeKey(env, counterKey, counter + 1);
+        return codeStr;
+      };
+
       // الدولاب: 50%→0.1 · 20%→0.02 · 10%→20 · الباقي حظ أوفر
       const r = Math.random() * 100;
       let prize: number | null = null;
