@@ -21,6 +21,8 @@ const WHEEL_KEY = "wheel_spins";
 const POINTS_KEY = "points_ledger";
 const REJECTED_KEY = "rejected_reviews";
 const SOLD_KEY = "sold_counts";
+const ACCOUNTS_KEY = "accounts";
+const COMPLAINTS_KEY = "complaints";
 const DIS_COUNTER_KEY = "dis_counter";
 const REVIEW_DEVS_KEY = "review_reward_devs";
 const BAD_WORDS = ["كس","طيز","شرموط","عرص","خرا","خرة","زبالة","زباله","حقير","نصاب","حرامي","حرامية","كذاب","احتيال","نصب عليكن","غشاش","سيء","سيئ","سئ","زفت","تعبان","خايس","فاشل","اسوأ","أسوأ","اسوء","لا انصح","لا أنصح","ما بنصح","احذرو","احذروا","حذاري","قذر","وسخ","تافه","بشع","fuck","shit","scam","fraud","fake","worst"];
@@ -195,7 +197,8 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     const siteReviews = await readKey(env, SITE_REV_KEY, []);
     const rejectedReviews = await readKey(env, REJECTED_KEY, []);
     const sold = await readKey(env, SOLD_KEY, {});
-    return json({ ...catalog, reviews, analytics, abandoned, orders, siteReviews, rejectedReviews, sold });
+    const complaints = await readKey(env, COMPLAINTS_KEY, []);
+    return json({ ...catalog, reviews, analytics, abandoned, orders, siteReviews, rejectedReviews, sold, complaints });
   }
 
   /* ============ POST ============ */
@@ -457,6 +460,38 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       return json({ prize, code, cooldownMs: SPIN_COOLDOWN });
     }
 
+    if (type === "register") {
+      const dev = String(body.dev || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 60);
+      const name = String(body.name || "").trim().slice(0, 60);
+      const cc = String(body.cc || "").replace(/[^0-9+]/g, "").slice(0, 5);
+      const phone = String(body.phone || "").replace(/[^0-9]/g, "");
+      if (!dev || !name || name.length < 2 || !cc || phone.length < 7 || phone.length > 12) {
+        return json({ error: "bad_data" }, { status: 400 });
+      }
+      const accounts = ((await readKey(env, ACCOUNTS_KEY, {})) || {}) as Record<string, unknown>;
+      accounts[dev] = { name, phone: cc + phone, ts: Date.now() };
+      const ks = Object.keys(accounts);
+      while (ks.length > 5000) delete accounts[ks.shift() as string];
+      await writeKey(env, ACCOUNTS_KEY, accounts);
+      return json({ ok: true });
+    }
+
+    if (type === "complaint") {
+      const text = String(body.text || "").trim().slice(0, 600);
+      if (text.length < 5) return json({ error: "bad_data" }, { status: 400 });
+      const list = ((await readKey(env, COMPLAINTS_KEY, [])) || []) as unknown[];
+      list.push({
+        text,
+        name: String(body.name || "").slice(0, 60),
+        phone: String(body.phone || "").slice(0, 20),
+        ts: Date.now(),
+        id: Math.random().toString(36).slice(2, 10),
+      });
+      while (list.length > 300) list.shift();
+      await writeKey(env, COMPLAINTS_KEY, list);
+      return json({ ok: true });
+    }
+
     if (type === "my_orders") {
       const ids = (Array.isArray(body.ids) ? body.ids : []).map((x) => String(x)).slice(0, 20);
       const orders = ((await readKey(env, ORDERS_KEY, {})) || {}) as Record<string, unknown>;
@@ -513,6 +548,15 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       orders[id].history = orders[id].history || [];
       orders[id].history.push({ status, ts: Date.now() });
       await writeKey(env, ORDERS_KEY, orders);
+      return json({ ok: true });
+    }
+
+    if (type === "del_complaint") {
+      if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
+      const id = String(body.id || "");
+      const list = ((await readKey(env, COMPLAINTS_KEY, [])) || []) as { id?: string }[];
+      const next = list.filter((x) => x.id !== id);
+      await writeKey(env, COMPLAINTS_KEY, next);
       return json({ ok: true });
     }
 
