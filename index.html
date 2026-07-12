@@ -90,6 +90,8 @@
   <div class="d-head"><b>القائمة</b><button class="hbtn" onclick="closeDrawer()" style="width:36px;height:36px">✕</button></div>
   <button class="d-item" onclick="closeDrawer();openCart()">🛒 السلة <span class="badge g num" id="d-cart-n" style="display:none">0</span></button>
   <button class="d-item" onclick="closeDrawer();myOrders()">📦 طلباتي وتتبع التوصيل</button>
+  <button class="d-item" id="d-acc" onclick="closeDrawer();accountSheet()">👤 إنشاء حساب</button>
+  <button class="d-item" onclick="closeDrawer();complaintSheet()">📨 الشكاوي والاقتراحات</button>
   <button class="d-item" onclick="closeDrawer();myPoints()">🎁 نقاطي</button>
   <button class="d-item" onclick="closeDrawer();wheelSheet()">🎡 دولاب الحظ</button>
   <button class="d-item" onclick="closeDrawer();rateSite()">⭐ قيّم الموقع</button>
@@ -169,7 +171,7 @@
   <div id="sr-list" style="display:flex;gap:10px;overflow-x:auto;padding:10px 2px 14px;scroll-snap-type:x mandatory"></div>
   <div style="text-align:center;margin-bottom:8px"><button class="mini" style="padding:9px 20px" onclick="rateSite()">⭐ ضيف تقييمك واكسب خصم 5%</button></div>
 </section>
-<footer>SYRPHY © <span id="yr"></span> - توصيل لكل المحافظات السورية<br>للطلب والاستفسار واتساب: <span class="num">+963 938 946 004</span><br><a href="https://wa.me/963938946004?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%20%F0%9F%91%8B%20%D8%AD%D8%A7%D8%A8%D8%A8%20%D8%A7%D9%86%D8%B6%D9%85%20%D9%84%D9%81%D8%B1%D9%8A%D9%82%20SYRPHY%20%F0%9F%9A%80" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;background:var(--green);color:#fff;padding:11px 22px;border-radius:24px;text-decoration:none;font-family:Cairo;font-weight:800;font-size:.9rem;margin:4px 0 14px">🤝 انضم إلى فريقنا</a><div style="opacity:.45;font-size:.65rem;margin-top:6px">v26.07.13.3-cf</div></footer>
+<footer>SYRPHY © <span id="yr"></span> - توصيل لكل المحافظات السورية<br>للطلب والاستفسار واتساب: <span class="num">+963 938 946 004</span><br><a href="https://wa.me/963938946004?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%20%F0%9F%91%8B%20%D8%AD%D8%A7%D8%A8%D8%A8%20%D8%A7%D9%86%D8%B6%D9%85%20%D9%84%D9%81%D8%B1%D9%8A%D9%82%20SYRPHY%20%F0%9F%9A%80" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;background:var(--green);color:#fff;padding:11px 22px;border-radius:24px;text-decoration:none;font-family:Cairo;font-weight:800;font-size:.9rem;margin:4px 0 14px">🤝 انضم إلى فريقنا</a><div style="opacity:.45;font-size:.65rem;margin-top:6px">v26.07.14.1-cf</div></footer>
 <div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
 <script id="seed" type="application/json">{"products":[],"coupons":[]}</script>
 <script>
@@ -266,7 +268,7 @@ async function applyCoupon(){
     coupon={code,pct:d.pct,otc:!!d.otc};openCart();toast("انطبق الخصم "+d.pct+"% ✓ 🎉");
   }catch(e){coupon=null;document.getElementById("coup-msg").innerHTML='<small class="hint" style="color:var(--red)">الكود مو صحيح أو مستخدم من قبل</small>'}
 }
-function checkout(){const t=cartTotals();sheet(`<button class="close" onclick="closeModal()">✕</button><h3>📦 إتمام الطلب</h3><label>الاسم الكامل</label><input id="o-name" placeholder="اسمك"><label>رقم الهاتف</label><input id="o-phone" inputmode="tel" placeholder="09xxxxxxxx"><label>العنوان بالتفصيل (المحافظة - المنطقة)</label><input id="o-addr" placeholder="دمشق - المزة، شارع..."><label style="margin-top:14px">🎁 هي الطلبية هدية لحدا بسوريا؟</label><div class="paybox" id="gift-box" onclick="toggleGift()"><span class="ic">🎁</span><div><b>إهداء لشخص داخل سوريا</b><p>عم تطلب من برا سوريا؟ اهدي حدا بتحبه - بنوصلها لبابه مع رسالتك.</p></div></div><div id="gift-fields" style="display:none"><label>اسم المستلم</label><input id="g-name" placeholder="اسم الشخص بسوريا"><label>رسالة الإهداء (اختياري)</label><input id="g-msg" placeholder="كل عام وانت بخير"></div><label style="margin-top:14px">طريقة الدفع</label><div class="paybox on" id="pay-sham" onclick="setPay('sham')"><span class="ic">📲</span><div><b>شام كاش</b><p>حوّل المبلغ عالرقم وابعت صورة الإشعار معنا عالواتساب.</p><div class="copybox"><code>0997753191</code><button class="mini" onclick="event.stopPropagation();copyText('0997753191','انتسخ رقم شام كاش ✓')">نسخ</button></div></div></div><div class="paybox" id="pay-cod" onclick="setPay('cod')"><span class="ic">🤝</span><div><b>تسليم باليد</b><p>بتدفع كاش لما توصلك الطلبية لباب بيتك.</p></div></div><div class="paybox" id="pay-bank" onclick="setPay('bank')"><span class="ic">🏦</span><div><b>تحويل بنكي</b><p>مناسب للإهداء من برا سوريا.</p><div class="copybox"><code>AE050352455001174595012</code><button class="mini" onclick="event.stopPropagation();copyText('AE050352455001174595012','انتسخ الآيبان ✓')">نسخ</button></div></div></div><div class="total-flow"><div class="l"><span>المجموع</span><b class="num">${syp(t.sub)}</b></div>${t.disc?`<div class="l disc"><span>خصم (${esc(coupon.code)})</span><b class="num">-${syp(t.disc)}</b></div>`:""}<div class="l gt"><span>الإجمالي</span><b class="num">${syp(t.total)}</b></div></div><small class="hint">لما تكبس تأكيد، بينفتح واتساب وفيه كل تفاصيل طلبك جاهزة.</small><button class="btn" onclick="sendOrder()">✅ تأكيد الطلب عبر واتساب</button>`);pushAbandoned();["o-name","o-phone"].forEach(fid=>{const el=document.getElementById(fid);if(el)el.addEventListener("input",pushAbandoned)})}
+function checkout(){window.__pf=getProfile();const t=cartTotals();sheet(`<button class="close" onclick="closeModal()">✕</button><h3>📦 إتمام الطلب</h3><label>الاسم الكامل</label><input id="o-name" placeholder="اسمك"><label>رقم الهاتف</label><input id="o-phone" inputmode="tel" placeholder="09xxxxxxxx"><label>العنوان بالتفصيل (المحافظة - المنطقة)</label><input id="o-addr" placeholder="دمشق - المزة، شارع..."><label style="margin-top:14px">🎁 هي الطلبية هدية لحدا بسوريا؟</label><div class="paybox" id="gift-box" onclick="toggleGift()"><span class="ic">🎁</span><div><b>إهداء لشخص داخل سوريا</b><p>عم تطلب من برا سوريا؟ اهدي حدا بتحبه - بنوصلها لبابه مع رسالتك.</p></div></div><div id="gift-fields" style="display:none"><label>اسم المستلم</label><input id="g-name" placeholder="اسم الشخص بسوريا"><label>رسالة الإهداء (اختياري)</label><input id="g-msg" placeholder="كل عام وانت بخير"></div><label style="margin-top:14px">طريقة الدفع</label><div class="paybox on" id="pay-sham" onclick="setPay('sham')"><span class="ic">📲</span><div><b>شام كاش</b><p>حوّل المبلغ عالرقم وابعت صورة الإشعار معنا عالواتساب.</p><div class="copybox"><code>0997753191</code><button class="mini" onclick="event.stopPropagation();copyText('0997753191','انتسخ رقم شام كاش ✓')">نسخ</button></div></div></div><div class="paybox" id="pay-cod" onclick="setPay('cod')"><span class="ic">🤝</span><div><b>تسليم باليد</b><p>بتدفع كاش لما توصلك الطلبية لباب بيتك.</p></div></div><div class="paybox" id="pay-bank" onclick="setPay('bank')"><span class="ic">🏦</span><div><b>تحويل بنكي</b><p>مناسب للإهداء من برا سوريا.</p><div class="copybox"><code>AE050352455001174595012</code><button class="mini" onclick="event.stopPropagation();copyText('AE050352455001174595012','انتسخ الآيبان ✓')">نسخ</button></div></div></div><div class="total-flow"><div class="l"><span>المجموع</span><b class="num">${syp(t.sub)}</b></div>${t.disc?`<div class="l disc"><span>خصم (${esc(coupon.code)})</span><b class="num">-${syp(t.disc)}</b></div>`:""}<div class="l gt"><span>الإجمالي</span><b class="num">${syp(t.total)}</b></div></div><small class="hint">لما تكبس تأكيد، بينفتح واتساب وفيه كل تفاصيل طلبك جاهزة.</small><button class="btn" onclick="sendOrder()">✅ تأكيد الطلب عبر واتساب</button>`);pushAbandoned();["o-name","o-phone"].forEach(fid=>{const el=document.getElementById(fid);if(el)el.addEventListener("input",pushAbandoned)})}
 function toggleGift(){giftOn=!giftOn;document.getElementById("gift-box").classList.toggle("on",giftOn);document.getElementById("gift-fields").style.display=giftOn?"":"none";if(giftOn)setPay("bank")}function setPay(m){payMethod=m;["sham","cod","bank"].forEach(x=>document.getElementById("pay-"+x).classList.toggle("on",x===m))}
 function sendOrder(){const name=document.getElementById("o-name").value.trim(),phone=document.getElementById("o-phone").value.trim(),addr=document.getElementById("o-addr").value.trim();if(!name||!phone||!addr)return toast("عبّي الاسم والهاتف والعنوان");const t=cartTotals(),payNames={sham:"شام كاش (0997753191)",cod:"تسليم باليد عند الاستلام",bank:"تحويل بنكي على IBAN"};let msg="🛍️ *طلب جديد من SYRPHY*\\n\\n";CART.forEach(c=>{const p=S.products.find(x=>x.id===c.id);if(p)msg+=`▪️ ${p.name}${c.color?" - لون: "+c.color:""}${c.size?" - قياس: "+c.size:""} × ${c.qty} = ${fmt(price(p)*c.qty)} ل.س\\n`});if(coupon)msg+=`\\n🏷️ كود الخصم: ${coupon.code} (-${coupon.pct}%)\\n`;if(t.auto)msg+=`🎉 خصم تلقائي ${t.autoPct}% لأن الطلب فوق 750 ألف (-${fmt(t.auto)} ل.س)\\n`;msg+=`💰 *الإجمالي: ${fmt(t.total)} ل.س*\\n\\n👤 الاسم: ${name}\\n📞 الهاتف: ${phone}\\n📍 العنوان: ${addr}\\n`;if(giftOn){msg+=`\\n🎁 *طلبية إهداء*\\nالمستلم: ${document.getElementById("g-name").value.trim()||"-"}\\n${document.getElementById("g-msg").value.trim()?("الرسالة: "+document.getElementById("g-msg").value.trim()+"\\n"):""}`}msg+=`\\n💳 الدفع: ${payNames[payMethod]}`;window.open("https://wa.me/963938946004?text="+encodeURIComponent(msg),"_blank");CART=[];coupon=null;giftOn=false;payMethod="sham";const _oid=draftId||ensureDraft();const _items=CART.map(cc=>{const p=S.products.find(x=>x.id===cc.id);return{id:cc.id,name:p?p.name:"?",qty:cc.qty,color:cc.color||"",size:cc.size||""}});eventPost({type:"order_done",id:_oid,total:t.total,name,phone,addr,pay:payNames[payMethod]||payMethod,items:_items,coupon:coupon?coupon.code:""});try{const mo=JSON.parse(localStorage.getItem("syrphy-my-orders")||"[]");mo.unshift(_oid);localStorage.setItem("syrphy-my-orders",JSON.stringify(mo.slice(0,20)))}catch(_){}draftId="";sessionStorage.removeItem("syrphy-draft");renderCartN();thanksSheet()}
 function buildPromo(p){
@@ -522,6 +524,24 @@ async function runImport(){
   log("<b style=\"color:var(--green)\">🎉 خلص الدمج! ولا معلومة انمسحت — حدّث الصفحة وشوف</b>");
   refreshStore(true);
 }
+async function complaintsPanel(){
+  if(isUserMode())return userPanel();
+  sheet(`<button class="close" onclick="adminPanel()">→ رجوع</button><h3>📨 الشكاوي</h3><div class="empty">عم حمّل...</div>`);
+  let d;try{d=await apiStore()}catch(e){return sheet(`<button class="close" onclick="adminPanel()">→ رجوع</button><div class="empty">تعذر الجلب</div>`)}
+  const list=(d.complaints||[]).slice().reverse();
+  const html=list.map(x=>{
+    const when=new Date(x.ts).toLocaleString("ar-SY-u-nu-latn",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+    const wa=(x.phone||"").replace(/[^0-9]/g,"");
+    return `<div class="item"><div class="t"><b>${esc(x.name||"زائر")}</b><small style="color:var(--muted)">${when}</small></div>
+    <div class="s" style="white-space:pre-wrap;line-height:1.9">${esc(x.text)}</div>
+    <div class="row" style="margin-top:8px">${wa?`<a class="mini" style="text-decoration:none;text-align:center;flex:1" href="https://wa.me/${wa}" target="_blank">💬 رد عالواتساب</a>`:""}<button class="mini" style="color:var(--red);flex:1" onclick="delComplaint('${x.id}')">🗑 حذف</button></div></div>`;
+  }).join("")||'<div class="empty">📭 ما في شكاوي — عال!</div>';
+  sheet(`<button class="close" onclick="adminPanel()">→ رجوع</button><h3>📨 الشكاوي (${list.length})</h3>${html}`);
+}
+async function delComplaint(id){
+  if(!confirm("حذف الشكوى؟"))return;
+  try{await apiStore("POST",{type:"del_complaint",id});toast("انحذفت ✓");complaintsPanel()}catch(e){toast("ما زبط")}
+}
 function notifyForm(){
   if(isUserMode())return userPanel();
   sheet(`<button class="close" onclick="adminPanel()">→ رجوع</button><h3>📣 إشعار لكل المشتركين</h3>
@@ -569,7 +589,7 @@ const pin=_n.toUpperCase()+":"+_p;
 try{adminPin=pin;const resp=await apiStore("POST",{});isAdmin=true;sessionStorage.setItem(ADMIN_KEY,pin);sessionStorage.setItem("syrphy-role",(resp&&resp.role)==="user"?"user":"admin");if(isUserMode()){userPanel()}else{adminPanel()}refreshStore(true)}
 catch(e){adminPin="";sessionStorage.removeItem(ADMIN_KEY);toast(e.message==="locked"?"⛔ انقفل الدخول ١٥ دقيقة — محاولات غلط كتيرة":e.message==="unauthorized"?"الرمز غلط":e.message==="DATABASE_URL_missing"?"⚠️ قاعدة البيانات مو مربوطة — ضيف DATABASE_URL بإعدادات Vercel":"⚠️ خطأ: "+(e.message||"ما في اتصال")+" — ابعت هالرسالة للدعم")}}
 function userPanel(){sheet(`<button class="close" onclick="closeModal()">✕</button><h3>👥 لوحة المستخدمين</h3><small class="hint">${S.products.length} منتج</small><button class="btn" onclick="addProdForm()">＋ إضافة منتج</button><button class="btn ghost" onclick="manageProds()">🗂 إدارة المنتجات</button><button class="btn ghost" onclick="logoutAdmin()">تسجيل خروج</button>`)}
-function adminPanel(){if(isUserMode())return userPanel();sheet(`<button class="close" onclick="closeModal()">✕</button><h3>⚙️ لوحة المدير</h3><small class="hint">${S.products.length} منتج · ${S.coupons.length} كود خصم</small><button class="btn" onclick="addProdForm()">＋ إضافة منتج</button><button class="btn ghost" onclick="manageProds()">🗂 إدارة المنتجات والخصومات</button><button class="btn ghost" onclick="manageCoupons()">🏷 أكواد الخصم</button><button class="btn" onclick="ordersPanel()">📦 الطلبات وتتبع التوصيل</button><button class="btn ghost" onclick="statsPanel()">📈 الإحصائيات والزيارات</button><button class="btn ghost" onclick="notifyForm()">📣 إرسال إشعار للجميع</button><button class="btn ghost" onclick="customersPanel()">👥 داتا العملاء</button><button class="btn ghost" onclick="importOldSite()">📥 استيراد كل شي من الموقع القديم</button><button class="btn ghost" onclick="openDaftar()">📒 دفتر التاجر</button><button class="btn ghost" onclick="logoutAdmin()">تسجيل خروج المدير</button>`)}
+function adminPanel(){if(isUserMode())return userPanel();sheet(`<button class="close" onclick="closeModal()">✕</button><h3>⚙️ لوحة المدير</h3><small class="hint">${S.products.length} منتج · ${S.coupons.length} كود خصم</small><button class="btn" onclick="addProdForm()">＋ إضافة منتج</button><button class="btn ghost" onclick="manageProds()">🗂 إدارة المنتجات والخصومات</button><button class="btn ghost" onclick="manageCoupons()">🏷 أكواد الخصم</button><button class="btn" onclick="ordersPanel()">📦 الطلبات وتتبع التوصيل</button><button class="btn ghost" onclick="statsPanel()">📈 الإحصائيات والزيارات</button><button class="btn ghost" onclick="notifyForm()">📣 إرسال إشعار للجميع</button><button class="btn ghost" onclick="customersPanel()">👥 داتا العملاء</button><button class="btn ghost" onclick="complaintsPanel()">📨 الشكاوي</button><button class="btn ghost" onclick="importOldSite()">📥 استيراد كل شي من الموقع القديم</button><button class="btn ghost" onclick="openDaftar()">📒 دفتر التاجر</button><button class="btn ghost" onclick="logoutAdmin()">تسجيل خروج المدير</button>`)}
 function logoutAdmin(){isAdmin=false;adminPin="";sessionStorage.removeItem(ADMIN_KEY);sessionStorage.removeItem("syrphy-role");closeModal();toast("تم تسجيل الخروج")}
 function addProdForm(p){const e=p||{};tempImgs=e.imgs?e.imgs.map(x=>({src:x.src,color:x.color||"",sizes:x.sizes||""})):(e.img?[{src:e.img,color:""}]:[]);sheet(`<button class="close" onclick="${isUserMode()?"userPanel":"adminPanel"}()">→ رجوع</button><h3>${p?"تعديل منتج":"＋ منتج جديد"}</h3><label>رابط المنتج من شي إن أو تيمو</label><input id="ap-link" value="${esc(e.link||"")}" oninput="linkHint()"><small class="hint" id="ap-src"></small><label>اسم المنتج</label><input id="ap-name" value="${esc(e.name||"")}" oninput="catHint()"><label>صور المنتج</label><input type="file" id="ap-file" accept="image/*" multiple onchange="readImg(this)"><small class="hint">ارفع صورة أو أكثر واكتب اسم اللون تحت كل صورة.</small><div id="ap-imgs" style="margin-top:8px"></div><div class="row"><div><label>السعر الأساسي (د.إ)</label><input type="number" id="ap-base" inputmode="decimal" value="${e.basePrice||""}"></div><div><label>سعر البيع (ل.س)</label><input type="number" id="ap-price" inputmode="decimal" value="${e.price||""}"></div></div><div class="row"><div><label>الصنف <small id="ap-cat-auto"></small></label><select id="ap-cat">${CATS.filter(c=>c!=="الكل").map(c=>`<option ${e.cat===c?"selected":""}>${c}</option>`).join("")}</select></div>${!isUserMode()?`<div><label>خصم %</label><input type="number" id="ap-disc" inputmode="decimal" value="${e.disc||0}"></div>`:""}</div><button class="btn" onclick="saveProd('${e.id||""}')">💾 حفظ المنتج</button>`);linkHint();catHint();renderImgList()}
 function linkHint(){const el=document.getElementById("ap-src");if(el)el.textContent=detectSource(document.getElementById("ap-link").value)?"✓ المصدر: "+detectSource(document.getElementById("ap-link").value):""}function catHint(){const name=document.getElementById("ap-name")?.value;if(!name)return;const c=autoCat(name);document.getElementById("ap-cat-auto").textContent="(اقتراح: "+c+")";document.getElementById("ap-cat").value=c}
@@ -585,6 +605,65 @@ async function delCoupon(i){const old=S.coupons.slice();S.coupons.splice(i,1);tr
 function publishCopy(){const seedJson=JSON.stringify({products:S.products,coupons:S.coupons});let html="<!DOCTYPE html>\\n"+document.documentElement.outerHTML;const seedRe=new RegExp('(<script id="seed" type="application/json">)[\\\\s\\\\S]*?(<\\\\/script>)');html=html.replace(seedRe,"$1"+seedJson.replace(/</g,"\\\\u003c")+"$2");const blob=new Blob([html],{type:"text/html"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="syrphy-store.html";document.body.appendChild(a);a.click();a.remove();toast("انصدّرت نسخة النشر ✓")}
 (function(){let moved=false;document.addEventListener("touchstart",()=>{moved=false},{passive:true});document.addEventListener("touchmove",()=>{moved=true},{passive:true});document.addEventListener("touchend",e=>{if(moved)return;const t=e.target;if(t.closest("input,select,textarea,a,label"))return;const el=t.closest("[onclick]");if(el){e.preventDefault();el.click()}},{passive:false})})();
 function tickClocks(){const f=tz=>new Intl.DateTimeFormat("en-GB",{hour:"2-digit",minute:"2-digit",timeZone:tz}).format(new Date());const a=document.getElementById("clk-ae"),s=document.getElementById("clk-sy");if(a)a.textContent=f("Asia/Dubai");if(s)s.textContent=f("Asia/Damascus")}
+/* ==== الحساب ==== */
+const COUNTRIES=[["963","🇸🇾 سوريا",9,9],["971","🇦🇪 الإمارات",9,9],["966","🇸🇦 السعودية",9,9],["962","🇯🇴 الأردن",9,9],["961","🇱🇧 لبنان",7,8],["90","🇹🇷 تركيا",10,10],["20","🇪🇬 مصر",10,10],["964","🇮🇶 العراق",10,10],["974","🇶🇦 قطر",8,8],["965","🇰🇼 الكويت",8,8],["968","🇴🇲 عُمان",8,8],["973","🇧🇭 البحرين",8,8],["49","🇩🇪 ألمانيا",10,11],["46","🇸🇪 السويد",9,9],["31","🇳🇱 هولندا",9,9]];
+function getProfile(){try{return JSON.parse(localStorage.getItem("syrphy-profile")||"null")}catch(_){return null}}
+function accountSheet(){
+  const p=getProfile();
+  sheet(`<button class="close" onclick="closeModal()">✕</button>
+  <h3>${p?"👤 حسابي":"👤 إنشاء حساب"}</h3>
+  ${p?`<small class="hint">مسجل باسم <b>${esc(p.name)}</b> · <span class="num" dir="ltr">+${esc(p.cc)}${esc(p.phone)}</span> — فيك تعدل بياناتك:</small>`:`<small class="hint">سجل مرة وحدة وبتتعبى بياناتك تلقائياً بكل طلب 🛒</small>`}
+  <label>الاسم الكامل</label><input id="ac-name" value="${p?esc(p.name):""}" placeholder="مثال: عمر أحمد">
+  <label>الدولة</label>
+  <select id="ac-cc" onchange="accHint()">${COUNTRIES.map(x=>`<option value="${x[0]}" ${p&&p.cc===x[0]?"selected":""}>${x[1]} (+${x[0]})</option>`).join("")}</select>
+  <label>رقم الموبايل <small id="ac-hint" style="color:var(--muted)"></small></label>
+  <input id="ac-phone" inputmode="numeric" value="${p?esc(p.phone):""}" placeholder="بدون صفر بالأول وبدون رمز الدولة" style="direction:ltr;text-align:left">
+  <button class="btn" onclick="saveAccount()">${p?"💾 حفظ التعديل":"✅ إنشاء الحساب"}</button>`);
+  accHint();
+}
+function accHint(){
+  const cc=document.getElementById("ac-cc").value;
+  const cn=COUNTRIES.find(x=>x[0]===cc);
+  if(cn)document.getElementById("ac-hint").textContent="("+(cn[2]===cn[3]?cn[2]:cn[2]+"-"+cn[3])+" أرقام)";
+}
+async function saveAccount(){
+  const name=document.getElementById("ac-name").value.trim();
+  const cc=document.getElementById("ac-cc").value;
+  let phone=document.getElementById("ac-phone").value.replace(/[^0-9]/g,"");
+  if(phone.startsWith("0"))phone=phone.replace(/^0+/,"");
+  const cn=COUNTRIES.find(x=>x[0]===cc);
+  if(name.length<2)return toast("اكتب اسمك الكامل");
+  if(!cn||phone.length<cn[2]||phone.length>cn[3])return toast("رقم الموبايل مو صحيح لهالدولة — لازم "+(cn[2]===cn[3]?cn[2]:cn[2]+"-"+cn[3])+" أرقام بدون الصفر");
+  try{
+    const r=await fetch(API(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"register",dev:devId(),name,cc,phone})});
+    if(!r.ok)throw 0;
+    localStorage.setItem("syrphy-profile",JSON.stringify({name,cc,phone}));
+    const b=document.getElementById("d-acc");if(b)b.innerHTML="👤 حسابي ("+esc(name.split(" ")[0])+")";
+    closeModal();toast("✅ أهلاً فيك "+name.split(" ")[0]+"! بياناتك رح تتعبى لحالها بالطلبات");
+  }catch(e){toast("ما زبط التسجيل — تأكد من البيانات")}
+}
+/* ==== الشكاوي ==== */
+function complaintSheet(){
+  const p=getProfile();
+  sheet(`<button class="close" onclick="closeModal()">✕</button>
+  <h3>📨 الشكاوي والاقتراحات</h3>
+  <small class="hint">شكوتك بتوصل للإدارة مباشرة وما حدا غيرها بيشوفها — وإذا حاطط رقمك منرد عليك.</small>
+  <label>شكوتك أو اقتراحك</label>
+  <textarea id="cp-text" placeholder="اكتب بالتفصيل..." style="height:110px"></textarea>
+  <label>رقمك للتواصل (اختياري)</label>
+  <input id="cp-phone" value="${p?("+"+esc(p.cc)+esc(p.phone)):""}" placeholder="واتساب للرد عليك" style="direction:ltr;text-align:left">
+  <button class="btn" onclick="sendComplaint()">📨 إرسال للإدارة</button>`);
+}
+async function sendComplaint(){
+  const text=document.getElementById("cp-text").value.trim();
+  if(text.length<5)return toast("اكتب شكوتك أول");
+  const p=getProfile();
+  try{
+    const r=await fetch(API(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"complaint",text,phone:document.getElementById("cp-phone").value.trim(),name:p?p.name:""})});
+    if(!r.ok)throw 0;
+    closeModal();toast("📨 وصلت شكوتك للإدارة — شكراً إلك وإن شاء الله منتابعها");
+  }catch(e){toast("ما زبط الإرسال — جرب كمان شوي")}
+}
 /* ==== نظام النقاط ==== */
 function devId(){let d=localStorage.getItem("syrphy-dev");if(!d){d=uid()+uid();localStorage.setItem("syrphy-dev",d)}return d}
 async function myPoints(){
@@ -655,24 +734,31 @@ async function sendSiteReview(){
 function wheelSheet(){
   sheet(`<button class="close" onclick="closeModal()">✕</button>
   <h3 style="text-align:center">🎡 دولاب الحظ</h3>
-  <small class="hint" style="text-align:center">جرّب حظك مرة كل 29 ساعة — ممكن تربح كود خصم لحد 50%!</small>
-  <div style="display:flex;justify-content:center;margin:16px 0;position:relative">
-    <div style="position:absolute;top:-6px;right:50%;transform:translateX(50%);font-size:1.6rem;z-index:2">🔻</div>
-    <svg id="wheel-svg" viewBox="0 0 200 200" width="230" height="230" style="transition:transform 4s cubic-bezier(.15,.7,.2,1)">
-      <g transform="translate(100,100)">
-        <path d="M0,0 L0,-95 A95,95 0 0,1 95,0 Z" fill="#2E9E63"/>
-        <path d="M0,0 L95,0 A95,95 0 0,1 0,95 Z" fill="#E0605A"/>
-        <path d="M0,0 L0,95 A95,95 0 0,1 -95,0 Z" fill="#D9A62E"/>
-        <path d="M0,0 L-95,0 A95,95 0 0,1 0,-95 Z" fill="#5AA7E0"/>
-        <text x="45" y="-40" fill="#fff" font-size="13" font-weight="bold" text-anchor="middle" transform="rotate(45)">خصم 10%</text>
-        <text x="45" y="-40" fill="#fff" font-size="13" font-weight="bold" text-anchor="middle" transform="rotate(135)">حظ أوفر</text>
-        <text x="45" y="-40" fill="#fff" font-size="13" font-weight="bold" text-anchor="middle" transform="rotate(225)">خصم 20%</text>
-        <text x="45" y="-40" fill="#fff" font-size="13" font-weight="bold" text-anchor="middle" transform="rotate(315)">خصم 50%</text>
-        <circle r="16" fill="var(--card)" stroke="var(--line)"/>
+  <small class="hint" style="text-align:center">لفة وحدة كل 29 ساعة — جرب حظك بخصم لحد 50%!</small>
+  <div style="display:flex;justify-content:center;margin:18px 0 6px;position:relative">
+    <div style="position:absolute;top:-14px;right:50%;transform:translateX(50%);z-index:3;filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))">
+      <svg width="30" height="34" viewBox="0 0 30 34"><path d="M15 34 L2 8 Q15 0 28 8 Z" fill="#D9A62E" stroke="#fff" stroke-width="2"/></svg>
+    </div>
+    <svg id="wheel-svg" viewBox="0 0 220 220" width="250" height="250" style="transition:transform 4.2s cubic-bezier(.12,.65,.18,1);filter:drop-shadow(0 6px 16px rgba(0,0,0,.25))">
+      <g transform="translate(110,110)">
+        <circle r="108" fill="#fff"/>
+        <circle r="108" fill="none" stroke="#D9A62E" stroke-width="4"/>
+        <path d="M0,0 L0,-100 A100,100 0 0,1 100,0 Z" fill="#17A356"/>
+        <path d="M0,0 L100,0 A100,100 0 0,1 0,100 Z" fill="#E8EDEA"/>
+        <path d="M0,0 L0,100 A100,100 0 0,1 -100,0 Z" fill="#E0605A"/>
+        <path d="M0,0 L-100,0 A100,100 0 0,1 0,-100 Z" fill="#2B6CB0"/>
+        <line x1="0" y1="-104" x2="0" y2="104" stroke="#fff" stroke-width="5"/>
+        <line x1="-104" y1="0" x2="104" y2="0" stroke="#fff" stroke-width="5"/>
+        <g transform="rotate(45)"><text y="-62" text-anchor="middle" fill="#fff" font-size="17" font-weight="900" font-family="Cairo,sans-serif">خصم 10%</text><text y="-42" text-anchor="middle" font-size="18">🏷️</text></g>
+        <g transform="rotate(135)"><text y="-62" text-anchor="middle" fill="#6C7570" font-size="16" font-weight="900" font-family="Cairo,sans-serif" transform="rotate(180 0 -68)">حظ أوفر</text><text y="-40" text-anchor="middle" font-size="18" transform="rotate(180 0 -46)">😅</text></g>
+        <g transform="rotate(225)"><text y="-62" text-anchor="middle" fill="#fff" font-size="17" font-weight="900" font-family="Cairo,sans-serif" transform="rotate(180 0 -68)">خصم 20%</text><text y="-40" text-anchor="middle" font-size="18" transform="rotate(180 0 -46)">🎉</text></g>
+        <g transform="rotate(315)"><text y="-62" text-anchor="middle" fill="#fff" font-size="17" font-weight="900" font-family="Cairo,sans-serif">خصم 50%</text><text y="-42" text-anchor="middle" font-size="18">👑</text></g>
+        <circle r="26" fill="#141414" stroke="#D9A62E" stroke-width="3"/>
+        <text y="8" text-anchor="middle" font-size="22">🎁</text>
       </g>
     </svg>
   </div>
-  <div id="wheel-msg" style="text-align:center;min-height:1.4em;font-size:.9rem"></div>
+  <div id="wheel-msg" style="text-align:center;min-height:1.5em;font-size:.92rem;font-weight:700"></div>
   <button class="btn" id="wheel-btn" onclick="spinWheel()">🎡 جرّب حظك!</button>`);
 }
 async function spinWheel(){
@@ -730,6 +816,7 @@ async function enablePush(){
     toast("✓ تم! رح يوصلك إشعار بكل خصم قوي 🔥");
   }catch(e){toast("ما زبط التفعيل - جرب كمان مرة")}
 }
+(function(){const p=getProfile();if(p){const b=document.getElementById("d-acc");if(b)b.innerHTML="👤 حسابي ("+esc(p.name.split(" ")[0])+")"}})();
 if(localStorage.getItem("syrphy-push")==="1"){const db=document.getElementById("d-bell");if(db)db.innerHTML="🔕 الإشعارات مفعلة ✓"}
 let __hs=0;
 setInterval(()=>{const sl=document.querySelectorAll(".hslide"),dt=document.querySelectorAll(".hdots span");if(sl.length<2)return;__hs=(__hs+1)%sl.length;sl.forEach((s,i)=>s.classList.toggle("on",i===__hs));dt.forEach((d,i)=>d.classList.toggle("on",i===__hs));},5000);
