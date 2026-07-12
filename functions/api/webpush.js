@@ -53,7 +53,7 @@ function objectToBase64Url(obj) {
 }
 
 // node_modules/@block65/webcrypto-web-push/dist/lib/isomorphic-crypto.js
-var impl = globalThis.crypto ? globalThis.crypto : await import("node:crypto");
+var impl = globalThis.crypto;
 var crypto2 = {
   getRandomValues: (array) => "webcrypto" in impl ? impl.webcrypto.getRandomValues(array) : impl.getRandomValues(array),
   subtle: "webcrypto" in impl ? impl.webcrypto.subtle : impl.subtle
