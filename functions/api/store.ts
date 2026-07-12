@@ -171,7 +171,10 @@ export const onRequest: PagesFunction<Env> = async (context) => {
         reviews[pid] = { avg: Math.round(avg * 10) / 10, count: list.length, last: list.slice(-5).reverse() };
       });
       const sold = await readKey(env, SOLD_KEY, {});
-      const res = json({ ...catalog, reviews, sold }, { headers: { "Cache-Control": "public, s-maxage=120" } });
+      const srAll = ((await readKey(env, SITE_REV_KEY, [])) || []) as { s: number; c: string; ts: number }[];
+      const siteRev = srAll.slice(-12).reverse();
+      const siteRevAvg = srAll.length ? Math.round((srAll.reduce((a, r) => a + (r.s || 0), 0) / srAll.length) * 10) / 10 : 0;
+      const res = json({ ...catalog, reviews, sold, siteRev, siteRevAvg, siteRevCount: srAll.length }, { headers: { "Cache-Control": "public, s-maxage=120" } });
       context.waitUntil(cache.put(cacheKey, res.clone()));
       return res;
     }
