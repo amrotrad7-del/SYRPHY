@@ -35,6 +35,10 @@
 .hrow{display:flex;align-items:center;gap:10px}
 .hrow .brand{flex:1;min-width:0}
 .menu-btn{font-size:1.35rem}
+.acc-cta{flex:1;background:linear-gradient(135deg,var(--green),#0d8a47);color:#fff;border:none;border-radius:12px;padding:10px;font-family:Cairo;font-weight:800;font-size:.85rem;cursor:pointer}
+.wl-pill{background:var(--bg);border:1px solid var(--green);color:var(--green);border-radius:20px;padding:7px 14px;font-family:Cairo;font-weight:800;font-size:.8rem;flex:1;text-align:center}
+.pts-box{background:#FFD873;color:#4A3200;border:none;border-radius:20px;padding:7px 14px;font-family:Cairo;font-weight:900;font-size:.82rem;cursor:pointer}
+#wl-wrap{display:none}
 .drawer-ov{position:fixed;inset:0;background:rgba(8,14,10,.55);z-index:90;opacity:0;pointer-events:none;transition:.3s}
 .drawer-ov.on{opacity:1;pointer-events:auto}
 .drawer{position:fixed;top:0;bottom:0;right:-290px;width:280px;background:var(--card);z-index:95;transition:right .3s;padding:14px;display:flex;flex-direction:column;gap:8px;box-shadow:-4px 0 20px rgba(0,0,0,.2);overflow-y:auto}
@@ -43,6 +47,7 @@
 .d-item{display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:13px 14px;color:var(--text);font-family:Cairo;font-weight:700;font-size:.92rem;text-align:right;text-decoration:none;cursor:pointer;width:100%}
 .d-item:active{background:var(--line)}
 .d-sep{border-top:1px dashed var(--line);margin:6px 0}
+.d-cap{font-size:.68rem;color:var(--muted);font-family:Cairo;font-weight:800;margin:8px 4px 0;letter-spacing:.5px}
     .brand{display:flex;align-items:center;gap:9px;flex:1;min-width:0}.brand .name{font-family:"Cairo";font-weight:900;font-size:1.3rem;letter-spacing:.5px}.brand .name i{color:var(--green);font-style:normal}.brand small{display:block;font-size:.68rem;color:var(--muted);font-weight:400}
     .online{display:flex;align-items:center;gap:5px;background:rgba(23,163,86,.1);border:1px solid rgba(23,163,86,.24);color:var(--green);border-radius:16px;padding:5px 9px;font-family:"Cairo";font-size:.72rem;font-weight:800;white-space:nowrap;min-height:30px}.online:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 4px rgba(23,163,86,.14)}.online .num{font-size:.82rem}
     .hbtn{background:var(--bg);border:1px solid var(--line);border-radius:12px;width:40px;height:40px;font-size:1.1rem;color:var(--text);position:relative;flex:none}.hbtn .dot{position:absolute;top:-5px;left:-5px;background:var(--red);color:#fff;border-radius:20px;font-size:.62rem;min-width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-weight:700;padding:0 4px}
@@ -80,6 +85,14 @@
       <div><div class="name">SYR<i>PHY</i></div><small>من دبي لقلب سوريا</small></div>
     </div>
     <div class="online" id="online-badge" title="الأشخاص الموجودين الآن"><span class="num" id="online-n">1</span><span>أونلاين</span></div>
+    <button class="hbtn" id="theme-btn" onclick="toggleTheme()" title="الوضع الليلي" style="width:38px;height:38px">🌙</button>
+  </div>
+  <div class="hrow" id="acc-row">
+    <button id="acc-cta" class="acc-cta" onclick="accountSheet()">👤 إنشاء حساب / تسجيل دخول</button>
+    <div id="wl-wrap" style="display:none;flex:1;align-items:center;gap:8px">
+      <span class="wl-pill">👋 WELCOME <b id="wl-name"></b></span>
+      <button class="pts-box num" id="pts-box" onclick="myPoints()" title="نقاطي">🎁 --</button>
+    </div>
   </div>
   <button class="hbtn menu-btn" onclick="openDrawer()" title="القائمة">☰<span class="dot" id="cart-n" style="display:none">0</span></button>
 </header>
@@ -88,19 +101,25 @@
 <div class="drawer-ov" id="drawer-ov" onclick="closeDrawer()"></div>
 <aside class="drawer" id="drawer">
   <div class="d-head"><b>القائمة</b><button class="hbtn" onclick="closeDrawer()" style="width:36px;height:36px">✕</button></div>
+  <div class="d-cap">🛍️ التسوق</div>
   <button class="d-item" onclick="closeDrawer();openCart()">🛒 السلة <span class="badge g num" id="d-cart-n" style="display:none">0</span></button>
   <button class="d-item" onclick="closeDrawer();myOrders()">📦 طلباتي وتتبع التوصيل</button>
-  <button class="d-item" id="d-acc" onclick="closeDrawer();accountSheet()">👤 إنشاء حساب</button>
-  <button class="d-item" onclick="closeDrawer();complaintSheet()">📨 الشكاوي والاقتراحات</button>
+  <div class="d-cap">👤 حسابي</div>
+  <button class="d-item" id="d-acc" onclick="closeDrawer();accountSheet()">👤 إنشاء حساب / دخول</button>
   <button class="d-item" onclick="closeDrawer();myPoints()">🎁 نقاطي</button>
-  <button class="d-item" onclick="closeDrawer();wheelSheet()">🎡 دولاب الحظ</button>
-  <button class="d-item" onclick="closeDrawer();rateSite()">⭐ قيّم الموقع</button>
+  <div class="d-cap">🎮 العب واربح</div>
+  <button class="d-item" onclick="toggleGames(this)">🕹️ الألعاب <span style="margin-right:auto">⬅</span></button>
+  <div id="d-games" style="display:none;padding-right:14px;display:none">
+    <button class="d-item" style="border-color:var(--green)" onclick="closeDrawer();wheelSheet()">🎡 دولاب الحظ</button>
+    <button class="d-item" style="border-color:var(--green);margin-top:8px" onclick="closeDrawer();whackSheet()">🩴 اضرب الجحش</button>
+  </div>
+  <div class="d-cap">💬 التواصل</div>
+  <button class="d-item" onclick="closeDrawer();rateSite()">⭐ قيّم الموقع واكسب</button>
+  <button class="d-item" onclick="closeDrawer();complaintSheet()">📨 الشكاوي والاقتراحات</button>
   <button class="d-item" id="d-bell" onclick="enablePush()">🔔 إشعارات الخصومات</button>
-  <button class="d-item" onclick="toggleTheme()" id="d-theme">🌙 الوضع الليلي</button>
-  <div class="d-sep"></div>
   <a class="d-item" href="https://www.facebook.com/share/1G1Ratw1eP/" target="_blank" rel="noopener">📘 صفحتنا عالفيسبوك</a>
   <a class="d-item" href="https://whatsapp.com/channel/0029Vb8afZPIiRoyfAXGjt2I" target="_blank" rel="noopener">📢 قناتنا عالواتساب</a>
-  <div class="d-sep"></div>
+  <div class="d-cap">🔐 الإدارة</div>
   <button class="d-item" onclick="closeDrawer();adminGate()">🔑 دخول المدير</button>
   <button class="d-item" onclick="closeDrawer();userGate()">👤 دخول المستخدمين</button>
 </aside>
@@ -131,28 +150,21 @@
         <p style="font-size:.85rem">قيّم SYRPHY تقييم إيجابي وبيوصلك فوراً <b style="color:#FFD873">كود خصم 5%</b> لمرة وحدة 🎁</p>
         <button onclick="rateSite()" style="margin-top:5px;background:#FFD873;color:#4A3200;border:none;border-radius:18px;padding:7px 18px;font-family:Cairo;font-weight:800;font-size:.8rem;cursor:pointer;position:relative;z-index:3">⭐ قيّم هلق واكسب</button>
       </div>
-      <div class="hslide">
-        <h2 style="font-size:1.1rem">📢 للإعلان على موقعنا</h2>
-        <p>يرجى التواصل معنا على رقم الواتساب الموجود أسفل الصفحة — مساحات إعلانية متاحة لعلامتكم.</p>
-      </div>
-      <div class="hdots"><span class="on"></span><span></span><span></span><span></span><span></span><span></span></div>
+      <div class="hdots"><span class="on"></span><span></span><span></span><span></span><span></span></div>
     </div>
   <div class="clocks"><span>🇦🇪 دبي <b class="num" id="clk-ae">--:--</b></span><span>🇸🇾 دمشق <b class="num" id="clk-sy">--:--</b></span></div>
-    <svg class="map" viewBox="0 0 240 125" fill="none">
-    <!-- سوريا (فوق يسار) -->
-    <g transform="translate(4,2) scale(0.82)" fill="#FFFFFF">
-      <path d="M2.6,18 L5.2,5.2 L13,7.8 L18.2,9.1 L31.2,6.5 L58.5,6.5 L72.8,3.3 L87.8,2.6 L83.2,10.4 L68.9,37.7 L41.6,49.4 L19.5,61.1 L6.5,61.1 L3.9,57.2 L2.6,52 L9.1,45.5 L13,40.3 L5.2,34.5 L3.9,33.8 L1.3,24.7 Z"/>
+    <svg class="map" viewBox="0 0 250 130" fill="none">
+    <!-- سوريا: خط الساحل غرباً، الحدود التركية شمالاً بانحناءات، دجلة شمال شرق، البادية جنوباً -->
+    <g transform="translate(2,0) scale(0.92)" fill="#FFFFFF">
+      <path d="M6,28 L7,22 Q9,16 14,15 L20,16 Q24,13 28,14 L34,10 Q40,7 46,9 L54,7 Q62,5 70,8 L78,6 Q86,4 92,8 L98,6 L104,10 L99,15 L96,22 L90,30 L84,40 L76,48 L66,54 L54,58 L40,62 L26,64 L14,64 L10,60 L8,54 Q12,50 13,46 L9,42 Q6,40 7,36 Z"/>
     </g>
-    <!-- الإمارات (تحت يمين) -->
-    <g transform="translate(168,72) scale(0.95)" fill="#FFFFFF">
-      <path d="M1.3,27.3 L14.3,26.6 L31.2,26 L37.7,22.7 L45.5,15.6 L50,11 L58.5,1.6 L63,7.5 L62.4,16.9 L55.6,28.3 L52.4,41.9 L14,42.4 Z"/>
+    <!-- الإمارات: الساحل الغربي عالخليج، قرن مسندم شمالاً، الربع الخالي جنوباً -->
+    <g transform="translate(172,74) scale(1.0)" fill="#FFFFFF">
+      <path d="M0,26 L6,24 L12,25 L18,24 L24,25 L30,24 L34,21 L38,17 Q42,13 45,10 L50,5 L54,1 L57,4 L56,10 L58,15 L55,20 L53,27 L50,34 L44,38 L14,39 L4,34 Z"/>
     </g>
-    <!-- مسار الشحن: الإمارات → سوريا -->
-    <path d="M185,80 Q140,95 95,70 Q65,52 52,38" stroke="#FFFFFF" stroke-width="2.6" stroke-dasharray="7 6" stroke-linecap="round"/>
-    <!-- رأس السهم عند سوريا -->
-    <polygon points="52,38 63,40 57,48" fill="#FFFFFF"/>
-    <!-- شاحنة التوصيل عالمسار (متجهة لسوريا) -->
-    <g transform="translate(103,58)" stroke="#FFFFFF" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M188,82 Q145,98 98,72 Q68,54 55,40" stroke="#FFFFFF" stroke-width="2.6" stroke-dasharray="7 6" stroke-linecap="round"/>
+    <polygon points="55,40 66,42 60,50" fill="#FFFFFF"/>
+    <g transform="translate(106,60)" stroke="#FFFFFF" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">
       <rect x="8" y="0" width="24" height="14" rx="2"/>
       <path d="M8,4 L0,4 L-4,10 L-4,14 L8,14"/>
       <circle cx="2" cy="16.5" r="3.4"/>
@@ -160,18 +172,28 @@
     </g>
   </svg>
   </div>
+<div class="ad-box" style="max-width:1060px;margin:10px auto 0;padding:11px 16px;background:linear-gradient(135deg,#14532D,#0B7A3E);color:#fff;border-radius:14px;display:flex;align-items:center;gap:10px;font-size:.82rem;box-shadow:var(--shadow)">
+  <span style="font-size:1.3rem">📢</span>
+  <span style="flex:1"><b style="font-family:Cairo">للإعلان على موقعنا</b> — يرجى التواصل معنا على رقم الواتساب الموجود أسفل الصفحة</span>
+</div>
   <div class="pills" id="cat-pills"></div>
   <div class="sec-title" id="all-title">المنتجات</div>
   <div class="grid" id="grid"></div>
   <div id="grid-empty"></div>
 </main>
-<a class="wa" href="https://wa.me/963938946004" target="_blank" rel="noopener" title="تواصل واتساب"><svg viewBox="0 0 24 24" width="30" height="30" fill="#fff" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg></a>
-<section id="site-reviews-sec" style="max-width:1060px;margin:6px auto 0;padding:0 14px;display:none">
-  <h2 style="font-family:Cairo;font-size:1.05rem;display:flex;align-items:center;gap:8px">⭐ شو قالو زبائننا <span id="sr-avg" class="badge g num" style="font-size:.75rem"></span></h2>
-  <div id="sr-list" style="display:flex;gap:10px;overflow-x:auto;padding:10px 2px 14px;scroll-snap-type:x mandatory"></div>
-  <div style="text-align:center;margin-bottom:8px"><button class="mini" style="padding:9px 20px" onclick="rateSite()">⭐ ضيف تقييمك واكسب خصم 5%</button></div>
-</section>
-<footer>SYRPHY © <span id="yr"></span> - توصيل لكل المحافظات السورية<br>للطلب والاستفسار واتساب: <span class="num">+963 938 946 004</span><br><a href="https://wa.me/963938946004?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%20%F0%9F%91%8B%20%D8%AD%D8%A7%D8%A8%D8%A8%20%D8%A7%D9%86%D8%B6%D9%85%20%D9%84%D9%81%D8%B1%D9%8A%D9%82%20SYRPHY%20%F0%9F%9A%80" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;background:var(--green);color:#fff;padding:11px 22px;border-radius:24px;text-decoration:none;font-family:Cairo;font-weight:800;font-size:.9rem;margin:4px 0 14px">🤝 انضم إلى فريقنا</a><div style="opacity:.45;font-size:.65rem;margin-top:6px">v26.07.14.2-cf</div></footer>
+<div class="wa" onclick="waMenu()" title="تواصل واتساب" style="cursor:pointer"><svg viewBox="0 0 24 24" width="30" height="30" fill="#fff" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg></div>
+<div id="wa-menu" style="position:fixed;bottom:86px;left:16px;z-index:60;display:none;flex-direction:column;gap:8px">
+  <a href="https://wa.me/963938946004" target="_blank" rel="noopener" style="background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 16px;text-decoration:none;color:var(--text);font-family:Cairo;font-weight:800;font-size:.82rem;box-shadow:var(--shadow)">💬 تواصل معنا</a>
+  <a href="https://wa.me/963938946004?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%20%F0%9F%91%8B%20%D8%A8%D8%AF%D9%8A%20%D8%A7%D8%B7%D9%84%D8%A8%20%D9%85%D9%86%D8%AA%D8%AC%20%D9%85%D9%86%20%D9%85%D9%88%D9%82%D8%B9%20%D8%AE%D8%A7%D8%B1%D8%AC%D9%8A%20%F0%9F%8C%8D%20%D9%87%D8%A7%D8%AF%20%D8%A7%D9%84%D8%B1%D8%A7%D8%A8%D8%B7%3A%20" target="_blank" rel="noopener" style="background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 16px;text-decoration:none;color:var(--text);font-family:Cairo;font-weight:800;font-size:.82rem;box-shadow:var(--shadow)">🌍 لطلب منتج من موقع خارجي</a>
+</div>
+<div id="rev-ticker" style="position:fixed;left:8px;top:38%;width:172px;z-index:40;display:none;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:11px 12px;box-shadow:var(--shadow);transition:opacity .5s">
+  <button onclick="this.parentElement.style.display='none';window.__tickerOff=1" style="position:absolute;top:4px;left:6px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:.75rem">✕</button>
+  <div style="font-size:.62rem;color:var(--muted);font-family:Cairo;font-weight:800">⭐ تقييمات زبائننا</div>
+  <div id="rt-stars" style="color:#D9A62E;font-size:.8rem;letter-spacing:1px;margin-top:4px">★★★★★</div>
+  <div id="rt-text" style="font-size:.74rem;line-height:1.7;margin-top:4px;max-height:74px;overflow:hidden">...</div>
+  <div id="rt-name" style="font-size:.62rem;color:var(--muted);margin-top:5px">🛍️</div>
+</div>
+<footer>SYRPHY © <span id="yr"></span> - توصيل لكل المحافظات السورية<br>للطلب والاستفسار واتساب: <span class="num">+963 938 946 004</span><br><a href="https://wa.me/963938946004?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%20%F0%9F%91%8B%20%D8%AD%D8%A7%D8%A8%D8%A8%20%D8%A7%D9%86%D8%B6%D9%85%20%D9%84%D9%81%D8%B1%D9%8A%D9%82%20SYRPHY%20%F0%9F%9A%80" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;background:var(--green);color:#fff;padding:11px 22px;border-radius:24px;text-decoration:none;font-family:Cairo;font-weight:800;font-size:.9rem;margin:4px 0 14px">🤝 انضم إلى فريقنا</a><div style="opacity:.45;font-size:.65rem;margin-top:6px">v26.07.15.1-cf</div></footer>
 <div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
 <script id="seed" type="application/json">{"products":[],"coupons":[]}</script>
 <script>
@@ -200,7 +222,7 @@ function copyText(txt,msg){navigator.clipboard?.writeText(txt).then(()=>toast(ms
 function price(p){return p.disc>0?Math.round(p.price*(1-p.disc/100)):p.price}function pimg(p){return p.imgs?.[0]?.src||p.img||""}function sizesOf(im){return String(im&&im.sizes||"").split(/[,،\s]+/).filter(Boolean)}
 function hasSizes(p){return (p.imgs||[]).some(im=>sizesOf(im).length)}
 function colorList(p){return (p.imgs||[]).filter(x=>x.color&&x.color.trim())}
-function applyTheme(t){S.theme=t;document.documentElement.setAttribute("data-theme",t);const tb=document.getElementById("theme-btn");if(tb)tb.textContent=t==="dark"?"☀️":"🌙";const dt=document.getElementById("d-theme");if(dt)dt.innerHTML=t==="dark"?"☀️ الوضع النهاري":"🌙 الوضع الليلي"}function toggleTheme(){applyTheme(S.theme==="dark"?"light":"dark");persist()}
+function applyTheme(t){S.theme=t;document.documentElement.setAttribute("data-theme",t);const tb=document.getElementById("theme-btn");if(tb)tb.textContent=t==="dark"?"☀️":"🌙";}function toggleTheme(){applyTheme(S.theme==="dark"?"light":"dark");persist()}
 function autoCat(name){const n=(name||"").toLowerCase();for(const cat in CAT_WORDS){if(CAT_WORDS[cat].some(w=>n.includes(w)))return cat}return "أخرى"}function detectSource(link){const l=(link||"").toLowerCase();if(l.includes("shein"))return "شي إن";if(l.includes("temu"))return "تيمو";return l?"رابط":""}
 function renderPills(){const used=new Set(S.products.map(p=>p.cat));const cats=CATS.filter(cc=>cc==="الكل"||used.has(cc));const hasDisc=S.products.some(p=>p.disc>0);let html=cats.map(cc=>`<button class="${cc===curCat?"on":""}" onclick="setCat('${cc}')">${cc}</button>`).join("");if(hasDisc)html=`<button class="${curCat==="الخصومات"?"on":""}" style="${curCat==="الخصومات"?"":"border-color:var(--red);color:var(--red)"}" onclick="setCat('الخصومات')">🔥 الخصومات</button>`+html;document.getElementById("cat-pills").innerHTML=html}
 function setCat(c){curCat=c;renderPills();renderGrid()}
@@ -210,7 +232,21 @@ document.getElementById("all-title").textContent=curCat==="الكل"?"كل ال�
 document.getElementById("grid").innerHTML=list.map(prodCard).join("");
 document.getElementById("grid-empty").innerHTML=list.length?"":'<div class="empty"><span class="ic">🛍️</span>ما في منتجات بهالقسم بعد - قريباً!</div>'}
 function prodView(id){const p=S.products.find(x=>x.id===id);if(!p)return;const imgs=p.imgs?.length?p.imgs:(p.img?[{src:p.img,color:""}]:[]);window.__viewSel=0;window.__viewId=id;const thumbs=imgs.length>1?`<div style="display:flex;gap:8px;overflow-x:auto;padding:4px 0">${imgs.map((im,i)=>`<div onclick="pvSel(${i})" style="flex:none;text-align:center"><img src="${esc(im.src)}" id="pv-t${i}" style="width:58px;height:58px;object-fit:cover;border-radius:10px;border:2px solid ${i===0?"var(--green)":"var(--line)"}">${im.color?`<div style="font-size:.72rem;color:var(--muted);margin-top:2px">${esc(im.color)}</div>`:""}</div>`).join("")}</div>`:"";sheet(`<button class="close" onclick="closeModal()">✕</button><div style="border-radius:14px;overflow:hidden;margin-bottom:10px;max-height:340px">${imgs.length?`<img id="pv-main" src="${esc(imgs[0].src)}" style="width:100%;display:block;object-fit:cover">`:'<div style="height:180px;display:flex;align-items:center;justify-content:center;font-size:3rem;background:var(--bg)">🛍️</div>'}</div>${thumbs}<h3>${esc(p.name)}</h3><div style="margin:6px 0"><span class="badge g">${esc(p.cat)}</span> ${p.disc>0?`<span class="badge r">خصم ${p.disc}%</span>`:""}</div>${(window.__sold||{})[p.id]?`<div style="color:var(--red);font-size:.82rem;font-weight:700;margin:4px 0">🔥 انباع منها ${(window.__sold)[p.id]} قطعة</div>`:""}<div id="pv-sizes" style="display:flex;gap:7px;flex-wrap:wrap;margin:8px 0"></div><div id="pv-color" style="font-size:.88rem;margin:4px 0 2px">${imgs[0]?.color?"اللون المختار: <b>"+esc(imgs[0].color)+"</b>":""}</div><div class="pr" style="display:flex;align-items:baseline;gap:10px;margin:8px 0"><b class="num" style="font-family:Cairo;font-size:1.35rem;color:var(--green)">${syp(price(p))}</b>${p.disc>0?`<s class="num" style="color:var(--muted)">${syp(p.price)}</s>`:""}</div><button class="btn" onclick="pvAdd()">🛒 ضيف للسلة</button>
-    <div id="pv-reviews" style="margin-top:14px"></div>`);pvSizes();pvReviews(p.id)}
+    <div id="pv-similar"></div><div id="pv-reviews" style="margin-top:14px"></div>`);pvSizes();pvReviews(p.id);pvSimilar(p)}
+function pvSimilar(p){
+  const box=document.getElementById("pv-similar");if(!box)return;
+  const sims=S.products.filter(x=>x.cat===p.cat&&x.id!==p.id).slice(0,8);
+  if(!sims.length){box.innerHTML="";return}
+  box.innerHTML=`<div class="hr"></div><h3 style="font-size:.95rem">🛍️ منتجات مشابهة</h3>
+  <div style="display:flex;gap:9px;overflow-x:auto;padding:9px 2px;scroll-snap-type:x mandatory">${sims.map(x=>`
+    <div onclick="prodView('${x.id}')" style="flex:0 0 110px;scroll-snap-align:start;cursor:pointer;background:var(--bg);border:1px solid var(--line);border-radius:12px;overflow:hidden">
+      <div style="height:100px;overflow:hidden">${pimg(x)?`<img src="${esc(pimg(x))}" style="width:100%;height:100%;object-fit:cover" loading="lazy">`:`<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:1.6rem">🛍️</div>`}</div>
+      <div style="padding:7px 8px">
+        <div style="font-size:.68rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(x.name)}</div>
+        <div class="num" style="font-size:.7rem;color:var(--green);font-weight:800">${fmt(price(x))} ل.س</div>
+      </div>
+    </div>`).join("")}</div>`;
+}
 function pvReviews(pid){
   const box=document.getElementById("pv-reviews");if(!box)return;
   const rv=(window.__reviews||{})[pid];
@@ -239,17 +275,26 @@ async function sendProdReview(pid){
 function pvSizes(){const p=S.products.find(x=>x.id===window.__viewId);if(!p)return;const im=(p.imgs||[])[window.__viewSel]||{};const sz=sizesOf(im);const box=document.getElementById("pv-sizes");if(!box)return;window.__viewSize="";box.innerHTML=sz.length?'<span style="font-size:.85rem;color:var(--muted);align-self:center">القياس:</span>'+sz.map(s=>`<button class="mini" data-sz="${esc(s)}" onclick="pvSizeSel('${esc(s)}',this)">${esc(s)}</button>`).join(""):""}
 function pvSizeSel(s,btn){window.__viewSize=s;document.querySelectorAll("#pv-sizes .mini").forEach(b=>{b.style.borderColor="var(--line)";b.style.color="var(--text)"});btn.style.borderColor="var(--green)";btn.style.color="var(--green)"}
 function pvSel(i){const p=S.products.find(x=>x.id===window.__viewId);if(!p)return;window.__viewSel=i;pvSizes();document.getElementById("pv-main").src=p.imgs[i].src;p.imgs.forEach((_,k)=>{const t=document.getElementById("pv-t"+k);if(t)t.style.borderColor=k===i?"var(--green)":"var(--line)"});document.getElementById("pv-color").innerHTML=p.imgs[i].color?"اللون المختار: <b>"+esc(p.imgs[i].color)+"</b>":""}function pvAdd(){const p=S.products.find(x=>x.id===window.__viewId);if(!p)return;const im=p.imgs?.[window.__viewSel]||{};const sz=sizesOf(im);if(sz.length&&!window.__viewSize)return toast("اختار القياس أول 📏");addCart(p.id,im.color||"",true,window.__viewSize||"");closeModal()}
+let __rtIdx=0;
 function renderSiteReviews(){
-  const sr=window.__siteRev||{list:[],avg:0,count:0};
-  const sec=document.getElementById("site-reviews-sec");if(!sec)return;
-  if(!sr.list.length){sec.style.display="none";return}
-  sec.style.display="block";
-  document.getElementById("sr-avg").textContent=sr.avg+" من 5 · "+sr.count+" تقييم";
-  document.getElementById("sr-list").innerHTML=sr.list.map(r=>`<div style="flex:0 0 230px;scroll-snap-align:start;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px 14px;box-shadow:var(--shadow)">
-    <div style="color:#D9A62E;font-size:.85rem;letter-spacing:1px">${"★".repeat(r.s||5)}${"☆".repeat(5-(r.s||5))}</div>
-    <div style="font-size:.85rem;margin-top:7px;line-height:1.8">${esc(r.c||"تجربة ممتازة 👌")}</div>
-    <div style="color:var(--muted);font-size:.7rem;margin-top:8px">🛍️ ${esc(r.n||"زبون SYRPHY")} · ${new Date(r.ts).toLocaleDateString("ar-SY-u-nu-latn",{day:"numeric",month:"short"})}</div>
-  </div>`).join("");
+  const sr=window.__siteRev||{list:[]};
+  const t=document.getElementById("rev-ticker");if(!t)return;
+  if(!sr.list.length||window.__tickerOff){t.style.display="none";return}
+  t.style.display="block";
+  if(!window.__rtTimer){
+    const show=()=>{
+      const r=sr.list[__rtIdx%sr.list.length];if(!r)return;
+      t.style.opacity="0";
+      setTimeout(()=>{
+        document.getElementById("rt-stars").textContent="★".repeat(r.s||5)+"☆".repeat(5-(r.s||5));
+        document.getElementById("rt-text").textContent=r.c||"تجربة ممتازة 👌";
+        document.getElementById("rt-name").textContent="🛍️ "+(r.n||"زبون SYRPHY");
+        t.style.opacity="1";
+      },400);
+      __rtIdx++;
+    };
+    show();window.__rtTimer=setInterval(show,3000);
+  }
 }
 function renderAll(){renderSiteReviews();renderPills();renderGrid();renderCartN();document.getElementById("yr").textContent=new Date().getFullYear()}function sheet(html){document.getElementById("sheet").innerHTML=html;document.getElementById("modal").classList.add("on")}function closeModal(){document.getElementById("modal").classList.remove("on")}document.getElementById("modal").addEventListener("click",e=>{if(e.target.id==="modal")closeModal()});
 function addCart(id,color="",fromView=false,size=""){const p=S.products.find(x=>x.id===id);if(!p)return;if(!fromView&&(colorList(p).length>1||hasSizes(p))){prodView(id);toast(hasSizes(p)?"اختار اللون والقياس 🎨📏":"اختار اللون يلي بيناسبك");return}if(!fromView&&!color&&colorList(p).length===1)color=colorList(p)[0].color;const ex=CART.find(c=>c.id===id&&c.color===color&&(c.size||"")===size);ex?ex.qty++:CART.push({id,color,size,qty:1});renderCartN();toast("انضاف للسلة ✓")}
@@ -269,9 +314,15 @@ async function applyCoupon(){
     coupon={code,pct:d.pct,otc:!!d.otc};openCart();toast("انطبق الخصم "+d.pct+"% ✓ 🎉");
   }catch(e){coupon=null;document.getElementById("coup-msg").innerHTML='<small class="hint" style="color:var(--red)">الكود مو صحيح أو مستخدم من قبل</small>'}
 }
-function checkout(){window.__pf=getProfile();const t=cartTotals();sheet(`<button class="close" onclick="closeModal()">✕</button><h3>📦 إتمام الطلب</h3><label>الاسم الكامل</label><input id="o-name" placeholder="اسمك"><label>رقم الهاتف</label><input id="o-phone" inputmode="tel" placeholder="09xxxxxxxx"><label>العنوان بالتفصيل (المحافظة - المنطقة)</label><input id="o-addr" placeholder="دمشق - المزة، شارع..."><label style="margin-top:14px">🎁 هي الطلبية هدية لحدا بسوريا؟</label><div class="paybox" id="gift-box" onclick="toggleGift()"><span class="ic">🎁</span><div><b>إهداء لشخص داخل سوريا</b><p>عم تطلب من برا سوريا؟ اهدي حدا بتحبه - بنوصلها لبابه مع رسالتك.</p></div></div><div id="gift-fields" style="display:none"><label>اسم المستلم</label><input id="g-name" placeholder="اسم الشخص بسوريا"><label>رسالة الإهداء (اختياري)</label><input id="g-msg" placeholder="كل عام وانت بخير"></div><label style="margin-top:14px">طريقة الدفع</label><div class="paybox on" id="pay-sham" onclick="setPay('sham')"><span class="ic">📲</span><div><b>شام كاش</b><p>حوّل المبلغ عالرقم وابعت صورة الإشعار معنا عالواتساب.</p><div class="copybox"><code>0997753191</code><button class="mini" onclick="event.stopPropagation();copyText('0997753191','انتسخ رقم شام كاش ✓')">نسخ</button></div></div></div><div class="paybox" id="pay-cod" onclick="setPay('cod')"><span class="ic">🤝</span><div><b>تسليم باليد</b><p>بتدفع كاش لما توصلك الطلبية لباب بيتك.</p></div></div><div class="paybox" id="pay-bank" onclick="setPay('bank')"><span class="ic">🏦</span><div><b>تحويل بنكي</b><p>مناسب للإهداء من برا سوريا.</p><div class="copybox"><code>AE050352455001174595012</code><button class="mini" onclick="event.stopPropagation();copyText('AE050352455001174595012','انتسخ الآيبان ✓')">نسخ</button></div></div></div><div class="total-flow"><div class="l"><span>المجموع</span><b class="num">${syp(t.sub)}</b></div>${t.disc?`<div class="l disc"><span>خصم (${esc(coupon.code)})</span><b class="num">-${syp(t.disc)}</b></div>`:""}<div class="l gt"><span>الإجمالي</span><b class="num">${syp(t.total)}</b></div></div><small class="hint">لما تكبس تأكيد، بينفتح واتساب وفيه كل تفاصيل طلبك جاهزة.</small><button class="btn" onclick="sendOrder()">✅ تأكيد الطلب عبر واتساب</button>`);pushAbandoned();["o-name","o-phone"].forEach(fid=>{const el=document.getElementById(fid);if(el)el.addEventListener("input",pushAbandoned)})}
+function checkout(){window.__pf=getProfile();const t=cartTotals();sheet(`<button class="close" onclick="closeModal()">✕</button><h3>📦 إتمام الطلب</h3><label>الاسم الثلاثي</label><input id="o-name" value="${window.__pf?esc(window.__pf.name):""}" placeholder="الاسم الأول - الأب - العائلة"><label>رقم الهاتف</label><input id="o-phone" inputmode="tel" value="${window.__pf?esc('+'+window.__pf.cc+window.__pf.phone):""}" placeholder="09xxxxxxxx"><label>الدولة</label><select id="o-country"><option>سوريا</option></select><label>المحافظة</label><select id="o-gov"><option value="">اختار المحافظة...</option><option>دمشق</option><option>ريف دمشق</option><option>حلب</option><option>حمص</option><option>حماة</option><option>اللاذقية</option><option>طرطوس</option><option>إدلب</option><option>دير الزور</option><option>الرقة</option><option>الحسكة</option><option>درعا</option><option>السويداء</option><option>القنيطرة</option></select><label>المنطقة واسم الشارع (أو أقرب دليل)</label><input id="o-addr" placeholder="مثال: المزة - شارع الجلاء - جنب صيدلية النور"><label style="margin-top:14px">🎁 هي الطلبية هدية لحدا بسوريا؟</label><div class="paybox" id="gift-box" onclick="toggleGift()"><span class="ic">🎁</span><div><b>إهداء لشخص داخل سوريا</b><p>عم تطلب من برا سوريا؟ اهدي حدا بتحبه - بنوصلها لبابه مع رسالتك.</p></div></div><div id="gift-fields" style="display:none"><label>اسم المستلم</label><input id="g-name" placeholder="اسم الشخص بسوريا"><label>رسالة الإهداء (اختياري)</label><input id="g-msg" placeholder="كل عام وانت بخير"></div><label style="margin-top:14px">طريقة الدفع</label><div class="paybox on" id="pay-sham" onclick="setPay('sham')"><span class="ic">📲</span><div><b>شام كاش</b><p>حوّل المبلغ عالرقم وابعت صورة الإشعار معنا عالواتساب.</p><div class="copybox"><code>0997753191</code><button class="mini" onclick="event.stopPropagation();copyText('0997753191','انتسخ رقم شام كاش ✓')">نسخ</button></div></div></div><div class="paybox" id="pay-cod" onclick="setPay('cod')"><span class="ic">🤝</span><div><b>تسليم باليد</b><p>بتدفع كاش لما توصلك الطلبية لباب بيتك.</p></div></div><div class="paybox" id="pay-bank" onclick="setPay('bank')"><span class="ic">🏦</span><div><b>تحويل بنكي</b><p>مناسب للإهداء من برا سوريا.</p><div class="copybox"><code>AE050352455001174595012</code><button class="mini" onclick="event.stopPropagation();copyText('AE050352455001174595012','انتسخ الآيبان ✓')">نسخ</button></div></div></div><div class="total-flow"><div class="l"><span>المجموع</span><b class="num">${syp(t.sub)}</b></div>${t.disc?`<div class="l disc"><span>خصم (${esc(coupon.code)})</span><b class="num">-${syp(t.disc)}</b></div>`:""}<div class="l gt"><span>الإجمالي</span><b class="num">${syp(t.total)}</b></div></div><small class="hint">لما تكبس تأكيد، بينفتح واتساب وفيه كل تفاصيل طلبك جاهزة.</small><button class="btn" onclick="sendOrder()">✅ تأكيد الطلب عبر واتساب</button>`);pushAbandoned();["o-name","o-phone"].forEach(fid=>{const el=document.getElementById(fid);if(el)el.addEventListener("input",pushAbandoned)})}
 function toggleGift(){giftOn=!giftOn;document.getElementById("gift-box").classList.toggle("on",giftOn);document.getElementById("gift-fields").style.display=giftOn?"":"none";if(giftOn)setPay("bank")}function setPay(m){payMethod=m;["sham","cod","bank"].forEach(x=>document.getElementById("pay-"+x).classList.toggle("on",x===m))}
-function sendOrder(){const name=document.getElementById("o-name").value.trim(),phone=document.getElementById("o-phone").value.trim(),addr=document.getElementById("o-addr").value.trim();if(!name||!phone||!addr)return toast("عبّي الاسم والهاتف والعنوان");const t=cartTotals(),payNames={sham:"شام كاش (0997753191)",cod:"تسليم باليد عند الاستلام",bank:"تحويل بنكي على IBAN"};let msg="🛍️ *طلب جديد من SYRPHY*\\n\\n";CART.forEach(c=>{const p=S.products.find(x=>x.id===c.id);if(p)msg+=`▪️ ${p.name}${c.color?" - لون: "+c.color:""}${c.size?" - قياس: "+c.size:""} × ${c.qty} = ${fmt(price(p)*c.qty)} ل.س\\n`});if(coupon)msg+=`\\n🏷️ كود الخصم: ${coupon.code} (-${coupon.pct}%)\\n`;if(t.auto)msg+=`🎉 خصم تلقائي ${t.autoPct}% لأن الطلب فوق 750 ألف (-${fmt(t.auto)} ل.س)\\n`;msg+=`💰 *الإجمالي: ${fmt(t.total)} ل.س*\\n\\n👤 الاسم: ${name}\\n📞 الهاتف: ${phone}\\n📍 العنوان: ${addr}\\n`;if(giftOn){msg+=`\\n🎁 *طلبية إهداء*\\nالمستلم: ${document.getElementById("g-name").value.trim()||"-"}\\n${document.getElementById("g-msg").value.trim()?("الرسالة: "+document.getElementById("g-msg").value.trim()+"\\n"):""}`}msg+=`\\n💳 الدفع: ${payNames[payMethod]}`;window.open("https://wa.me/963938946004?text="+encodeURIComponent(msg),"_blank");CART=[];coupon=null;giftOn=false;payMethod="sham";const _oid=draftId||ensureDraft();const _items=CART.map(cc=>{const p=S.products.find(x=>x.id===cc.id);return{id:cc.id,name:p?p.name:"?",qty:cc.qty,color:cc.color||"",size:cc.size||""}});eventPost({type:"order_done",id:_oid,total:t.total,name,phone,addr,pay:payNames[payMethod]||payMethod,items:_items,coupon:coupon?coupon.code:""});try{const mo=JSON.parse(localStorage.getItem("syrphy-my-orders")||"[]");mo.unshift(_oid);localStorage.setItem("syrphy-my-orders",JSON.stringify(mo.slice(0,20)))}catch(_){}draftId="";sessionStorage.removeItem("syrphy-draft");renderCartN();thanksSheet()}
+function sendOrder(){const name=document.getElementById("o-name").value.trim(),phone=document.getElementById("o-phone").value.trim();let addr=document.getElementById("o-addr").value.trim();
+if(name.split(/\s+/).length<3)return toast("اكتب اسمك الثلاثي كامل (3 كلمات) 👤");
+if(!phone)return toast("اكتب رقم الهاتف");
+const _gov=document.getElementById("o-gov").value;
+if(!_gov)return toast("اختار المحافظة من القائمة 📍");
+if(addr.length<5)return toast("اكتب المنطقة والشارع أو أقرب دليل 📍");
+addr=document.getElementById("o-country").value+" - "+_gov+" - "+addr;const t=cartTotals(),payNames={sham:"شام كاش (0997753191)",cod:"تسليم باليد عند الاستلام",bank:"تحويل بنكي على IBAN"};let msg="🛍️ *طلب جديد من SYRPHY*\\n\\n";CART.forEach(c=>{const p=S.products.find(x=>x.id===c.id);if(p)msg+=`▪️ ${p.name}${c.color?" - لون: "+c.color:""}${c.size?" - قياس: "+c.size:""} × ${c.qty} = ${fmt(price(p)*c.qty)} ل.س\\n`});if(coupon)msg+=`\\n🏷️ كود الخصم: ${coupon.code} (-${coupon.pct}%)\\n`;if(t.auto)msg+=`🎉 خصم تلقائي ${t.autoPct}% لأن الطلب فوق 750 ألف (-${fmt(t.auto)} ل.س)\\n`;msg+=`💰 *الإجمالي: ${fmt(t.total)} ل.س*\\n\\n👤 الاسم: ${name}\\n📞 الهاتف: ${phone}\\n📍 العنوان: ${addr}\\n`;if(giftOn){msg+=`\\n🎁 *طلبية إهداء*\\nالمستلم: ${document.getElementById("g-name").value.trim()||"-"}\\n${document.getElementById("g-msg").value.trim()?("الرسالة: "+document.getElementById("g-msg").value.trim()+"\\n"):""}`}msg+=`\\n💳 الدفع: ${payNames[payMethod]}`;window.open("https://wa.me/963938946004?text="+encodeURIComponent(msg),"_blank");CART=[];coupon=null;giftOn=false;payMethod="sham";const _oid=draftId||ensureDraft();const _items=CART.map(cc=>{const p=S.products.find(x=>x.id===cc.id);return{id:cc.id,name:p?p.name:"?",qty:cc.qty,color:cc.color||"",size:cc.size||""}});eventPost({type:"order_done",id:_oid,total:t.total,name,phone,addr,pay:payNames[payMethod]||payMethod,items:_items,coupon:coupon?coupon.code:"",acc:(getProfile()||{}).cc?(getProfile().cc+getProfile().phone):""});try{const mo=JSON.parse(localStorage.getItem("syrphy-my-orders")||"[]");mo.unshift(_oid);localStorage.setItem("syrphy-my-orders",JSON.stringify(mo.slice(0,20)))}catch(_){}draftId="";sessionStorage.removeItem("syrphy-draft");renderCartN();thanksSheet()}
 function buildPromo(p){
   const cols=(p.imgs||[]).map(x=>x.color).filter(Boolean);
   const sizes=[...new Set((p.imgs||[]).flatMap(x=>String(x.sizes||"").split(/[,،\s]+/).filter(Boolean)))];
@@ -307,18 +358,26 @@ async function ordersPanel(){
   let d;try{d=await apiStore()}catch(e){return sheet(`<button class="close" onclick="adminPanel()">→ رجوع</button><div class="empty">تعذر الجلب</div>`)}
   window.__orders=d.orders||{};
   const ords=Object.entries(d.orders||{}).sort((x,y)=>(y[1].ts||0)-(x[1].ts||0));
-  const html=ords.map(([id,o])=>{
+  const html=ords.map(([id,o],idx)=>{
     const when=new Date(o.ts).toLocaleString("ar-SY-u-nu-latn",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
     const items=(o.items||[]).map(it=>`${esc(it.name)}${it.color?" ("+esc(it.color)+")":""}${it.size?" ق:"+esc(it.size):""} ×${it.qty}`).join("، ");
     const opts=TRACK_STEPS.map(s=>`<option ${o.status===s?"selected":""}>${s}</option>`).join("");
     const wa=(o.phone||"").replace(/[^0-9]/g,"").replace(/^0/,"963");
-    return `<div class="item"><div class="t"><b>${esc(o.name||"زبون")}</b><span class="badge g num">${fmt(o.total)} ل.س</span></div>
-    <div class="s">🕐 ${when} · 📞 <span class="num">${esc(o.phone||"-")}</span> · 💳 ${esc(o.pay||"-")}</div>
-    <div class="s">📍 ${esc(o.addr||"-")}</div><div class="s">🛒 ${items}</div>
-    <div class="row" style="margin-top:9px;align-items:center">
-      <select onchange="setOrderStatus('${id}',this.value)" style="flex:2">${opts}</select>
-      ${wa?`<a class="mini" style="text-decoration:none;text-align:center;flex:1" href="https://wa.me/${wa}" target="_blank">💬</a>`:""}
-      <button class="mini" style="flex:1" onclick="printInvoice('${id}')">🖨 فاتورة</button><button class="mini" style="color:var(--red);flex:1" onclick="delOrder('${id}')">🗑</button>
+    return `<div class="item">
+    <div class="t" style="cursor:pointer" onclick="const d=document.getElementById('od-${idx}');d.style.display=d.style.display==='none'?'block':'none'">
+      <b>👤 ${esc(o.name||"زبون")}</b><span class="badge ${o.status==="بانتظار التأكيد"?"":"g"} num">${fmt(o.total)} ل.س</span>
+    </div>
+    <div class="s">🕐 ${when} · <b style="color:${o.status==="بانتظار التأكيد"?"var(--red)":"var(--green)"}">${esc(o.status)}</b> <small style="color:var(--muted)">(اكبس عالاسم للتفاصيل)</small></div>
+    <div id="od-${idx}" style="display:none">
+      <div class="s">📞 <span class="num">${esc(o.phone||"-")}</span> · 💳 ${esc(o.pay||"-")}</div>
+      <div class="s" style="background:var(--bg);border-radius:8px;padding:7px 10px;margin-top:5px">📍 <b>موقع التوصيل:</b><br>${esc(o.addr||"-")}</div>
+      <div class="s">🛒 ${items}</div>
+      <div class="row" style="margin-top:9px;align-items:center">
+        <select onchange="setOrderStatus('${id}',this.value)" style="flex:2">${opts}</select>
+        ${wa?`<a class="mini" style="text-decoration:none;text-align:center;flex:1" href="https://wa.me/${wa}" target="_blank">💬</a>`:""}
+        <button class="mini" style="flex:1" onclick="printInvoice('${id}')">🖨</button>
+        <button class="mini" style="color:var(--red);flex:1" onclick="delOrder('${id}')">🗑</button>
+      </div>
     </div></div>`;
   }).join("")||'<div class="empty">ما في طلبات بعد</div>';
   sheet(`<button class="close" onclick="adminPanel()">→ رجوع</button><h3>📦 الطلبات وتتبع التوصيل (${ords.length})</h3><small class="hint">غيّر الحالة من القائمة — الزبون بيشوف التحديث فوراً بصفحة "طلباتي" عنده.</small>${html}`);
@@ -570,7 +629,7 @@ async function myOrders(){
   let ids=[];try{ids=JSON.parse(localStorage.getItem("syrphy-my-orders")||"[]")}catch(_){}
   if(!ids.length)return sheet(`<button class="close" onclick="closeModal()">✕</button><div class="empty"><span class="ic">📦</span>ما عندك طلبات بعد من هالجهاز.<br>أول ما تطلب، بتتابع طلبك من هون خطوة بخطوة 🚚</div>`);
   sheet(`<button class="close" onclick="closeModal()">✕</button><h3>📦 طلباتي</h3><div class="empty">عم حمّل حالة طلباتك...</div>`);
-  let d;try{const r=await fetch(API(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"my_orders",ids})});d=await r.json()}catch(e){return sheet(`<button class="close" onclick="closeModal()">✕</button><div class="empty">ما قدرت اجيب طلباتك - جرب كمان شوي</div>`)}
+  let d;try{const r=await fetch(API(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"my_orders",ids,acc:(getProfile()||{}).cc?(getProfile().cc+getProfile().phone):""})});d=await r.json()}catch(e){return sheet(`<button class="close" onclick="closeModal()">✕</button><div class="empty">ما قدرت اجيب طلباتك - جرب كمان شوي</div>`)}
   window.__myOrders=d.orders||{};
   const ords=Object.entries(d.orders||{}).sort((x,y)=>(y[1].ts||0)-(x[1].ts||0));
   if(!ords.length)return sheet(`<button class="close" onclick="closeModal()">✕</button><div class="empty"><span class="ic">📦</span>طلباتك القديمة ما عادت موجودة بالسجل.</div>`);
@@ -614,38 +673,86 @@ function tickClocks(){const f=tz=>new Intl.DateTimeFormat("en-GB",{hour:"2-digit
 /* ==== الحساب ==== */
 const COUNTRIES=[["963","🇸🇾 سوريا",9,9],["971","🇦🇪 الإمارات",9,9],["966","🇸🇦 السعودية",9,9],["962","🇯🇴 الأردن",9,9],["961","🇱🇧 لبنان",7,8],["90","🇹🇷 تركيا",10,10],["20","🇪🇬 مصر",10,10],["964","🇮🇶 العراق",10,10],["974","🇶🇦 قطر",8,8],["965","🇰🇼 الكويت",8,8],["968","🇴🇲 عُمان",8,8],["973","🇧🇭 البحرين",8,8],["49","🇩🇪 ألمانيا",10,11],["46","🇸🇪 السويد",9,9],["31","🇳🇱 هولندا",9,9]];
 function getProfile(){try{return JSON.parse(localStorage.getItem("syrphy-profile")||"null")}catch(_){return null}}
-function accountSheet(){
+function accountSheet(tab){
   const p=getProfile();
+  if(p&&!tab)tab="me";
+  tab=tab||"reg";
+  const tabs=`<div class="row" style="margin-bottom:10px">
+    <button class="mini" style="flex:1;${tab==="reg"?"border-color:var(--green);color:var(--green)":""}" onclick="accountSheet('reg')">👤 إنشاء حساب</button>
+    <button class="mini" style="flex:1;${tab==="login"?"border-color:var(--green);color:var(--green)":""}" onclick="accountSheet('login')">🔓 تسجيل دخول</button>
+  </div>`;
+  if(tab==="me"&&p){
+    sheet(`<button class="close" onclick="closeModal()">✕</button><h3>👤 حسابي</h3>
+    <div class="item"><div class="t"><b>${esc(p.name)}</b></div><div class="s num" dir="ltr">+${esc(p.cc)}${esc(p.phone)}</div></div>
+    <button class="btn ghost" onclick="accountSheet('reg')">✏️ تعديل بياناتي</button>
+    <button class="btn ghost" style="color:var(--red)" onclick="logoutAccount()">🚪 تسجيل خروج</button>`);
+    return;
+  }
   sheet(`<button class="close" onclick="closeModal()">✕</button>
-  <h3>${p?"👤 حسابي":"👤 إنشاء حساب"}</h3>
-  ${p?`<small class="hint">مسجل باسم <b>${esc(p.name)}</b> · <span class="num" dir="ltr">+${esc(p.cc)}${esc(p.phone)}</span> — فيك تعدل بياناتك:</small>`:`<small class="hint">سجل مرة وحدة وبتتعبى بياناتك تلقائياً بكل طلب 🛒</small>`}
+  <h3>${tab==="login"?"🔓 تسجيل الدخول":"👤 إنشاء حساب"}</h3>${tabs}
+  <small class="hint">${tab==="login"?"ادخل بنفس الاسم والرقم يلي سجلت فيهن — نقاطك وطلباتك بترجعلك بأي جهاز.":"سجل مرة وحدة: نقاطك وطلباتك وأكوادك كلها بتنربط بحسابك 🎁"}</small>
   <label>الاسم الكامل</label><input id="ac-name" value="${p?esc(p.name):""}" placeholder="مثال: عمر أحمد">
   <label>الدولة</label>
   <select id="ac-cc" onchange="accHint()">${COUNTRIES.map(x=>`<option value="${x[0]}" ${p&&p.cc===x[0]?"selected":""}>${x[1]} (+${x[0]})</option>`).join("")}</select>
   <label>رقم الموبايل <small id="ac-hint" style="color:var(--muted)"></small></label>
   <input id="ac-phone" inputmode="numeric" value="${p?esc(p.phone):""}" placeholder="بدون صفر بالأول وبدون رمز الدولة" style="direction:ltr;text-align:left">
-  <button class="btn" onclick="saveAccount()">${p?"💾 حفظ التعديل":"✅ إنشاء الحساب"}</button>`);
+  <button class="btn" onclick="${tab==="login"?"doLogin()":"saveAccount()"}">${tab==="login"?"🔓 دخول":"✅ إنشاء الحساب"}</button>`);
   accHint();
 }
-function accHint(){
+function applyLogin(name,cc,phone,isAdmin_){
+  localStorage.setItem("syrphy-profile",JSON.stringify({name,cc,phone}));
+  const b=document.getElementById("d-acc");if(b)b.innerHTML="👤 حسابي ("+esc(name.split(" ")[0])+")";
+  const cta=document.getElementById("acc-cta"),wl=document.getElementById("wl-wrap");
+  if(cta)cta.style.display="none";
+  if(wl){wl.style.display="flex";document.getElementById("wl-name").textContent=name.split(" ")[0]}
+  fetchPoints();
+  if(isAdmin_){adminPin=name.trim().toUpperCase()+":"+cc+phone;sessionStorage.setItem(ADMIN_KEY,adminPin);sessionStorage.setItem("syrphy-role","admin");isAdmin=true;toast("🔐 أهلاً بالمدير — الصلاحيات مفتوحة");refreshStore(true)}
+}
+function logoutAccount(){
+  localStorage.removeItem("syrphy-profile");
+  const cta=document.getElementById("acc-cta"),wl=document.getElementById("wl-wrap");
+  if(cta)cta.style.display="block";if(wl)wl.style.display="none";
+  const b=document.getElementById("d-acc");if(b)b.innerHTML="👤 إنشاء حساب / دخول";
+  closeModal();toast("سجلت خروج 👋");
+}
+async function doLogin(){
+  const name=document.getElementById("ac-name").value.trim();
   const cc=document.getElementById("ac-cc").value;
-  const cn=COUNTRIES.find(x=>x[0]===cc);
-  if(cn)document.getElementById("ac-hint").textContent="("+(cn[2]===cn[3]?cn[2]:cn[2]+"-"+cn[3])+" أرقام)";
+  let phone=document.getElementById("ac-phone").value.replace(/[^0-9]/g,"").replace(/^0+/,"");
+  if(name.length<2||phone.length<7)return toast("اكتب اسمك ورقمك متل ما سجلت");
+  try{
+    const r=await fetch(API(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"login",name,cc,phone})});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok)return toast(d.error==="not_found"?"ما في حساب بهالاسم والرقم — تأكد أو أنشئ حساب جديد":"ما زبط الدخول");
+    applyLogin(d.name||name,cc,phone,!!d.admin);
+    closeModal();toast("👋 WELCOME "+(d.name||name).split(" ")[0]+"!");
+    if(window.__afterAcc==="rate"){window.__afterAcc="";setTimeout(rateSite,400)}
+  }catch(e){toast("ما في اتصال")}
+}
+async function fetchPoints(){
+  const p=getProfile();const box=document.getElementById("pts-box");if(!box)return;
+  if(!p){box.textContent="🎁 --";return}
+  let ids=[];try{ids=JSON.parse(localStorage.getItem("syrphy-my-orders")||"[]")}catch(_){}
+  try{
+    const r=await fetch(API(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"my_points",dev:devId(),ids,acc:p.cc+p.phone})});
+    const d=await r.json();box.textContent="🎁 "+(d.balance||0);
+  }catch(e){}
 }
 async function saveAccount(){
   const name=document.getElementById("ac-name").value.trim();
   const cc=document.getElementById("ac-cc").value;
-  let phone=document.getElementById("ac-phone").value.replace(/[^0-9]/g,"");
-  if(phone.startsWith("0"))phone=phone.replace(/^0+/,"");
+  let phone=document.getElementById("ac-phone").value.replace(/[^0-9]/g,"").replace(/^0+/,"");
   const cn=COUNTRIES.find(x=>x[0]===cc);
   if(name.length<2)return toast("اكتب اسمك الكامل");
   if(!cn||phone.length<cn[2]||phone.length>cn[3])return toast("رقم الموبايل مو صحيح لهالدولة — لازم "+(cn[2]===cn[3]?cn[2]:cn[2]+"-"+cn[3])+" أرقام بدون الصفر");
   try{
     const r=await fetch(API(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"register",dev:devId(),name,cc,phone})});
+    if(r.status===409){toast("هالرقم مسجل من قبل — سجل دخول 🔓");return accountSheet("login")}
     if(!r.ok)throw 0;
-    localStorage.setItem("syrphy-profile",JSON.stringify({name,cc,phone}));
-    const b=document.getElementById("d-acc");if(b)b.innerHTML="👤 حسابي ("+esc(name.split(" ")[0])+")";
-    closeModal();toast("✅ أهلاً فيك "+name.split(" ")[0]+"!");if(window.__afterAcc==="rate"){window.__afterAcc="";setTimeout(rateSite,400)}
+    const dd=await r.json().catch(()=>({}));
+    applyLogin(name,cc,phone,!!dd.admin);
+    closeModal();toast("👋 WELCOME "+name.split(" ")[0]+"! حسابك جاهز");
+    if(window.__afterAcc==="rate"){window.__afterAcc="";setTimeout(rateSite,400)}
   }catch(e){toast("ما زبط التسجيل — تأكد من البيانات")}
 }
 /* ==== الشكاوي ==== */
@@ -676,7 +783,7 @@ async function myPoints(){
   sheet(`<button class="close" onclick="closeModal()">✕</button><h3>🎁 نقاطي</h3><div class="empty">عم يحسب نقاطك...</div>`);
   let ids=[];try{ids=JSON.parse(localStorage.getItem("syrphy-my-orders")||"[]")}catch(_){}
   let d={earned:0,redeemed:0,balance:0};
-  try{const r=await fetch(API(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"my_points",dev:devId(),ids})});if(r.ok)d=await r.json()}catch(e){}
+  try{const r=await fetch(API(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"my_points",dev:devId(),ids,acc:(getProfile()||{}).cc?(getProfile().cc+getProfile().phone):""})});if(r.ok)d=await r.json()}catch(e){}
   const pct=Math.min(d.balance,100);
   sheet(`<button class="close" onclick="closeModal()">✕</button>
   <h3>🎁 نقاطي</h3>
@@ -694,7 +801,7 @@ async function myPoints(){
 async function redeemPoints(){
   let ids=[];try{ids=JSON.parse(localStorage.getItem("syrphy-my-orders")||"[]")}catch(_){}
   try{
-    const r=await fetch(API(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"redeem_points",dev:devId(),ids})});
+    const r=await fetch(API(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"redeem_points",dev:devId(),ids,acc:(getProfile()||{}).cc?(getProfile().cc+getProfile().phone):""})});
     const d=await r.json();
     if(!r.ok)return toast(d.error==="not_enough"?"ما وصلت 100 نقطة بعد":"ما زبط");
     sheet(`<button class="close" onclick="closeModal()">✕</button>
@@ -724,7 +831,7 @@ function pickStar(n){__siteStars=n;for(let i=1;i<=5;i++)document.getElementById(
 async function sendSiteReview(){
   if(!__siteStars)return toast("اختار عدد النجوم أول ⭐");
   try{
-    const r=await fetch(API(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"site_review",stars:__siteStars,comment:document.getElementById("rs-comment").value.trim(),dev:devId(),name:(getProfile()||{}).name||""})});
+    const r=await fetch(API(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"site_review",stars:__siteStars,comment:document.getElementById("rs-comment").value.trim(),dev:devId(),name:(getProfile()||{}).name||"",acc:(getProfile()||{}).cc?(getProfile().cc+getProfile().phone):""})});
     const d=await r.json().catch(()=>({}));
     if(d.code){
       sheet(`<button class="close" onclick="closeModal()">✕</button>
@@ -739,6 +846,7 @@ async function sendSiteReview(){
 }
 /* ==== دولاب الحظ ==== */
 function wheelSheet(){
+  if(!getProfile()){window.__afterAcc="";toast("سجل حسابك أول لتلعب 👤");return accountSheet()}
   sheet(`<button class="close" onclick="closeModal()">✕</button>
   <h3 style="text-align:center">🎡 دولاب الحظ</h3>
   <small class="hint" style="text-align:center">لفة وحدة كل 29 ساعة — جرب حظك بخصم لحد 50%!</small>
@@ -768,12 +876,125 @@ function wheelSheet(){
   <div id="wheel-msg" style="text-align:center;min-height:1.5em;font-size:.92rem;font-weight:700"></div>
   <button class="btn" id="wheel-btn" onclick="spinWheel()">🎡 جرّب حظك!</button>`);
 }
+function whackSheet(){
+  if(!getProfile()){window.__afterAcc="";toast("سجل حسابك أول لتلعب 👤");return accountSheet()}
+  window.__wk={playing:false,attempt:0,hits:0,results:null,speed:2.2};
+  sheet(`<button class="close" onclick="closeModal()">✕</button>
+  <h3 style="text-align:center">🩴 اضرب الجحش</h3>
+  <small class="hint" style="text-align:center">معك 3 شحاطات! إصابتين براسه = خصم 5% · تلاتة = خصم 15% 👑 (مرة كل 20 ساعة)</small>
+  <div id="wk-arena" style="position:relative;height:180px;background:linear-gradient(#87CEEB 60%,#C9B37E 60%);border-radius:14px;margin:12px 0;overflow:hidden">
+    <div id="wk-donkey" style="position:absolute;bottom:8px;right:30%;font-size:0;transition:none">
+      <svg width="88" height="80" viewBox="0 0 88 80">
+        <ellipse cx="46" cy="52" rx="26" ry="16" fill="#8D8D93"/>
+        <rect x="26" y="60" width="6" height="16" rx="3" fill="#77777d"/>
+        <rect x="58" y="60" width="6" height="16" rx="3" fill="#77777d"/>
+        <rect x="36" y="62" width="6" height="14" rx="3" fill="#8D8D93"/>
+        <rect x="50" y="62" width="6" height="14" rx="3" fill="#8D8D93"/>
+        <path d="M70,50 q12,2 10,14" stroke="#77777d" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <g id="wk-head">
+          <ellipse cx="18" cy="34" rx="14" ry="11" fill="#8D8D93"/>
+          <ellipse cx="9" cy="37" rx="7" ry="5.5" fill="#B9B9BF"/>
+          <path d="M14,24 q-5,-14 2,-16 q5,3 4,15" fill="#77777d"/>
+          <path d="M26,23 q0,-15 7,-15 q4,4 0,16" fill="#77777d"/>
+          <circle cx="15" cy="31" r="2.2" fill="#141414"/>
+          <circle cx="7" cy="36" r="1.4" fill="#141414"/><circle cx="11" cy="38" r="1.4" fill="#141414"/>
+          <path d="M28,26 q4,6 0,10" stroke="#5c4a2f" stroke-width="3" fill="none"/>
+        </g>
+      </svg>
+    </div>
+    <div id="wk-shoe" style="position:absolute;bottom:12px;right:47%;font-size:2rem;display:none;z-index:3">🩴</div>
+    <div id="wk-pow" style="position:absolute;display:none;font-size:1.8rem;z-index:4">💥</div>
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:center;font-size:.85rem;font-weight:700">
+    <span>الشحاطات: <span id="wk-tries">🩴🩴🩴</span></span>
+    <span>الإصابات: <span id="wk-hits" class="num">0</span>/3</span>
+  </div>
+  <div id="wk-msg" style="text-align:center;min-height:1.5em;font-size:.9rem;font-weight:700;margin-top:6px"></div>
+  <button class="btn" id="wk-btn" onclick="wkThrow()">🩴 ارمي الشحاطة!</button>`);
+  wkMove();
+}
+function wkMove(){
+  const dk=document.getElementById("wk-donkey");if(!dk)return;
+  let x=20,dir=1;const sp=()=>window.__wk?window.__wk.speed:2.2;
+  window.__wkTimer&&clearInterval(window.__wkTimer);
+  window.__wkTimer=setInterval(()=>{
+    if(!document.getElementById("wk-donkey")){clearInterval(window.__wkTimer);return}
+    x+=dir*sp();
+    if(x>68){dir=-1;dk.style.transform="scaleX(-1)"}
+    if(x<4){dir=1;dk.style.transform=""}
+    dk.style.right=x+"%";
+  },30);
+}
+async function wkThrow(){
+  const wk=window.__wk;if(!wk||wk.playing)return;
+  const btn=document.getElementById("wk-btn"),msg=document.getElementById("wk-msg");
+  // أول رمية: منجيب النتائج من السيرفر (النسب محسوبة هناك)
+  if(!wk.results){
+    btn.disabled=true;btn.textContent="...";
+    const p=getProfile();
+    try{
+      const r=await fetch(API(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"whack",dev:devId(),acc:p?(p.cc+p.phone):""})});
+      const d=await r.json();
+      if(!r.ok){
+        if(d.error==="cooldown"){const h=Math.ceil(d.waitMs/36e5);msg.innerHTML=`⏳ لعبت قبل قليل — ارجع بعد <b>${h}</b> ساعة تقريباً`;btn.textContent="🩴 ارمي الشحاطة!";return}
+        throw 0;
+      }
+      wk.results=d;btn.disabled=false;
+    }catch(e){msg.textContent="ما في اتصال — جرب كمان شوي";btn.disabled=false;btn.textContent="🩴 ارمي الشحاطة!";return}
+  }
+  wk.playing=true;btn.disabled=true;btn.style.opacity=".6";btn.textContent="🩴 طايرة...";
+  const shoe=document.getElementById("wk-shoe"),dk=document.getElementById("wk-donkey"),pow=document.getElementById("wk-pow");
+  const hit=wk.results.hits[wk.attempt];
+  shoe.style.display="block";shoe.style.transition="none";shoe.style.bottom="12px";shoe.style.right="47%";shoe.style.transform="rotate(0deg)";
+  requestAnimationFrame(()=>{
+    shoe.style.transition="all .55s cubic-bezier(.3,.1,.6,1)";
+    const dkRight=parseFloat(dk.style.right||"30");
+    shoe.style.right=(hit?dkRight+4:Math.min(dkRight+22,80))+"%";
+    shoe.style.bottom=hit?"92px":"140px";
+    shoe.style.transform="rotate("+(hit?"720":"1080")+"deg)";
+  });
+  setTimeout(()=>{
+    wk.attempt++;
+    document.getElementById("wk-tries").textContent="🩴".repeat(3-wk.attempt)+"▫️".repeat(wk.attempt);
+    if(hit){
+      wk.hits++;wk.speed+=1.6;
+      document.getElementById("wk-hits").textContent=wk.hits;
+      pow.style.display="block";pow.style.right=dk.style.right;pow.style.bottom="80px";
+      const hd=document.getElementById("wk-head");if(hd){hd.style.transform="rotate(-18deg)";setTimeout(()=>hd.style.transform="",450)}
+      msg.textContent=["🎯 إصابة براسه!","🎯🎯 تانية! صار أسرع!","🎯🎯🎯 أسطووورة!"][wk.hits-1];
+      setTimeout(()=>pow.style.display="none",500);
+    }else{
+      msg.textContent=["😅 راحت جنبه!","😬 قربت! ","💨 هرب منها!"][Math.floor(Math.random()*3)];
+    }
+    shoe.style.display="none";
+    if(wk.attempt>=3){
+      clearInterval(window.__wkTimer);
+      setTimeout(()=>{
+        const d=wk.results;
+        if(d.prize&&d.code){
+          sheet(`<button class="close" onclick="closeModal()">✕</button>
+          <div style="text-align:center;padding:14px 4px">
+            <div style="font-size:3rem">🩴🏆</div><h3>مبرووك! ${wk.hits} إصابات = خصم ${d.prize}%</h3>
+            <div style="font-family:Cairo;font-weight:900;font-size:1.5rem;color:var(--green);background:var(--bg);border:2px dashed var(--green);border-radius:12px;padding:14px;margin:12px 0;direction:ltr">${esc(d.code)}</div>
+            <small class="hint">لمرة وحدة — استخدمه بالسلة قبل ما تنساه!</small>
+            <button class="btn" onclick="copyText('${esc(d.code)}','انتسخ ✓')">📋 نسخ الكود</button>
+          </div>`);
+        }else{
+          msg.innerHTML=wk.hits>=1?`أصبته ${wk.hits} مرة — بدك إصابتين عالأقل للخصم. ارجع بعد 20 ساعة! 💪`:"ولا إصابة 😅 الجحش سريع! جرب بعد 20 ساعة";
+          btn.textContent="⏳ ارجع بعد 20 ساعة";
+        }
+      },600);
+    }else{
+      wk.playing=false;btn.disabled=false;btn.style.opacity="1";btn.textContent="🩴 ارمي الشحاطة!";
+    }
+  },600);
+}
 async function spinWheel(){
   const btn=document.getElementById("wheel-btn"),msg=document.getElementById("wheel-msg"),svg=document.getElementById("wheel-svg");
   btn.disabled=true;btn.style.opacity=".6";btn.textContent="عم يدور...";
   let d;
   try{
-    const r=await fetch(API(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"spin",dev:devId()})});
+    const r=await fetch(API(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"spin",dev:devId(),acc:(getProfile()||{}).cc?(getProfile().cc+getProfile().phone):""})});
     d=await r.json();
     if(!r.ok){
       if(d.error==="cooldown"){const h=Math.ceil(d.waitMs/36e5);msg.innerHTML=`⏳ جربت قبل قليل — ارجع بعد <b>${h}</b> ساعة تقريباً`;btn.textContent="🎡 جرّب حظك!";return}
@@ -802,9 +1023,21 @@ async function spinWheel(){
 }
 let __cycT=0;
 setInterval(()=>{__cycT++;document.querySelectorAll('img[data-cyc]').forEach(im=>{const pid=im.getAttribute("data-cyc");if(!pid)return;const p=S.products.find(x=>x.id===pid);if(!p||!(p.imgs||[]).length)return;const idx=__cycT%p.imgs.length;const next=p.imgs[idx].src;if(im.src!==next){im.style.opacity="0.25";setTimeout(()=>{im.src=next;im.style.opacity="1"},220)}})},2600);
+function toggleGames(btn){const g=document.getElementById("d-games");const open=g.style.display!=="block";g.style.display=open?"block":"none";btn.querySelector("span").textContent=open?"⬇":"⬅"}
+function waMenu(){const m=document.getElementById("wa-menu");m.style.display=m.style.display==="flex"?"none":"flex"}
 function openDrawer(){document.getElementById("drawer").classList.add("on");document.getElementById("drawer-ov").classList.add("on")}
 function closeDrawer(){document.getElementById("drawer").classList.remove("on");document.getElementById("drawer-ov").classList.remove("on")}
 setInterval(tickClocks,15000);tickClocks();
+setTimeout(()=>{
+  if(IS_LOCAL_FILE)return;
+  if(!("Notification" in window)||Notification.permission!=="default")return;
+  if(localStorage.getItem("syrphy-push")==="1"||sessionStorage.getItem("push-later"))return;
+  const b=document.createElement("div");
+  b.id="push-banner";
+  b.style.cssText="position:fixed;bottom:14px;right:14px;left:14px;max-width:420px;margin:0 auto;background:var(--card);border:1px solid var(--green);border-radius:16px;padding:14px 16px;z-index:80;box-shadow:0 8px 30px rgba(0,0,0,.25);display:flex;align-items:center;gap:12px";
+  b.innerHTML='<span style="font-size:1.6rem">🔔</span><div style="flex:1;font-size:.82rem;line-height:1.7"><b style="font-family:Cairo">فعّل إشعارات SYRPHY</b><br>ليوصلك كل خصم قوي وعرض جديد أول بأول</div><button onclick="enablePush();this.parentElement.remove()" style="background:var(--green);color:#fff;border:none;border-radius:10px;padding:9px 14px;font-family:Cairo;font-weight:800;font-size:.78rem;cursor:pointer">تفعيل</button><button onclick="sessionStorage.setItem(\'push-later\',1);this.parentElement.remove()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:.75rem">لاحقاً</button>';
+  document.body.appendChild(b);
+},6000);
 function b64ToU8(s){const p="=".repeat((4-s.length%4)%4);const b=(s+p).replace(/-/g,"+").replace(/_/g,"/");const raw=atob(b);const a=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)a[i]=raw.charCodeAt(i);return a}
 async function enablePush(){
   if(IS_LOCAL_FILE)return toast("الإشعارات بتشتغل من رابط الموقع مو من الملف");
@@ -823,7 +1056,7 @@ async function enablePush(){
     toast("✓ تم! رح يوصلك إشعار بكل خصم قوي 🔥");
   }catch(e){toast("ما زبط التفعيل - جرب كمان مرة")}
 }
-(function(){const p=getProfile();if(p){const b=document.getElementById("d-acc");if(b)b.innerHTML="👤 حسابي ("+esc(p.name.split(" ")[0])+")"}})();
+(function(){const p=getProfile();if(p){const b=document.getElementById("d-acc");if(b)b.innerHTML="👤 حسابي ("+esc(p.name.split(" ")[0])+")";const cta=document.getElementById("acc-cta"),wl=document.getElementById("wl-wrap");if(cta)cta.style.display="none";if(wl){wl.style.display="flex";document.getElementById("wl-name").textContent=p.name.split(" ")[0]}setTimeout(fetchPoints,1200)}})();
 if(localStorage.getItem("syrphy-push")==="1"){const db=document.getElementById("d-bell");if(db)db.innerHTML="🔕 الإشعارات مفعلة ✓"}
 let __hs=0;
 setInterval(()=>{const sl=document.querySelectorAll(".hslide"),dt=document.querySelectorAll(".hdots span");if(sl.length<2)return;__hs=(__hs+1)%sl.length;sl.forEach((s,i)=>s.classList.toggle("on",i===__hs));dt.forEach((d,i)=>d.classList.toggle("on",i===__hs));},5000);
