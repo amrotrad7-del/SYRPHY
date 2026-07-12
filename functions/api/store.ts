@@ -33,6 +33,11 @@ function hasBadWords(t: string) {
 
 const ADMIN_CRED = "AMRO:1573";
 const USER_CRED = "USER:157";
+const ADMIN_ACC = "AMRO:971566135365"; // حساب أمرو — دخوله بالموقع بيفتح الصلاحيات
+const WINNER_COUNTER_KEY = "winner_counter";
+const FLOL_COUNTER_KEY = "flol_counter";
+const WHACK_KEY = "whack_plays";
+const WHACK_COOLDOWN = 20 * 60 * 60 * 1000;
 const MAX_FAILS = 5;
 const LOCK_MS = 15 * 60 * 1000;
 const SPIN_COOLDOWN = 29 * 60 * 60 * 1000;
@@ -108,12 +113,12 @@ async function checkPin(env: Env, req: Request): Promise<"admin" | "user" | "non
   const rec = rl[ip];
   if (rec && rec.until > now) return "locked";
   const cred = pin.replace(/\s+/g, "").toUpperCase();
-  if (cred === ADMIN_CRED || cred === USER_CRED) {
+  if (cred === ADMIN_CRED || cred === USER_CRED || cred === ADMIN_ACC) {
     if (rec) {
       delete rl[ip];
       await writeKey(env, RATE_KEY, rl);
     }
-    return cred === ADMIN_CRED ? "admin" : "user";
+    return cred === USER_CRED ? "user" : "admin";
   }
   let fails = rec ? rec.fails : 0;
   if (rec && rec.until && rec.until <= now) fails = 0;
@@ -274,6 +279,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
           const items = Array.isArray(body.items) ? body.items : [];
           orders[id] = {
             ts: Date.now(),
+            acc: String(body.acc || "").replace(/[^0-9]/g, "").slice(0, 20),
             name: String(body.name || "").slice(0, 80),
             phone: String(body.phone || "").slice(0, 30),
             addr: String(body.addr || "").slice(0, 160),
@@ -311,33 +317,15 @@ export const onRequest: PagesFunction<Env> = async (context) => {
         delete ab[id];
         await writeKey(env, ABANDONED_KEY, ab);
       }
-      const a = ((await readKey(env, ANALYTICS_KEY, emptyAnalytics())) || emptyAnalytics()) as Analytics;
-      a.orders = a.orders || { total: 0, amount: 0, byMonth: {}, amountByMonth: {}, ids: [] };
-      a.orders.ids = Array.isArray(a.orders.ids) ? a.orders.ids : [];
-      if (id && !a.orders.ids.includes(id)) {
-        const month = new Date().toISOString().slice(0, 7);
-        const amount = Number(body.total) || 0;
-        a.orders.total += 1;
-        a.orders.amount += amount;
-        a.orders.byMonth[month] = (a.orders.byMonth[month] || 0) + 1;
-        a.orders.amountByMonth[month] = (a.orders.amountByMonth[month] || 0) + amount;
-        a.orders.ids.push(id);
-        while (a.orders.ids.length > 200) a.orders.ids.shift();
-        const months = Object.keys(a.orders.byMonth).sort();
-        while (months.length > 24) {
-          const m = months.shift() as string;
-          delete a.orders.byMonth[m];
-          delete a.orders.amountByMonth[m];
-        }
-        await writeKey(env, ANALYTICS_KEY, a);
-      }
-      return json({ ok: true });
+        return json({ ok: true });
     }
 
     if (type === "site_review") {
       const stars = Math.min(Math.max(Number(body.stars) || 0, 1), 5);
       const comment = String(body.comment || "").slice(0, 300);
       const dev = String(body.dev || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 60);
+      const accR = String(body.acc || "").replace(/[^0-9]/g, "");
+      const rewardKey = accR || dev;
       if (stars <= 3 || hasBadWords(comment)) {
         const rej = ((await readKey(env, REJECTED_KEY, [])) || []) as unknown[];
         rej.push({ s: stars, c: comment, ts: Date.now(), src: "site" });
@@ -351,9 +339,9 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       while (list.length > 300) list.shift();
       await writeKey(env, SITE_REV_KEY, list);
       let code = "";
-      if (dev) {
+      if (rewardKey) {
         const devs = ((await readKey(env, REVIEW_DEVS_KEY, {})) || {}) as Record<string, number>;
-        if (!devs[dev]) {
+        if (!devs[rewardKey]) {
           const counter = Number(await readKey(env, DIS_COUNTER_KEY, 1)) || 1;
           if (counter <= 1500) {
             code = "DIS" + counter;
@@ -361,7 +349,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
             otc[code] = { pct: 5, used: false, ts: Date.now() };
             await writeKey(env, OTC_KEY, otc);
             await writeKey(env, DIS_COUNTER_KEY, counter + 1);
-            devs[dev] = Date.now();
+            devs[rewardKey] = Date.now();
             const dk = Object.keys(devs);
             while (dk.length > 3000) delete devs[dk.shift() as string];
             await writeKey(env, REVIEW_DEVS_KEY, devs);
@@ -406,22 +394,28 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
     if (type === "my_points" || type === "redeem_points") {
       const dev = String(body.dev || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 60);
+      const acc = String(body.acc || "").replace(/[^0-9]/g, "");
+      const idk = acc || dev; // هوية الحساب أولاً
       const ids = (Array.isArray(body.ids) ? body.ids : []).map((x) => String(x)).slice(0, 40);
-      if (!dev) return json({ error: "bad_request" }, { status: 400 });
-      const orders = ((await readKey(env, ORDERS_KEY, {})) || {}) as Record<string, { status?: string; items?: { qty?: number }[] }>;
+      if (!idk) return json({ error: "bad_request" }, { status: 400 });
+      const orders = ((await readKey(env, ORDERS_KEY, {})) || {}) as Record<string, { status?: string; acc?: string; items?: { qty?: number }[] }>;
       let earned = 0;
-      ids.forEach((id) => {
+      const seen = new Set<string>();
+      const countO = (id: string) => {
         const o = orders[id];
-        if (o && o.status && o.status !== "بانتظار التأكيد") {
+        if (o && !seen.has(id) && o.status && o.status !== "بانتظار التأكيد") {
+          seen.add(id);
           earned += 10 * (o.items || []).reduce((a, it) => a + (Number(it.qty) || 1), 0);
         }
-      });
+      };
+      ids.forEach(countO);
+      if (acc) Object.keys(orders).forEach((id) => { if (orders[id].acc === acc) countO(id); });
       const ledger = ((await readKey(env, POINTS_KEY, {})) || {}) as Record<string, number>;
-      const redeemed = ledger[dev] || 0;
+      const redeemed = ledger[idk] || 0;
       const balance = Math.max(earned - redeemed, 0);
       if (type === "my_points") return json({ earned, redeemed, balance });
       if (balance < 100) return json({ error: "not_enough", balance }, { status: 400 });
-      ledger[dev] = redeemed + 100;
+      ledger[idk] = redeemed + 100;
       await writeKey(env, POINTS_KEY, ledger);
       const otc = ((await readKey(env, OTC_KEY, {})) || {}) as Record<string, { pct: number; used: boolean; ts: number }>;
       const code = "MABROK10-" + rand4();
@@ -432,34 +426,62 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       return json({ ok: true, code, balance: balance - 100 });
     }
 
-    if (type === "spin") {
+    if (type === "spin" || type === "whack") {
       const dev = String(body.dev || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 60);
-      if (!dev) return json({ error: "bad_request" }, { status: 400 });
+      const acc = String(body.acc || "").replace(/[^0-9]/g, "");
+      const idk = acc || dev;
+      if (!idk) return json({ error: "bad_request" }, { status: 400 });
+      const isWhack = type === "whack";
+      const gkey = isWhack ? WHACK_KEY : WHEEL_KEY;
+      const cooldown = isWhack ? WHACK_COOLDOWN : SPIN_COOLDOWN;
       const ip = clientIP(req);
       const now = Date.now();
-      const w = ((await readKey(env, WHEEL_KEY, {})) || {}) as Record<string, number>;
-      const last = Math.max(w[dev] || 0, w["ip:" + ip] || 0);
-      if (now - last < SPIN_COOLDOWN) {
-        return json({ error: "cooldown", waitMs: SPIN_COOLDOWN - (now - last) }, { status: 429 });
+      const w = ((await readKey(env, gkey, {})) || {}) as Record<string, number>;
+      const last = Math.max(w[idk] || 0, w["ip:" + ip] || 0);
+      if (now - last < cooldown) {
+        return json({ error: "cooldown", waitMs: cooldown - (now - last) }, { status: 429 });
       }
-      w[dev] = now;
+      w[idk] = now;
       w["ip:" + ip] = now;
       const keys = Object.keys(w);
       while (keys.length > 2000) delete w[keys.shift() as string];
-      await writeKey(env, WHEEL_KEY, w);
+      await writeKey(env, gkey, w);
+
+      const issueCode = async (counterKey: string, prefix: string, pct: number) => {
+        const counter = Number(await readKey(env, counterKey, 1)) || 1;
+        if (counter > 1500) return "";
+        const code = prefix + counter;
+        const otc = ((await readKey(env, OTC_KEY, {})) || {}) as Record<string, { pct: number; used: boolean; ts: number }>;
+        otc[code] = { pct, used: false, ts: Date.now() };
+        await writeKey(env, OTC_KEY, otc);
+        await writeKey(env, counterKey, counter + 1);
+        return code;
+      };
+
+      if (isWhack) {
+        // اضرب الجحش: 3 رميات بنسب سيرفرية 50% / 10% / 0.9%
+        const probs = [50, 10, 0.9];
+        const hits = probs.map((p) => Math.random() * 100 < p);
+        const nHits = hits.filter(Boolean).length;
+        let prize = 0;
+        if (nHits >= 3) prize = 15;
+        else if (nHits >= 2) prize = 5;
+        let code = "";
+        if (prize) code = await issueCode(FLOL_COUNTER_KEY, "FLOL", prize);
+        if (!code) prize = 0;
+        return json({ hits, prize, code, cooldownMs: cooldown });
+      }
+
+      // الدولاب: 50%→0.1 · 20%→0.02 · 10%→20 · الباقي حظ أوفر
       const r = Math.random() * 100;
       let prize: number | null = null;
       if (r < 0.1) prize = 50;
       else if (r < 0.12) prize = 20;
-      else if (r < 1.02) prize = 10;
+      else if (r < 20.12) prize = 10;
       let code = "";
-      if (prize) {
-        const otc = ((await readKey(env, OTC_KEY, {})) || {}) as Record<string, { pct: number; used: boolean; ts: number }>;
-        code = "WHEEL" + prize + "-" + rand4();
-        otc[code] = { pct: prize, used: false, ts: Date.now() };
-        await writeKey(env, OTC_KEY, otc);
-      }
-      return json({ prize, code, cooldownMs: SPIN_COOLDOWN });
+      if (prize) code = await issueCode(WINNER_COUNTER_KEY, "WINNER", prize);
+      if (!code) prize = null;
+      return json({ prize, code, cooldownMs: cooldown });
     }
 
     if (type === "register") {
@@ -470,12 +492,28 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       if (!dev || !name || name.length < 2 || !cc || phone.length < 7 || phone.length > 12) {
         return json({ error: "bad_data" }, { status: 400 });
       }
-      const accounts = ((await readKey(env, ACCOUNTS_KEY, {})) || {}) as Record<string, unknown>;
-      accounts[dev] = { name, phone: cc + phone, ts: Date.now() };
+      const accounts = ((await readKey(env, ACCOUNTS_KEY, {})) || {}) as Record<string, { name: string; ts: number }>;
+      const akey = cc + phone;
+      if (accounts[akey]) return json({ error: "exists" }, { status: 409 });
+      accounts[akey] = { name, ts: Date.now() };
       const ks = Object.keys(accounts);
       while (ks.length > 5000) delete accounts[ks.shift() as string];
       await writeKey(env, ACCOUNTS_KEY, accounts);
-      return json({ ok: true });
+      const adminAcc = ("AMRO:" + akey) === ADMIN_ACC;
+      return json({ ok: true, admin: adminAcc && name.trim().toUpperCase() === "AMRO" });
+    }
+
+    if (type === "login") {
+      const name = String(body.name || "").trim();
+      const cc = String(body.cc || "").replace(/[^0-9+]/g, "").slice(0, 5);
+      const phone = String(body.phone || "").replace(/[^0-9]/g, "");
+      const akey = cc + phone;
+      const accounts = ((await readKey(env, ACCOUNTS_KEY, {})) || {}) as Record<string, { name: string }>;
+      const acc = accounts[akey];
+      const norm = (s: string) => s.replace(/\s+/g, " ").trim().toLowerCase();
+      if (!acc || norm(acc.name) !== norm(name)) return json({ error: "not_found" }, { status: 404 });
+      const adminAcc = name.trim().toUpperCase() === "AMRO" && akey === "971566135365";
+      return json({ ok: true, name: acc.name, admin: adminAcc });
     }
 
     if (type === "complaint") {
@@ -496,11 +534,13 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
     if (type === "my_orders") {
       const ids = (Array.isArray(body.ids) ? body.ids : []).map((x) => String(x)).slice(0, 20);
-      const orders = ((await readKey(env, ORDERS_KEY, {})) || {}) as Record<string, unknown>;
+      const acc = String(body.acc || "").replace(/[^0-9]/g, "");
+      const orders = ((await readKey(env, ORDERS_KEY, {})) || {}) as Record<string, { acc?: string }>;
       const mine: Record<string, unknown> = {};
       ids.forEach((id) => {
         if (orders[id]) mine[id] = orders[id];
       });
+      if (acc) Object.keys(orders).forEach((id) => { if (orders[id].acc === acc) mine[id] = orders[id]; });
       return json({ orders: mine });
     }
 
@@ -549,6 +589,19 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       orders[id].status = status;
       orders[id].history = orders[id].history || [];
       orders[id].history.push({ status, ts: Date.now() });
+      const rec = orders[id] as unknown as { counted?: boolean; total?: number };
+      if (status === "تم التأكيد" && !rec.counted) {
+        rec.counted = true;
+        const a = ((await readKey(env, ANALYTICS_KEY, emptyAnalytics())) || emptyAnalytics()) as Analytics;
+        a.orders = a.orders || { total: 0, amount: 0, byMonth: {}, amountByMonth: {}, ids: [] };
+        const month = new Date().toISOString().slice(0, 7);
+        const amount = Number(rec.total) || 0;
+        a.orders.total += 1;
+        a.orders.amount += amount;
+        a.orders.byMonth[month] = (a.orders.byMonth[month] || 0) + 1;
+        a.orders.amountByMonth[month] = (a.orders.amountByMonth[month] || 0) + amount;
+        await writeKey(env, ANALYTICS_KEY, a);
+      }
       await writeKey(env, ORDERS_KEY, orders);
       return json({ ok: true });
     }
