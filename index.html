@@ -97,6 +97,9 @@
   <div class="d-sep"></div>
   <a class="d-item" href="https://www.facebook.com/share/1G1Ratw1eP/" target="_blank" rel="noopener">📘 صفحتنا عالفيسبوك</a>
   <a class="d-item" href="https://whatsapp.com/channel/0029Vb8afZPIiRoyfAXGjt2I" target="_blank" rel="noopener">📢 قناتنا عالواتساب</a>
+  <div class="d-sep"></div>
+  <button class="d-item" onclick="closeDrawer();adminGate()">🔑 دخول المدير</button>
+  <button class="d-item" onclick="closeDrawer();userGate()">👤 دخول المستخدمين</button>
 </aside>
 <main>
   <div class="hero">
@@ -107,7 +110,7 @@
       </div>
       <div class="hslide">
         <h2><span class="offer-tag">🔥 عرض</span> خصم خاص!</h2>
-        <p>كل طلبية فوق <b class="num" style="color:#FFD873">750,000 ل.س</b> بتاخد خصم خاص بيوصلك مع تأكيد الطلب 🎁</p>
+        <p>كل طلبية فوق <b class="num" style="color:#FFD873">750,000 ل.س</b> بينزل عليها <b style="color:#FFD873">خصم 5% تلقائياً</b> بالسلة مباشرة 🎁</p>
       </div>
       <div class="hslide">
         <h2 style="font-size:1.15rem">تابعنا وكن أول من يعرف 📣</h2>
@@ -120,7 +123,16 @@
         <h2><span class="offer-tag">🎁 نقاط</span> اشتري واربح!</h2>
         <p>كل قطعة بتشتريها = <b style="color:#FFD873">10 نقاط</b> · اجمع 100 نقطة وبدّلها بكود خصم 10% — نقاطك بقسم 🎁 نقاطي بالقائمة.</p>
       </div>
-      <div class="hdots"><span class="on"></span><span></span><span></span><span></span></div>
+      <div class="hslide">
+        <h2><span class="offer-tag">⭐ قيّمنا</span> واحصل على خصم!</h2>
+        <p>قيّم SYRPHY تقييم إيجابي وبيوصلك فوراً <b style="color:#FFD873">كود خصم 5%</b> لمرة وحدة 🎁</p>
+        <button onclick="rateSite()" style="margin-top:8px;background:#FFD873;color:#4A3200;border:none;border-radius:20px;padding:9px 22px;font-family:Cairo;font-weight:800;font-size:.85rem;cursor:pointer;position:relative;z-index:3">⭐ قيّم هلق واكسب</button>
+      </div>
+      <div class="hslide">
+        <h2 style="font-size:1.1rem">📢 للإعلان على موقعنا</h2>
+        <p>يرجى التواصل معنا على رقم الواتساب الموجود أسفل الصفحة — مساحات إعلانية متاحة لعلامتكم.</p>
+      </div>
+      <div class="hdots"><span class="on"></span><span></span><span></span><span></span><span></span><span></span></div>
     </div>
   <div class="clocks"><span>🇦🇪 دبي <b class="num" id="clk-ae">--:--</b></span><span>🇸🇾 دمشق <b class="num" id="clk-sy">--:--</b></span></div>
     <svg class="map" viewBox="0 0 240 125" fill="none">
@@ -150,8 +162,8 @@
   <div class="grid" id="grid"></div>
   <div id="grid-empty"></div>
 </main>
-<a class="wa" href="https://wa.me/963992624019" target="_blank" rel="noopener" title="تواصل واتساب"><svg viewBox="0 0 24 24" width="30" height="30" fill="#fff" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg></a>
-<footer>SYRPHY © <span id="yr"></span> - توصيل لكل المحافظات السورية<br>للطلب والاستفسار واتساب: <span class="num">+963 992 624 019</span><br><a href="https://wa.me/963992624019?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%20%F0%9F%91%8B%20%D8%AD%D8%A7%D8%A8%D8%A8%20%D8%A7%D9%86%D8%B6%D9%85%20%D9%84%D9%81%D8%B1%D9%8A%D9%82%20SYRPHY%20%F0%9F%9A%80" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;background:var(--green);color:#fff;padding:11px 22px;border-radius:24px;text-decoration:none;font-family:Cairo;font-weight:800;font-size:.9rem;margin:4px 0 14px">🤝 انضم إلى فريقنا</a><br><button class="adm" onclick="adminGate()">دخول المدير</button><button class="adm" onclick="userGate()">المستخدمين</button><div style="opacity:.45;font-size:.65rem;margin-top:6px">v26.07.12.2-cf</div></footer>
+<a class="wa" href="https://wa.me/963938946004" target="_blank" rel="noopener" title="تواصل واتساب"><svg viewBox="0 0 24 24" width="30" height="30" fill="#fff" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg></a>
+<footer>SYRPHY © <span id="yr"></span> - توصيل لكل المحافظات السورية<br>للطلب والاستفسار واتساب: <span class="num">+963 938 946 004</span><br><a href="https://wa.me/963938946004?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%20%F0%9F%91%8B%20%D8%AD%D8%A7%D8%A8%D8%A8%20%D8%A7%D9%86%D8%B6%D9%85%20%D9%84%D9%81%D8%B1%D9%8A%D9%82%20SYRPHY%20%F0%9F%9A%80" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;background:var(--green);color:#fff;padding:11px 22px;border-radius:24px;text-decoration:none;font-family:Cairo;font-weight:800;font-size:.9rem;margin:4px 0 14px">🤝 انضم إلى فريقنا</a><div style="opacity:.45;font-size:.65rem;margin-top:6px">v26.07.13.1-cf</div></footer>
 <div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
 <script id="seed" type="application/json">{"products":[],"coupons":[]}</script>
 <script>
@@ -221,8 +233,8 @@ function pvSel(i){const p=S.products.find(x=>x.id===window.__viewId);if(!p)retur
 function renderAll(){renderPills();renderGrid();renderCartN();document.getElementById("yr").textContent=new Date().getFullYear()}function sheet(html){document.getElementById("sheet").innerHTML=html;document.getElementById("modal").classList.add("on")}function closeModal(){document.getElementById("modal").classList.remove("on")}document.getElementById("modal").addEventListener("click",e=>{if(e.target.id==="modal")closeModal()});
 function addCart(id,color="",fromView=false,size=""){const p=S.products.find(x=>x.id===id);if(!p)return;if(!fromView&&(colorList(p).length>1||hasSizes(p))){prodView(id);toast(hasSizes(p)?"اختار اللون والقياس 🎨📏":"اختار اللون يلي بيناسبك");return}if(!fromView&&!color&&colorList(p).length===1)color=colorList(p)[0].color;const ex=CART.find(c=>c.id===id&&c.color===color&&(c.size||"")===size);ex?ex.qty++:CART.push({id,color,size,qty:1});renderCartN();toast("انضاف للسلة ✓")}
 function renderCartN(){const n=CART.reduce((a,cc)=>a+cc.qty,0);[["cart-n",n],["d-cart-n",n]].forEach(([id,v])=>{const el=document.getElementById(id);if(el){el.style.display=v?"inline-flex":"none";el.textContent=v}})}function chQty(i,d){if(!CART[i])return;CART[i].qty+=d;if(CART[i].qty<=0)CART.splice(i,1);renderCartN();openCart()}
-function cartTotals(){let sub=0;CART.forEach(c=>{const p=S.products.find(x=>x.id===c.id);if(p)sub+=price(p)*c.qty});const disc=coupon?Math.round(sub*coupon.pct/100):0;return {sub,disc,total:sub-disc}}
-function openCart(){if(!CART.length){sheet(`<button class="close" onclick="closeModal()">✕</button><div class="empty"><span class="ic">🛒</span>سلتك فاضية بعد</div>`);return}const lines=CART.map((c,i)=>{const p=S.products.find(x=>x.id===c.id);if(!p)return"";const im=(p.imgs||[]).find(x=>x.color===c.color)||{src:pimg(p)};return `<div class="cline">${im.src?`<img src="${esc(im.src)}">`:'<div style="width:44px;height:44px;border-radius:9px;background:var(--card);display:flex;align-items:center;justify-content:center">🛍️</div>'}<div class="inf"><div class="n">${esc(p.name)}</div><small class="num" style="color:var(--green)">${syp(price(p))}</small>${c.color?`<small style="color:var(--muted)"> · ${esc(c.color)}</small>`:""}${c.size?`<small style="color:var(--muted)"> · قياس ${esc(c.size)}</small>`:""}</div><div class="qty"><button onclick="chQty(${i},-1)">−</button><b class="num">${c.qty}</b><button onclick="chQty(${i},1)">＋</button></div></div>`}).join("");const t=cartTotals();sheet(`<button class="close" onclick="closeModal()">✕</button><h3>🛒 سلة المشتريات</h3>${lines}<label>عندك كود خصم؟</label><div class="row"><input id="coup-in" placeholder="اكتب الكود" value="${coupon?esc(coupon.code):""}" style="text-transform:uppercase"><button class="mini" style="flex:none;width:90px" onclick="applyCoupon()">تطبيق</button></div><div id="coup-msg"></div><div class="total-flow"><div class="l"><span>المجموع</span><b class="num">${syp(t.sub)}</b></div>${t.disc?`<div class="l disc"><span>خصم الكود (${coupon.pct}%)</span><b class="num">-${syp(t.disc)}</b></div>`:""}<div class="l gt"><span>الإجمالي</span><b class="num">${syp(t.total)}</b></div></div><button class="btn" onclick="checkout()">إتمام الطلب ←</button>`)}
+function cartTotals(){let sub=0;CART.forEach(c=>{const p=S.products.find(x=>x.id===c.id);if(p)sub+=price(p)*c.qty});const autoPct=sub>750000?5:0;const auto=Math.round(sub*autoPct/100);const disc=coupon?Math.round(sub*coupon.pct/100):0;return {sub,disc,auto,autoPct,total:sub-disc-auto}}
+function openCart(){if(!CART.length){sheet(`<button class="close" onclick="closeModal()">✕</button><div class="empty"><span class="ic">🛒</span>سلتك فاضية بعد</div>`);return}const lines=CART.map((c,i)=>{const p=S.products.find(x=>x.id===c.id);if(!p)return"";const im=(p.imgs||[]).find(x=>x.color===c.color)||{src:pimg(p)};return `<div class="cline">${im.src?`<img src="${esc(im.src)}">`:'<div style="width:44px;height:44px;border-radius:9px;background:var(--card);display:flex;align-items:center;justify-content:center">🛍️</div>'}<div class="inf"><div class="n">${esc(p.name)}</div><small class="num" style="color:var(--green)">${syp(price(p))}</small>${c.color?`<small style="color:var(--muted)"> · ${esc(c.color)}</small>`:""}${c.size?`<small style="color:var(--muted)"> · قياس ${esc(c.size)}</small>`:""}</div><div class="qty"><button onclick="chQty(${i},-1)">−</button><b class="num">${c.qty}</b><button onclick="chQty(${i},1)">＋</button></div></div>`}).join("");const t=cartTotals();sheet(`<button class="close" onclick="closeModal()">✕</button><h3>🛒 سلة المشتريات</h3>${lines}<label>عندك كود خصم؟</label><div class="row"><input id="coup-in" placeholder="اكتب الكود" value="${coupon?esc(coupon.code):""}" style="text-transform:uppercase"><button class="mini" style="flex:none;width:90px" onclick="applyCoupon()">تطبيق</button></div><div id="coup-msg"></div><div class="total-flow"><div class="l"><span>المجموع</span><b class="num">${syp(t.sub)}</b></div>${t.disc?`<div class="l disc"><span>خصم الكود (${coupon.pct}%)</span><b class="num">-${syp(t.disc)}</b></div>`:""}${t.auto?`<div class="row" style="justify-content:space-between;color:var(--green);font-size:.88rem"><span>🎉 خصم تلقائي ${t.autoPct}% (طلبك فوق 750 ألف)</span><b class="num">-${fmt(t.auto)}</b></div>`:""}<div class="l gt"><span>الإجمالي</span><b class="num">${syp(t.total)}</b></div></div><button class="btn" onclick="checkout()">إتمام الطلب ←</button>`)}
 async function applyCoupon(){
   const code=document.getElementById("coup-in").value.trim().toUpperCase();
   if(!code)return;
@@ -238,7 +250,7 @@ async function applyCoupon(){
 }
 function checkout(){const t=cartTotals();sheet(`<button class="close" onclick="closeModal()">✕</button><h3>📦 إتمام الطلب</h3><label>الاسم الكامل</label><input id="o-name" placeholder="اسمك"><label>رقم الهاتف</label><input id="o-phone" inputmode="tel" placeholder="09xxxxxxxx"><label>العنوان بالتفصيل (المحافظة - المنطقة)</label><input id="o-addr" placeholder="دمشق - المزة، شارع..."><label style="margin-top:14px">🎁 هي الطلبية هدية لحدا بسوريا؟</label><div class="paybox" id="gift-box" onclick="toggleGift()"><span class="ic">🎁</span><div><b>إهداء لشخص داخل سوريا</b><p>عم تطلب من برا سوريا؟ اهدي حدا بتحبه - بنوصلها لبابه مع رسالتك.</p></div></div><div id="gift-fields" style="display:none"><label>اسم المستلم</label><input id="g-name" placeholder="اسم الشخص بسوريا"><label>رسالة الإهداء (اختياري)</label><input id="g-msg" placeholder="كل عام وانت بخير"></div><label style="margin-top:14px">طريقة الدفع</label><div class="paybox on" id="pay-sham" onclick="setPay('sham')"><span class="ic">📲</span><div><b>شام كاش</b><p>حوّل المبلغ عالرقم وابعت صورة الإشعار معنا عالواتساب.</p><div class="copybox"><code>0997753191</code><button class="mini" onclick="event.stopPropagation();copyText('0997753191','انتسخ رقم شام كاش ✓')">نسخ</button></div></div></div><div class="paybox" id="pay-cod" onclick="setPay('cod')"><span class="ic">🤝</span><div><b>تسليم باليد</b><p>بتدفع كاش لما توصلك الطلبية لباب بيتك.</p></div></div><div class="paybox" id="pay-bank" onclick="setPay('bank')"><span class="ic">🏦</span><div><b>تحويل بنكي</b><p>مناسب للإهداء من برا سوريا.</p><div class="copybox"><code>AE050352455001174595012</code><button class="mini" onclick="event.stopPropagation();copyText('AE050352455001174595012','انتسخ الآيبان ✓')">نسخ</button></div></div></div><div class="total-flow"><div class="l"><span>المجموع</span><b class="num">${syp(t.sub)}</b></div>${t.disc?`<div class="l disc"><span>خصم (${esc(coupon.code)})</span><b class="num">-${syp(t.disc)}</b></div>`:""}<div class="l gt"><span>الإجمالي</span><b class="num">${syp(t.total)}</b></div></div><small class="hint">لما تكبس تأكيد، بينفتح واتساب وفيه كل تفاصيل طلبك جاهزة.</small><button class="btn" onclick="sendOrder()">✅ تأكيد الطلب عبر واتساب</button>`);pushAbandoned();["o-name","o-phone"].forEach(fid=>{const el=document.getElementById(fid);if(el)el.addEventListener("input",pushAbandoned)})}
 function toggleGift(){giftOn=!giftOn;document.getElementById("gift-box").classList.toggle("on",giftOn);document.getElementById("gift-fields").style.display=giftOn?"":"none";if(giftOn)setPay("bank")}function setPay(m){payMethod=m;["sham","cod","bank"].forEach(x=>document.getElementById("pay-"+x).classList.toggle("on",x===m))}
-function sendOrder(){const name=document.getElementById("o-name").value.trim(),phone=document.getElementById("o-phone").value.trim(),addr=document.getElementById("o-addr").value.trim();if(!name||!phone||!addr)return toast("عبّي الاسم والهاتف والعنوان");const t=cartTotals(),payNames={sham:"شام كاش (0997753191)",cod:"تسليم باليد عند الاستلام",bank:"تحويل بنكي على IBAN"};let msg="🛍️ *طلب جديد من SYRPHY*\\n\\n";CART.forEach(c=>{const p=S.products.find(x=>x.id===c.id);if(p)msg+=`▪️ ${p.name}${c.color?" - لون: "+c.color:""}${c.size?" - قياس: "+c.size:""} × ${c.qty} = ${fmt(price(p)*c.qty)} ل.س\\n`});if(coupon)msg+=`\\n🏷️ كود الخصم: ${coupon.code} (-${coupon.pct}%)\\n`;msg+=`💰 *الإجمالي: ${fmt(t.total)} ل.س*\\n\\n👤 الاسم: ${name}\\n📞 الهاتف: ${phone}\\n📍 العنوان: ${addr}\\n`;if(giftOn){msg+=`\\n🎁 *طلبية إهداء*\\nالمستلم: ${document.getElementById("g-name").value.trim()||"-"}\\n${document.getElementById("g-msg").value.trim()?("الرسالة: "+document.getElementById("g-msg").value.trim()+"\\n"):""}`}msg+=`\\n💳 الدفع: ${payNames[payMethod]}`;window.open("https://wa.me/963992624019?text="+encodeURIComponent(msg),"_blank");CART=[];coupon=null;giftOn=false;payMethod="sham";const _oid=draftId||ensureDraft();const _items=CART.map(cc=>{const p=S.products.find(x=>x.id===cc.id);return{name:p?p.name:"?",qty:cc.qty,color:cc.color||"",size:cc.size||""}});eventPost({type:"order_done",id:_oid,total:t.total,name,phone,addr,pay:payNames[payMethod]||payMethod,items:_items,coupon:coupon?coupon.code:""});try{const mo=JSON.parse(localStorage.getItem("syrphy-my-orders")||"[]");mo.unshift(_oid);localStorage.setItem("syrphy-my-orders",JSON.stringify(mo.slice(0,20)))}catch(_){}draftId="";sessionStorage.removeItem("syrphy-draft");renderCartN();thanksSheet()}
+function sendOrder(){const name=document.getElementById("o-name").value.trim(),phone=document.getElementById("o-phone").value.trim(),addr=document.getElementById("o-addr").value.trim();if(!name||!phone||!addr)return toast("عبّي الاسم والهاتف والعنوان");const t=cartTotals(),payNames={sham:"شام كاش (0997753191)",cod:"تسليم باليد عند الاستلام",bank:"تحويل بنكي على IBAN"};let msg="🛍️ *طلب جديد من SYRPHY*\\n\\n";CART.forEach(c=>{const p=S.products.find(x=>x.id===c.id);if(p)msg+=`▪️ ${p.name}${c.color?" - لون: "+c.color:""}${c.size?" - قياس: "+c.size:""} × ${c.qty} = ${fmt(price(p)*c.qty)} ل.س\\n`});if(coupon)msg+=`\\n🏷️ كود الخصم: ${coupon.code} (-${coupon.pct}%)\\n`;if(t.auto)msg+=`🎉 خصم تلقائي ${t.autoPct}% لأن الطلب فوق 750 ألف (-${fmt(t.auto)} ل.س)\\n`;msg+=`💰 *الإجمالي: ${fmt(t.total)} ل.س*\\n\\n👤 الاسم: ${name}\\n📞 الهاتف: ${phone}\\n📍 العنوان: ${addr}\\n`;if(giftOn){msg+=`\\n🎁 *طلبية إهداء*\\nالمستلم: ${document.getElementById("g-name").value.trim()||"-"}\\n${document.getElementById("g-msg").value.trim()?("الرسالة: "+document.getElementById("g-msg").value.trim()+"\\n"):""}`}msg+=`\\n💳 الدفع: ${payNames[payMethod]}`;window.open("https://wa.me/963938946004?text="+encodeURIComponent(msg),"_blank");CART=[];coupon=null;giftOn=false;payMethod="sham";const _oid=draftId||ensureDraft();const _items=CART.map(cc=>{const p=S.products.find(x=>x.id===cc.id);return{name:p?p.name:"?",qty:cc.qty,color:cc.color||"",size:cc.size||""}});eventPost({type:"order_done",id:_oid,total:t.total,name,phone,addr,pay:payNames[payMethod]||payMethod,items:_items,coupon:coupon?coupon.code:""});try{const mo=JSON.parse(localStorage.getItem("syrphy-my-orders")||"[]");mo.unshift(_oid);localStorage.setItem("syrphy-my-orders",JSON.stringify(mo.slice(0,20)))}catch(_){}draftId="";sessionStorage.removeItem("syrphy-draft");renderCartN();thanksSheet()}
 function buildPromo(p){
   const cols=(p.imgs||[]).map(x=>x.color).filter(Boolean);
   const sizes=[...new Set((p.imgs||[]).flatMap(x=>String(x.sizes||"").split(/[,،\s]+/).filter(Boolean)))];
@@ -346,7 +358,7 @@ td{padding:8px;border-bottom:1px solid #EFEDE6;text-align:right}
   🌐 المتجر: <b>syrphy.pages.dev</b><br>
   📘 فيسبوك: <b>facebook.com/share/1G1Ratw1eP</b><br>
   📢 قناة الواتساب: <b>whatsapp.com/channel/0029Vb8afZPIiRoyfAXGjt2I</b><br>
-  💬 للتواصل: <bdo dir="ltr"><b>+963 992 624 019</b></bdo>
+  💬 للتواصل: <bdo dir="ltr"><b>+963 938 946 004</b></bdo>
 </div>
 <div class="thanks"><h2>شكراً لثقتكن فينا ❤️🇸🇾</h2><p>سعدنا بخدمتكن — وبانتظاركن دايماً بـ SYRPHY</p></div>
 <div class="noprint"><button onclick="window.print()">🖨 طباعة / حفظ PDF</button></div>
@@ -528,12 +540,14 @@ async function myOrders(){
 function thanksSheet(){sheet(`<div style="text-align:center;padding:16px 4px"><div style="font-size:3.2rem;margin-bottom:10px">🎉</div><h3 style="font-size:1.25rem">شكراً لثقتكن فينا ❤️🇸🇾</h3><p style="color:var(--muted);font-size:.9rem;margin-top:10px;line-height:1.9">طلبكن وصلنا — كمّلوا إرسال الرسالة بالواتساب إذا ما انبعتت لحالها،<br>وفريق SYRPHY رح يرجعلكن بأسرع وقت لتأكيد التوصيل 🚚</p><button class="btn" onclick="closeModal();myOrders()">📦 تتبع طلبي</button><button class="btn ghost" onclick="closeModal()">تم 👌</button></div>`)}
 function isUserMode(){return sessionStorage.getItem("syrphy-role")==="user"}
 function adminGate(){if(isAdmin)return isUserMode()?userPanel():adminPanel();
-sheet(`<button class="close" onclick="closeModal()">✕</button><h3>🔐 دخول المدير</h3><label>الرمز السري</label><input id="pin-in" type="password" inputmode="numeric"><button class="btn" onclick="checkPin()">دخول</button>`)}
+sheet(`<button class="close" onclick="closeModal()">✕</button><h3>🔐 دخول المدير</h3><label>اسم المستخدم</label><input id="name-in" autocomplete="off" placeholder="الاسم"><label>كلمة السر</label><input id="pin-in" type="password"><button class="btn" onclick="checkPin()">دخول</button>`)}
 function userGate(){if(isAdmin)return userPanel();
-sheet(`<button class="close" onclick="closeModal()">✕</button><h3>👥 دخول المستخدمين</h3><label>الرمز السري</label><input id="pin-in" type="password" inputmode="numeric"><button class="btn" onclick="checkPin(true)">دخول</button>`)}
+sheet(`<button class="close" onclick="closeModal()">✕</button><h3>👥 دخول المستخدمين</h3><label>اسم المستخدم</label><input id="name-in" autocomplete="off" placeholder="الاسم"><label>كلمة السر</label><input id="pin-in" type="password"><button class="btn" onclick="checkPin(true)">دخول</button>`)}
 async function checkPin(isUser=false){
 if(IS_LOCAL_FILE&&!REMOTE_URL)return toast("لازم تحط رابط موقعك بسطر REMOTE_URL بأول الكود");
-const pin=document.getElementById("pin-in").value.trim();
+const _n=(document.getElementById("name-in")?.value||"").trim(),_p=document.getElementById("pin-in").value.trim();
+if(!_n||!_p)return toast("اكتب الاسم وكلمة السر");
+const pin=_n.toUpperCase()+":"+_p;
 try{adminPin=pin;const resp=await apiStore("POST",{});isAdmin=true;sessionStorage.setItem(ADMIN_KEY,pin);sessionStorage.setItem("syrphy-role",(resp&&resp.role)==="user"?"user":"admin");if(isUserMode()){userPanel()}else{adminPanel()}refreshStore(true)}
 catch(e){adminPin="";sessionStorage.removeItem(ADMIN_KEY);toast(e.message==="locked"?"⛔ انقفل الدخول ١٥ دقيقة — محاولات غلط كتيرة":e.message==="unauthorized"?"الرمز غلط":e.message==="DATABASE_URL_missing"?"⚠️ قاعدة البيانات مو مربوطة — ضيف DATABASE_URL بإعدادات Vercel":"⚠️ خطأ: "+(e.message||"ما في اتصال")+" — ابعت هالرسالة للدعم")}}
 function userPanel(){sheet(`<button class="close" onclick="closeModal()">✕</button><h3>👥 لوحة المستخدمين</h3><small class="hint">${S.products.length} منتج</small><button class="btn" onclick="addProdForm()">＋ إضافة منتج</button><button class="btn ghost" onclick="manageProds()">🗂 إدارة المنتجات</button><button class="btn ghost" onclick="logoutAdmin()">تسجيل خروج</button>`)}
@@ -606,8 +620,17 @@ function pickStar(n){__siteStars=n;for(let i=1;i<=5;i++)document.getElementById(
 async function sendSiteReview(){
   if(!__siteStars)return toast("اختار عدد النجوم أول ⭐");
   try{
-    await fetch(API(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"site_review",stars:__siteStars,comment:document.getElementById("rs-comment").value.trim()})});
-    closeModal();toast("شكراً لتقييمك ❤️");
+    const r=await fetch(API(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"site_review",stars:__siteStars,comment:document.getElementById("rs-comment").value.trim(),dev:devId()})});
+    const d=await r.json().catch(()=>({}));
+    if(d.code){
+      sheet(`<button class="close" onclick="closeModal()">✕</button>
+      <div style="text-align:center;padding:14px 4px">
+        <div style="font-size:3rem">🎁</div><h3>شكراً لتقييمك! هاد كود خصمك 5%</h3>
+        <div style="font-family:Cairo;font-weight:900;font-size:1.6rem;color:var(--green);background:var(--bg);border:2px dashed var(--green);border-radius:12px;padding:14px;margin:12px 0;direction:ltr">${esc(d.code)}</div>
+        <small class="hint">لمرة وحدة — استخدمه بخانة كود الخصم بالسلة 🛒</small>
+        <button class="btn" onclick="copyText('${esc(d.code)}','انتسخ الكود ✓')">📋 نسخ الكود</button>
+      </div>`);
+    }else{closeModal();toast(d.hidden?"وصل تقييمك للإدارة — شكراً لملاحظتك":"شكراً لتقييمك ❤️")}
   }catch(e){toast("ما زبط الإرسال")}
 }
 /* ==== دولاب الحظ ==== */
@@ -743,7 +766,7 @@ function pushAbandoned(){
   },900);
 }
 function openDaftar(){window.open((IS_LOCAL_FILE?REMOTE_URL.replace(/\/+$/,""):"")+"/daftar.html","_blank")}
-async function statsPanel(){if(isUserMode())return userPanel();if(isUserMode())return userPanel();
+async function statsPanel(){if(isUserMode())return userPanel();
   sheet(`<button class="close" onclick="adminPanel()">→ رجوع</button><h3>📈 الإحصائيات</h3><div class="empty">عم حمّل البيانات...</div>`);
   let d;
   try{d=await apiStore()}catch(e){return sheet(`<button class="close" onclick="adminPanel()">→ رجوع</button><div class="empty">تعذر جلب الإحصائيات — جرب كمان شوي</div>`)}
@@ -786,7 +809,7 @@ async function statsPanel(){if(isUserMode())return userPanel();if(isUserMode())r
   <div class="hr"></div><h3 style="font-size:.95rem">🌍 بلدان الزوار</h3>${countries}
     <div class="hr"></div><h3 style="font-size:.95rem">🛒 طلبات ما كملوها الزبائن (${ab.length})</h3>
     ${ab.length?'<button class="mini" style="color:var(--red);margin:6px 0" onclick="clearAbandoned()">🗑 مسح الكل</button>':""}
-    ${abHtml}`);
+    ${abHtml}${(d.siteReviews||[]).length?`<div class="hr"></div><h3 style="font-size:.95rem">⭐ تقييمات الموقع (${(d.siteReviews||[]).length})</h3>`+(d.siteReviews||[]).slice().reverse().slice(0,20).map(r=>`<div style="background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 12px;margin-top:7px;font-size:.83rem">${"⭐".repeat(r.s||1)}<br>${esc(r.c||"(بلا تعليق)")}</div>`).join(""):""}${(d.rejectedReviews||[]).length?`<div class="hr"></div><h3 style="font-size:.95rem;color:var(--red)">📵 تقييمات محجوبة (${(d.rejectedReviews||[]).length}) — بس أنت بتشوفها</h3>`+(d.rejectedReviews||[]).slice().reverse().slice(0,30).map(r=>`<div style="background:var(--bg);border:1px solid var(--line);border-right:3px solid var(--red);border-radius:10px;padding:9px 12px;margin-top:7px;font-size:.83rem">${"⭐".repeat(r.s||1)} ${r.src==="prod"?"· <b>"+esc((S.products.find(p=>p.id===r.pid)||{}).name||"منتج")+"</b>":"· الموقع"}<br>${esc(r.c||"(بلا تعليق)")}</div>`).join(""):""}`);
 }
 async function clearAbandoned(){
   if(!confirm("مسح كل الطلبات المتروكة؟"))return;

@@ -819,16 +819,17 @@ function renderAll(){renderHome();renderProducts();renderInvs();renderCusts();re
   ov.style.cssText='position:fixed;inset:0;background:var(--ink);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;padding:24px;text-align:center';
   ov.innerHTML='<div style="font-size:2.4rem">📒🔐</div>'
     +'<h2 style="font-family:Cairo;font-size:1.15rem">دفتر التاجر — للمدير فقط</h2>'
-    +'<input id="dg-pin" type="password" inputmode="numeric" placeholder="الرمز السري" style="max-width:230px;text-align:center;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px;color:var(--text);font-size:1rem">'
+    +'<input id="dg-name" placeholder="اسم المستخدم" autocomplete="off" style="max-width:230px;text-align:center;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px;color:var(--text);font-size:1rem">'
+    +'<input id="dg-pin" type="password" placeholder="كلمة السر" style="max-width:230px;text-align:center;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px;color:var(--text);font-size:1rem">'
     +'<button id="dg-btn" style="max-width:230px;width:100%;padding:13px;border:none;border-radius:12px;background:var(--gold);color:#161200;font-family:Cairo;font-weight:800;font-size:.95rem;cursor:pointer">دخول</button>'
     +'<div id="dg-msg" style="color:var(--red);font-size:.8rem;min-height:1em"></div>';
   document.body.appendChild(ov);
   var busy=false;
   function tryIn(){
     if(busy)return;
-    var pin=document.getElementById('dg-pin').value.trim();
+    var _n=(document.getElementById('dg-name').value||'').trim(),_p=document.getElementById('dg-pin').value.trim();var pin=_n.toUpperCase()+':'+_p;
     var msg=document.getElementById('dg-msg'), btn=document.getElementById('dg-btn');
-    if(!pin){msg.textContent='اكتب الرمز';return;}
+    if(!_n||!_p){msg.textContent='اكتب الاسم وكلمة السر';return;}
     busy=true; btn.textContent='عم يتحقق...';
     fetch(apiBase+'/api/store',{method:'POST',headers:{'Content-Type':'application/json','x-admin-pin':pin},body:'{}'})
       .then(function(r){
