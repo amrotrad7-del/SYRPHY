@@ -19,9 +19,17 @@ const PROD_REV_KEY = "prod_reviews";
 const OTC_KEY = "otc_codes";
 const WHEEL_KEY = "wheel_spins";
 const POINTS_KEY = "points_ledger";
+const REJECTED_KEY = "rejected_reviews";
+const DIS_COUNTER_KEY = "dis_counter";
+const REVIEW_DEVS_KEY = "review_reward_devs";
+const BAD_WORDS = ["كس","طيز","شرموط","عرص","خرا","خرة","زبالة","زباله","حقير","نصاب","حرامي","حرامية","كذاب","احتيال","نصب عليكن","غشاش","سيء","سيئ","سئ","زفت","تعبان","خايس","فاشل","اسوأ","أسوأ","اسوء","لا انصح","لا أنصح","ما بنصح","احذرو","احذروا","حذاري","قذر","وسخ","تافه","بشع","fuck","shit","scam","fraud","fake","worst"];
+function hasBadWords(t: string) {
+  const s = (t || "").toLowerCase();
+  return BAD_WORDS.some((w) => s.includes(w));
+}
 
-const ADMIN_PIN = "1573";
-const USER_PIN = "15733";
+const ADMIN_CRED = "AMRO:1573";
+const USER_CRED = "USER:157";
 const MAX_FAILS = 5;
 const LOCK_MS = 15 * 60 * 1000;
 const SPIN_COOLDOWN = 29 * 60 * 60 * 1000;
@@ -96,12 +104,13 @@ async function checkPin(env: Env, req: Request): Promise<"admin" | "user" | "non
   const rl = ((await readKey(env, RATE_KEY, {})) || {}) as RateMap;
   const rec = rl[ip];
   if (rec && rec.until > now) return "locked";
-  if (pin === ADMIN_PIN || pin === USER_PIN) {
+  const cred = pin.replace(/\s+/g, "").toUpperCase();
+  if (cred === ADMIN_CRED || cred === USER_CRED) {
     if (rec) {
       delete rl[ip];
       await writeKey(env, RATE_KEY, rl);
     }
-    return pin === ADMIN_PIN ? "admin" : "user";
+    return cred === ADMIN_CRED ? "admin" : "user";
   }
   let fails = rec ? rec.fails : 0;
   if (rec && rec.until && rec.until <= now) fails = 0;
@@ -179,7 +188,8 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     const abandoned = (await readKey(env, ABANDONED_KEY, {})) as AbandonedMap;
     const orders = await readKey(env, ORDERS_KEY, {});
     const siteReviews = await readKey(env, SITE_REV_KEY, []);
-    return json({ ...catalog, reviews, analytics, abandoned, orders, siteReviews });
+    const rejectedReviews = await readKey(env, REJECTED_KEY, []);
+    return json({ ...catalog, reviews, analytics, abandoned, orders, siteReviews, rejectedReviews });
   }
 
   /* ============ POST ============ */
@@ -309,11 +319,37 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     if (type === "site_review") {
       const stars = Math.min(Math.max(Number(body.stars) || 0, 1), 5);
       const comment = String(body.comment || "").slice(0, 300);
+      const dev = String(body.dev || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 60);
+      if (stars <= 3 || hasBadWords(comment)) {
+        const rej = ((await readKey(env, REJECTED_KEY, [])) || []) as unknown[];
+        rej.push({ s: stars, c: comment, ts: Date.now(), src: "site" });
+        while (rej.length > 300) rej.shift();
+        await writeKey(env, REJECTED_KEY, rej);
+        return json({ ok: true, hidden: true });
+      }
       const list = ((await readKey(env, SITE_REV_KEY, [])) || []) as { s: number; c: string; ts: number }[];
       list.push({ s: stars, c: comment, ts: Date.now() });
       while (list.length > 300) list.shift();
       await writeKey(env, SITE_REV_KEY, list);
-      return json({ ok: true });
+      let code = "";
+      if (dev) {
+        const devs = ((await readKey(env, REVIEW_DEVS_KEY, {})) || {}) as Record<string, number>;
+        if (!devs[dev]) {
+          const counter = Number(await readKey(env, DIS_COUNTER_KEY, 1)) || 1;
+          if (counter <= 1500) {
+            code = "DIS" + counter;
+            const otc = ((await readKey(env, OTC_KEY, {})) || {}) as Record<string, { pct: number; used: boolean; ts: number }>;
+            otc[code] = { pct: 5, used: false, ts: Date.now() };
+            await writeKey(env, OTC_KEY, otc);
+            await writeKey(env, DIS_COUNTER_KEY, counter + 1);
+            devs[dev] = Date.now();
+            const dk = Object.keys(devs);
+            while (dk.length > 3000) delete devs[dk.shift() as string];
+            await writeKey(env, REVIEW_DEVS_KEY, devs);
+          }
+        }
+      }
+      return json({ ok: true, code });
     }
 
     if (type === "prod_review") {
@@ -321,6 +357,13 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       if (!pid) return json({ error: "bad_request" }, { status: 400 });
       const stars = Math.min(Math.max(Number(body.stars) || 0, 1), 5);
       const comment = String(body.comment || "").slice(0, 200);
+      if (stars <= 3 || hasBadWords(comment)) {
+        const rej = ((await readKey(env, REJECTED_KEY, [])) || []) as unknown[];
+        rej.push({ s: stars, c: comment, ts: Date.now(), src: "prod", pid });
+        while (rej.length > 300) rej.shift();
+        await writeKey(env, REJECTED_KEY, rej);
+        return json({ ok: true, hidden: true });
+      }
       const pr = ((await readKey(env, PROD_REV_KEY, {})) || {}) as Record<string, { s: number; c: string; ts: number }[]>;
       pr[pid] = pr[pid] || [];
       pr[pid].push({ s: stars, c: comment, ts: Date.now() });
