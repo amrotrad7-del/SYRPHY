@@ -198,7 +198,8 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     const rejectedReviews = await readKey(env, REJECTED_KEY, []);
     const sold = await readKey(env, SOLD_KEY, {});
     const complaints = await readKey(env, COMPLAINTS_KEY, []);
-    return json({ ...catalog, reviews, analytics, abandoned, orders, siteReviews, rejectedReviews, sold, complaints });
+    const accounts = await readKey(env, ACCOUNTS_KEY, {});
+    return json({ ...catalog, reviews, analytics, abandoned, orders, siteReviews, rejectedReviews, sold, complaints, accounts });
   }
 
   /* ============ POST ============ */
@@ -344,8 +345,9 @@ export const onRequest: PagesFunction<Env> = async (context) => {
         await writeKey(env, REJECTED_KEY, rej);
         return json({ ok: true, hidden: true });
       }
-      const list = ((await readKey(env, SITE_REV_KEY, [])) || []) as { s: number; c: string; ts: number }[];
-      list.push({ s: stars, c: comment, ts: Date.now() });
+      const rname = String(body.name || "").trim().slice(0, 40);
+      const list = ((await readKey(env, SITE_REV_KEY, [])) || []) as { s: number; c: string; ts: number; n?: string }[];
+      list.push({ s: stars, c: comment, ts: Date.now(), n: rname });
       while (list.length > 300) list.shift();
       await writeKey(env, SITE_REV_KEY, list);
       let code = "";
