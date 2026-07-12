@@ -108,11 +108,7 @@
   <button class="d-item" id="d-acc" onclick="closeDrawer();accountSheet()">👤 إنشاء حساب / دخول</button>
   <button class="d-item" onclick="closeDrawer();myPoints()">🎁 نقاطي</button>
   <div class="d-cap">🎮 العب واربح</div>
-  <button class="d-item" onclick="toggleGames(this)">🕹️ الألعاب <span style="margin-right:auto">⬅</span></button>
-  <div id="d-games" style="display:none;padding-right:14px;display:none">
-    <button class="d-item" style="border-color:var(--green)" onclick="closeDrawer();wheelSheet()">🎡 دولاب الحظ</button>
-    <button class="d-item" style="border-color:var(--green);margin-top:8px" onclick="closeDrawer();whackSheet()">🩴 اضرب الجحش</button>
-  </div>
+  <button class="d-item" onclick="closeDrawer();wheelSheet()">🎡 دولاب الحظ</button>
   <div class="d-cap">💬 التواصل</div>
   <button class="d-item" onclick="closeDrawer();rateSite()">⭐ قيّم الموقع واكسب</button>
   <button class="d-item" onclick="closeDrawer();complaintSheet()">📨 الشكاوي والاقتراحات</button>
@@ -186,14 +182,14 @@
   <a href="https://wa.me/963938946004" target="_blank" rel="noopener" style="background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 16px;text-decoration:none;color:var(--text);font-family:Cairo;font-weight:800;font-size:.82rem;box-shadow:var(--shadow)">💬 تواصل معنا</a>
   <a href="https://wa.me/963938946004?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%20%F0%9F%91%8B%20%D8%A8%D8%AF%D9%8A%20%D8%A7%D8%B7%D9%84%D8%A8%20%D9%85%D9%86%D8%AA%D8%AC%20%D9%85%D9%86%20%D9%85%D9%88%D9%82%D8%B9%20%D8%AE%D8%A7%D8%B1%D8%AC%D9%8A%20%F0%9F%8C%8D%20%D9%87%D8%A7%D8%AF%20%D8%A7%D9%84%D8%B1%D8%A7%D8%A8%D8%B7%3A%20" target="_blank" rel="noopener" style="background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 16px;text-decoration:none;color:var(--text);font-family:Cairo;font-weight:800;font-size:.82rem;box-shadow:var(--shadow)">🌍 لطلب منتج من موقع خارجي</a>
 </div>
-<div id="rev-ticker" style="position:fixed;left:8px;top:38%;width:172px;z-index:40;display:none;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:11px 12px;box-shadow:var(--shadow);transition:opacity .5s">
-  <button onclick="this.parentElement.style.display='none';window.__tickerOff=1" style="position:absolute;top:4px;left:6px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:.75rem">✕</button>
+<div id="rev-ticker" style="position:fixed;right:8px;bottom:104px;width:180px;z-index:40;display:none;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:11px 12px;box-shadow:var(--shadow);transition:opacity .5s">
+  <button onclick="this.parentElement.style.display='none';window.__tickerOff=1" style="position:absolute;top:4px;left:6px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:.8rem;padding:2px">✕</button>
   <div style="font-size:.62rem;color:var(--muted);font-family:Cairo;font-weight:800">⭐ تقييمات زبائننا</div>
   <div id="rt-stars" style="color:#D9A62E;font-size:.8rem;letter-spacing:1px;margin-top:4px">★★★★★</div>
   <div id="rt-text" style="font-size:.74rem;line-height:1.7;margin-top:4px;max-height:74px;overflow:hidden">...</div>
   <div id="rt-name" style="font-size:.62rem;color:var(--muted);margin-top:5px">🛍️</div>
 </div>
-<footer>SYRPHY © <span id="yr"></span> - توصيل لكل المحافظات السورية<br>للطلب والاستفسار واتساب: <span class="num">+963 938 946 004</span><br><a href="https://wa.me/963938946004?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%20%F0%9F%91%8B%20%D8%AD%D8%A7%D8%A8%D8%A8%20%D8%A7%D9%86%D8%B6%D9%85%20%D9%84%D9%81%D8%B1%D9%8A%D9%82%20SYRPHY%20%F0%9F%9A%80" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;background:var(--green);color:#fff;padding:11px 22px;border-radius:24px;text-decoration:none;font-family:Cairo;font-weight:800;font-size:.9rem;margin:4px 0 14px">🤝 انضم إلى فريقنا</a><div style="opacity:.45;font-size:.65rem;margin-top:6px">v26.07.15.1-cf</div></footer>
+<footer>SYRPHY © <span id="yr"></span> - توصيل لكل المحافظات السورية<br>للطلب والاستفسار واتساب: <span class="num">+963 938 946 004</span><br><a href="https://wa.me/963938946004?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%20%F0%9F%91%8B%20%D8%AD%D8%A7%D8%A8%D8%A8%20%D8%A7%D9%86%D8%B6%D9%85%20%D9%84%D9%81%D8%B1%D9%8A%D9%82%20SYRPHY%20%F0%9F%9A%80" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;background:var(--green);color:#fff;padding:11px 22px;border-radius:24px;text-decoration:none;font-family:Cairo;font-weight:800;font-size:.9rem;margin:4px 0 14px">🤝 انضم إلى فريقنا</a><div style="opacity:.45;font-size:.65rem;margin-top:6px">v26.07.15.2-cf</div></footer>
 <div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
 <script id="seed" type="application/json">{"products":[],"coupons":[]}</script>
 <script>
@@ -876,119 +872,6 @@ function wheelSheet(){
   <div id="wheel-msg" style="text-align:center;min-height:1.5em;font-size:.92rem;font-weight:700"></div>
   <button class="btn" id="wheel-btn" onclick="spinWheel()">🎡 جرّب حظك!</button>`);
 }
-function whackSheet(){
-  if(!getProfile()){window.__afterAcc="";toast("سجل حسابك أول لتلعب 👤");return accountSheet()}
-  window.__wk={playing:false,attempt:0,hits:0,results:null,speed:2.2};
-  sheet(`<button class="close" onclick="closeModal()">✕</button>
-  <h3 style="text-align:center">🩴 اضرب الجحش</h3>
-  <small class="hint" style="text-align:center">معك 3 شحاطات! إصابتين براسه = خصم 5% · تلاتة = خصم 15% 👑 (مرة كل 20 ساعة)</small>
-  <div id="wk-arena" style="position:relative;height:180px;background:linear-gradient(#87CEEB 60%,#C9B37E 60%);border-radius:14px;margin:12px 0;overflow:hidden">
-    <div id="wk-donkey" style="position:absolute;bottom:8px;right:30%;font-size:0;transition:none">
-      <svg width="88" height="80" viewBox="0 0 88 80">
-        <ellipse cx="46" cy="52" rx="26" ry="16" fill="#8D8D93"/>
-        <rect x="26" y="60" width="6" height="16" rx="3" fill="#77777d"/>
-        <rect x="58" y="60" width="6" height="16" rx="3" fill="#77777d"/>
-        <rect x="36" y="62" width="6" height="14" rx="3" fill="#8D8D93"/>
-        <rect x="50" y="62" width="6" height="14" rx="3" fill="#8D8D93"/>
-        <path d="M70,50 q12,2 10,14" stroke="#77777d" stroke-width="4" fill="none" stroke-linecap="round"/>
-        <g id="wk-head">
-          <ellipse cx="18" cy="34" rx="14" ry="11" fill="#8D8D93"/>
-          <ellipse cx="9" cy="37" rx="7" ry="5.5" fill="#B9B9BF"/>
-          <path d="M14,24 q-5,-14 2,-16 q5,3 4,15" fill="#77777d"/>
-          <path d="M26,23 q0,-15 7,-15 q4,4 0,16" fill="#77777d"/>
-          <circle cx="15" cy="31" r="2.2" fill="#141414"/>
-          <circle cx="7" cy="36" r="1.4" fill="#141414"/><circle cx="11" cy="38" r="1.4" fill="#141414"/>
-          <path d="M28,26 q4,6 0,10" stroke="#5c4a2f" stroke-width="3" fill="none"/>
-        </g>
-      </svg>
-    </div>
-    <div id="wk-shoe" style="position:absolute;bottom:12px;right:47%;font-size:2rem;display:none;z-index:3">🩴</div>
-    <div id="wk-pow" style="position:absolute;display:none;font-size:1.8rem;z-index:4">💥</div>
-  </div>
-  <div style="display:flex;justify-content:space-between;align-items:center;font-size:.85rem;font-weight:700">
-    <span>الشحاطات: <span id="wk-tries">🩴🩴🩴</span></span>
-    <span>الإصابات: <span id="wk-hits" class="num">0</span>/3</span>
-  </div>
-  <div id="wk-msg" style="text-align:center;min-height:1.5em;font-size:.9rem;font-weight:700;margin-top:6px"></div>
-  <button class="btn" id="wk-btn" onclick="wkThrow()">🩴 ارمي الشحاطة!</button>`);
-  wkMove();
-}
-function wkMove(){
-  const dk=document.getElementById("wk-donkey");if(!dk)return;
-  let x=20,dir=1;const sp=()=>window.__wk?window.__wk.speed:2.2;
-  window.__wkTimer&&clearInterval(window.__wkTimer);
-  window.__wkTimer=setInterval(()=>{
-    if(!document.getElementById("wk-donkey")){clearInterval(window.__wkTimer);return}
-    x+=dir*sp();
-    if(x>68){dir=-1;dk.style.transform="scaleX(-1)"}
-    if(x<4){dir=1;dk.style.transform=""}
-    dk.style.right=x+"%";
-  },30);
-}
-async function wkThrow(){
-  const wk=window.__wk;if(!wk||wk.playing)return;
-  const btn=document.getElementById("wk-btn"),msg=document.getElementById("wk-msg");
-  // أول رمية: منجيب النتائج من السيرفر (النسب محسوبة هناك)
-  if(!wk.results){
-    btn.disabled=true;btn.textContent="...";
-    const p=getProfile();
-    try{
-      const r=await fetch(API(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"whack",dev:devId(),acc:p?(p.cc+p.phone):""})});
-      const d=await r.json();
-      if(!r.ok){
-        if(d.error==="cooldown"){const h=Math.ceil(d.waitMs/36e5);msg.innerHTML=`⏳ لعبت قبل قليل — ارجع بعد <b>${h}</b> ساعة تقريباً`;btn.textContent="🩴 ارمي الشحاطة!";return}
-        throw 0;
-      }
-      wk.results=d;btn.disabled=false;
-    }catch(e){msg.textContent="ما في اتصال — جرب كمان شوي";btn.disabled=false;btn.textContent="🩴 ارمي الشحاطة!";return}
-  }
-  wk.playing=true;btn.disabled=true;btn.style.opacity=".6";btn.textContent="🩴 طايرة...";
-  const shoe=document.getElementById("wk-shoe"),dk=document.getElementById("wk-donkey"),pow=document.getElementById("wk-pow");
-  const hit=wk.results.hits[wk.attempt];
-  shoe.style.display="block";shoe.style.transition="none";shoe.style.bottom="12px";shoe.style.right="47%";shoe.style.transform="rotate(0deg)";
-  requestAnimationFrame(()=>{
-    shoe.style.transition="all .55s cubic-bezier(.3,.1,.6,1)";
-    const dkRight=parseFloat(dk.style.right||"30");
-    shoe.style.right=(hit?dkRight+4:Math.min(dkRight+22,80))+"%";
-    shoe.style.bottom=hit?"92px":"140px";
-    shoe.style.transform="rotate("+(hit?"720":"1080")+"deg)";
-  });
-  setTimeout(()=>{
-    wk.attempt++;
-    document.getElementById("wk-tries").textContent="🩴".repeat(3-wk.attempt)+"▫️".repeat(wk.attempt);
-    if(hit){
-      wk.hits++;wk.speed+=1.6;
-      document.getElementById("wk-hits").textContent=wk.hits;
-      pow.style.display="block";pow.style.right=dk.style.right;pow.style.bottom="80px";
-      const hd=document.getElementById("wk-head");if(hd){hd.style.transform="rotate(-18deg)";setTimeout(()=>hd.style.transform="",450)}
-      msg.textContent=["🎯 إصابة براسه!","🎯🎯 تانية! صار أسرع!","🎯🎯🎯 أسطووورة!"][wk.hits-1];
-      setTimeout(()=>pow.style.display="none",500);
-    }else{
-      msg.textContent=["😅 راحت جنبه!","😬 قربت! ","💨 هرب منها!"][Math.floor(Math.random()*3)];
-    }
-    shoe.style.display="none";
-    if(wk.attempt>=3){
-      clearInterval(window.__wkTimer);
-      setTimeout(()=>{
-        const d=wk.results;
-        if(d.prize&&d.code){
-          sheet(`<button class="close" onclick="closeModal()">✕</button>
-          <div style="text-align:center;padding:14px 4px">
-            <div style="font-size:3rem">🩴🏆</div><h3>مبرووك! ${wk.hits} إصابات = خصم ${d.prize}%</h3>
-            <div style="font-family:Cairo;font-weight:900;font-size:1.5rem;color:var(--green);background:var(--bg);border:2px dashed var(--green);border-radius:12px;padding:14px;margin:12px 0;direction:ltr">${esc(d.code)}</div>
-            <small class="hint">لمرة وحدة — استخدمه بالسلة قبل ما تنساه!</small>
-            <button class="btn" onclick="copyText('${esc(d.code)}','انتسخ ✓')">📋 نسخ الكود</button>
-          </div>`);
-        }else{
-          msg.innerHTML=wk.hits>=1?`أصبته ${wk.hits} مرة — بدك إصابتين عالأقل للخصم. ارجع بعد 20 ساعة! 💪`:"ولا إصابة 😅 الجحش سريع! جرب بعد 20 ساعة";
-          btn.textContent="⏳ ارجع بعد 20 ساعة";
-        }
-      },600);
-    }else{
-      wk.playing=false;btn.disabled=false;btn.style.opacity="1";btn.textContent="🩴 ارمي الشحاطة!";
-    }
-  },600);
-}
 async function spinWheel(){
   const btn=document.getElementById("wheel-btn"),msg=document.getElementById("wheel-msg"),svg=document.getElementById("wheel-svg");
   btn.disabled=true;btn.style.opacity=".6";btn.textContent="عم يدور...";
@@ -1023,7 +906,6 @@ async function spinWheel(){
 }
 let __cycT=0;
 setInterval(()=>{__cycT++;document.querySelectorAll('img[data-cyc]').forEach(im=>{const pid=im.getAttribute("data-cyc");if(!pid)return;const p=S.products.find(x=>x.id===pid);if(!p||!(p.imgs||[]).length)return;const idx=__cycT%p.imgs.length;const next=p.imgs[idx].src;if(im.src!==next){im.style.opacity="0.25";setTimeout(()=>{im.src=next;im.style.opacity="1"},220)}})},2600);
-function toggleGames(btn){const g=document.getElementById("d-games");const open=g.style.display!=="block";g.style.display=open?"block":"none";btn.querySelector("span").textContent=open?"⬇":"⬅"}
 function waMenu(){const m=document.getElementById("wa-menu");m.style.display=m.style.display==="flex"?"none":"flex"}
 function openDrawer(){document.getElementById("drawer").classList.add("on");document.getElementById("drawer-ov").classList.add("on")}
 function closeDrawer(){document.getElementById("drawer").classList.remove("on");document.getElementById("drawer-ov").classList.remove("on")}
