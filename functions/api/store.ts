@@ -20,6 +20,7 @@ const OTC_KEY = "otc_codes";
 const WHEEL_KEY = "wheel_spins";
 const POINTS_KEY = "points_ledger";
 const REJECTED_KEY = "rejected_reviews";
+const SOLD_KEY = "sold_counts";
 const DIS_COUNTER_KEY = "dis_counter";
 const REVIEW_DEVS_KEY = "review_reward_devs";
 const BAD_WORDS = ["كس","طيز","شرموط","عرص","خرا","خرة","زبالة","زباله","حقير","نصاب","حرامي","حرامية","كذاب","احتيال","نصب عليكن","غشاش","سيء","سيئ","سئ","زفت","تعبان","خايس","فاشل","اسوأ","أسوأ","اسوء","لا انصح","لا أنصح","ما بنصح","احذرو","احذروا","حذاري","قذر","وسخ","تافه","بشع","fuck","shit","scam","fraud","fake","worst"];
@@ -169,7 +170,8 @@ export const onRequest: PagesFunction<Env> = async (context) => {
         const avg = list.reduce((a, r) => a + (r.s || 0), 0) / list.length;
         reviews[pid] = { avg: Math.round(avg * 10) / 10, count: list.length, last: list.slice(-5).reverse() };
       });
-      const res = json({ ...catalog, reviews }, { headers: { "Cache-Control": "public, s-maxage=120" } });
+      const sold = await readKey(env, SOLD_KEY, {});
+      const res = json({ ...catalog, reviews, sold }, { headers: { "Cache-Control": "public, s-maxage=120" } });
       context.waitUntil(cache.put(cacheKey, res.clone()));
       return res;
     }
@@ -189,7 +191,8 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     const orders = await readKey(env, ORDERS_KEY, {});
     const siteReviews = await readKey(env, SITE_REV_KEY, []);
     const rejectedReviews = await readKey(env, REJECTED_KEY, []);
-    return json({ ...catalog, reviews, analytics, abandoned, orders, siteReviews, rejectedReviews });
+    const sold = await readKey(env, SOLD_KEY, {});
+    return json({ ...catalog, reviews, analytics, abandoned, orders, siteReviews, rejectedReviews, sold });
   }
 
   /* ============ POST ============ */
@@ -286,6 +289,14 @@ export const onRequest: PagesFunction<Env> = async (context) => {
           );
           while (ids.length > 200) delete orders[ids.shift() as string];
           await writeKey(env, ORDERS_KEY, orders);
+          // عداد المبيعات المباشر
+          const sold = ((await readKey(env, SOLD_KEY, {})) || {}) as Record<string, number>;
+          items.slice(0, 30).forEach((it) => {
+            const o = (it && typeof it === "object" ? it : {}) as Record<string, unknown>;
+            const iid = String(o.id || "").slice(0, 40);
+            if (iid) sold[iid] = (sold[iid] || 0) + (Number(o.qty) || 1);
+          });
+          await writeKey(env, SOLD_KEY, sold);
         }
       }
       const ab = ((await readKey(env, ABANDONED_KEY, {})) || {}) as AbandonedMap;
