@@ -6,8 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta property="og:title" content="SYRPHY 🇸🇾 — توصيل لباب بيتك">
   <meta property="og:description" content="منتجات مختارة من شي إن وتيمو — بنوصلها لعندك وين ما كنت بسوريا، أو اهدي حدا بتحبه 🎁">
-  <meta property="og:image" content="https://syrphyshopping.vercel.app/og-image.png">
-  <meta property="og:url" content="https://syrphyshopping.vercel.app">
+  <meta property="og:image" content="https://syrphy.pages.dev/og-image.png">
+  <meta property="og:url" content="https://syrphy.pages.dev">
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="theme-color" content="#0B7A3E">
@@ -151,7 +151,7 @@
   <div id="grid-empty"></div>
 </main>
 <a class="wa" href="https://wa.me/963992624019" target="_blank" rel="noopener" title="تواصل واتساب"><svg viewBox="0 0 24 24" width="30" height="30" fill="#fff" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg></a>
-<footer>SYRPHY © <span id="yr"></span> - توصيل لكل المحافظات السورية<br>للطلب والاستفسار واتساب: <span class="num">+963 992 624 019</span><br><a href="https://wa.me/963992624019?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%20%F0%9F%91%8B%20%D8%AD%D8%A7%D8%A8%D8%A8%20%D8%A7%D9%86%D8%B6%D9%85%20%D9%84%D9%81%D8%B1%D9%8A%D9%82%20SYRPHY%20%F0%9F%9A%80" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;background:var(--green);color:#fff;padding:11px 22px;border-radius:24px;text-decoration:none;font-family:Cairo;font-weight:800;font-size:.9rem;margin:4px 0 14px">🤝 انضم إلى فريقنا</a><br><button class="adm" onclick="adminGate()">دخول المدير</button><button class="adm" onclick="userGate()">المستخدمين</button><div style="opacity:.45;font-size:.65rem;margin-top:6px">v26.07.11.4-cf</div></footer>
+<footer>SYRPHY © <span id="yr"></span> - توصيل لكل المحافظات السورية<br>للطلب والاستفسار واتساب: <span class="num">+963 992 624 019</span><br><a href="https://wa.me/963992624019?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%20%F0%9F%91%8B%20%D8%AD%D8%A7%D8%A8%D8%A8%20%D8%A7%D9%86%D8%B6%D9%85%20%D9%84%D9%81%D8%B1%D9%8A%D9%82%20SYRPHY%20%F0%9F%9A%80" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;background:var(--green);color:#fff;padding:11px 22px;border-radius:24px;text-decoration:none;font-family:Cairo;font-weight:800;font-size:.9rem;margin:4px 0 14px">🤝 انضم إلى فريقنا</a><br><button class="adm" onclick="adminGate()">دخول المدير</button><button class="adm" onclick="userGate()">المستخدمين</button><div style="opacity:.45;font-size:.65rem;margin-top:6px">v26.07.12.2-cf</div></footer>
 <div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
 <script id="seed" type="application/json">{"products":[],"coupons":[]}</script>
 <script>
@@ -248,7 +248,7 @@ function buildPromo(p){
   if(sizes.length)t+="📏 القياسات: "+sizes.join("، ")+"\n";
   t+="💰 السعر: "+fmt(pr)+" ل.س";
   if(p.disc>0)t+=" (بدل "+fmt(p.price)+" — خصم "+p.disc+"% 🔥)";
-  t+="\n\n🚚 توصيل لباب بيتك بكل المحافظات السورية\n🎁 وفيك تهدي حدا بتحبه جوا سوريا\n\nاطلب هلق 👇\nhttps://syrphyshopping.vercel.app";
+  t+="\n\n🚚 توصيل لباب بيتك بكل المحافظات السورية\n🎁 وفيك تهدي حدا بتحبه جوا سوريا\n\nاطلب هلق 👇\nhttps://syrphy.pages.dev";
   return t;
 }
 function sharePromo(p){
@@ -263,7 +263,7 @@ function sharePromo(p){
     <button class="btn ghost" onclick="promoCopy()">📋 نسخ المنشور</button>
     <a class="btn ghost" style="text-align:center;text-decoration:none" href="https://whatsapp.com/channel/0029Vb8afZPIiRoyfAXGjt2I" target="_blank" rel="noopener">📢 فتح القناة</a>
   </div>
-  <a class="btn ghost" style="text-align:center;text-decoration:none;display:block" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fsyrphyshopping.vercel.app&quote=${encodeURIComponent(txt)}" target="_blank" rel="noopener">📘 نشر عصفحة الفيسبوك</a>
+  <a class="btn ghost" style="text-align:center;text-decoration:none;display:block" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fsyrphy.pages.dev&quote=${encodeURIComponent(txt)}" target="_blank" rel="noopener">📘 نشر عصفحة الفيسبوك</a>
   <small class="hint">للقناة: نسخ → فتح القناة → لصق وإرسال (قنوات واتساب ما بتسمح بنشر آلي لأي جهة). للموبايل: زر المشاركة المباشرة أسرع.</small>`);
 }
 function promoCopy(){copyText(window.__promoTxt||"","انتسخ المنشور ✓ — الصقه بالقناة")}
@@ -343,7 +343,7 @@ td{padding:8px;border-bottom:1px solid #EFEDE6;text-align:right}
 </div>
 <div class="total"><span>المبلغ الإجمالي</span><b>${fmt(o.total)} ل.س</b></div>
 <div class="box links"><h3>🔗 تابعونا</h3>
-  🌐 المتجر: <b>syrphyshopping.vercel.app</b><br>
+  🌐 المتجر: <b>syrphy.pages.dev</b><br>
   📘 فيسبوك: <b>facebook.com/share/1G1Ratw1eP</b><br>
   📢 قناة الواتساب: <b>whatsapp.com/channel/0029Vb8afZPIiRoyfAXGjt2I</b><br>
   💬 للتواصل: <bdo dir="ltr"><b>+963 992 624 019</b></bdo>
@@ -439,7 +439,7 @@ function importOldSite(){
   if(isUserMode())return userPanel();
   sheet(`<button class="close" onclick="adminPanel()">→ رجوع</button>
   <h3>📥 استيراد من موقعك القديم</h3>
-  <small class="hint">بيسحب كل شي من موقعك عـ Vercel: المنتجات بالصور والألوان والقياسات، أكواد الخصم، سجل الطلبات، والإحصائيات — بكبسة وحدة.</small>
+  <small class="hint">بيسحب كل شي من موقعك القديم ويدمجه مع الموجود هون بلا ما يمسح أي منتج ضفته يدوياً — منتجات وأكواد وطلبات وإحصائيات، بكبسة وحدة.</small>
   <label>رابط الموقع القديم</label>
   <input id="imp-url" placeholder="https://syrphyshopping.vercel.app" style="direction:ltr;text-align:left">
   <button class="btn" onclick="runImport()">📥 ابدأ الاستيراد</button>
@@ -456,22 +456,40 @@ async function runImport(){
     const r=await fetch(url+"/api/store",{headers:{"x-admin-pin":adminPin}});
     if(!r.ok)throw new Error(r.status);
     d=await r.json();
-  }catch(e){return log("❌ ما قدرت اتصل — تأكد الرابط صحيح والموقع القديم لسا شغال")}
+  }catch(e){return log("❌ ما قدرت اتصل — الموقع القديم أو قاعدته معلقين حالياً (حدود الشهر). جرب بأول الشهر الجاي — بياناتك محفوظة هناك.")}
   const nP=(d.products||[]).length,nC=(d.coupons||[]).length,nO=Object.keys(d.orders||{}).length;
-  log(`✓ لقيت: ${nP} منتج · ${nC} كود خصم · ${nO} طلب`);
-  log("⏳ عم ينقل المنتجات والأكواد...");
+  log(`✓ لقيت بالقديم: ${nP} منتج · ${nC} كود · ${nO} طلب`);
+  log("⏳ عم يقرأ الموجود بالموقع الجديد للدمج...");
+  let cur={products:[],coupons:[],orders:{},analytics:null,abandoned:{},siteReviews:[]};
+  try{cur=await apiStore()}catch(e){}
+  // دمج المنتجات: الجديد اليدوي بيضل بأوله، والقديم بينضاف بلا تكرار
+  const curIds=new Set((cur.products||[]).map(p=>p.id));
+  const mergedProducts=[...(cur.products||[]),...(d.products||[]).filter(p=>!curIds.has(p.id))];
+  const curCodes=new Set((cur.coupons||[]).map(x=>String(x.code).toUpperCase()));
+  const mergedCoupons=[...(cur.coupons||[]),...(d.coupons||[]).filter(x=>!curCodes.has(String(x.code).toUpperCase()))];
+  log("⏳ عم يدمج وينقل المنتجات والأكواد...");
   try{
-    await apiStore("PUT",{products:d.products||[],coupons:d.coupons||[]});
-    log("✓ انتقلو المنتجات والأكواد");
+    await apiStore("PUT",{products:mergedProducts,coupons:mergedCoupons});
+    log(`✓ صارو ${mergedProducts.length} منتج بالموقع الجديد (دمج بلا حذف)`);
   }catch(e){return log("❌ فشل نقل المنتجات: "+(e.message||""))}
-  if(nO||d.analytics){
-    log("⏳ عم ينقل الطلبات والإحصائيات...");
-    try{
-      await apiStore("POST",{type:"import_data",orders:d.orders||{},analytics:d.analytics||null,abandoned:d.abandoned||{},siteReviews:d.siteReviews||[]});
-      log("✓ انتقلو الطلبات والإحصائيات");
-    }catch(e){log("⚠️ المنتجات انتقلو بس الطلبات لأ: "+(e.message||""))}
-  }
-  log("<b style=\"color:var(--green)\">🎉 خلص الاستيراد! حدّث الصفحة وشوف منتجاتك</b>");
+  // دمج الطلبات والإحصائيات
+  log("⏳ عم يدمج الطلبات والإحصائيات...");
+  try{
+    const mergedOrders={...(d.orders||{}),...(cur.orders||{})};
+    let a=d.analytics||null;
+    const ca=cur.analytics;
+    if(a&&ca&&(ca.total||0)>0){
+      const sum=(x={},y={})=>{const o={...x};Object.keys(y||{}).forEach(k=>o[k]=(o[k]||0)+y[k]);return o};
+      a={total:(a.total||0)+(ca.total||0),byDay:sum(a.byDay,ca.byDay),byCountry:sum(a.byCountry,ca.byCountry)};
+      const ao=(d.analytics||{}).orders,co=ca.orders;
+      if(ao||co){a.orders={total:((ao||{}).total||0)+((co||{}).total||0),amount:((ao||{}).amount||0)+((co||{}).amount||0),byMonth:sum((ao||{}).byMonth,(co||{}).byMonth),amountByMonth:sum((ao||{}).amountByMonth,(co||{}).amountByMonth),ids:[...new Set([...((ao||{}).ids||[]),...((co||{}).ids||[])])]}}
+    }else if(!a){a=ca||null}
+    const mergedAbandoned={...(d.abandoned||{}),...(cur.abandoned||{})};
+    const mergedReviews=[...(d.siteReviews||[]),...(cur.siteReviews||[])];
+    await apiStore("POST",{type:"import_data",orders:mergedOrders,analytics:a,abandoned:mergedAbandoned,siteReviews:mergedReviews});
+    log("✓ اندمجو الطلبات والإحصائيات");
+  }catch(e){log("⚠️ المنتجات انتقلو بس الطلبات لأ: "+(e.message||""))}
+  log("<b style=\"color:var(--green)\">🎉 خلص الدمج! ولا معلومة انمسحت — حدّث الصفحة وشوف</b>");
   refreshStore(true);
 }
 function notifyForm(){
