@@ -228,7 +228,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       const srAll = ((await readKey(env, SITE_REV_KEY, [])) || []) as { s: number; c: string; ts: number }[];
       const siteRev = srAll.slice(-12).reverse();
       const siteRevAvg = srAll.length ? Math.round((srAll.reduce((a, r) => a + (r.s || 0), 0) / srAll.length) * 10) / 10 : 0;
-      const res = json({ ...catalog, reviews, sold, siteRev, siteRevAvg, siteRevCount: srAll.length }, { headers: { "Cache-Control": "public, s-maxage=120" } });
+      const res = json({ sv: 16, ...catalog, reviews, sold, siteRev, siteRevAvg, siteRevCount: srAll.length }, { headers: { "Cache-Control": "public, s-maxage=120" } });
       context.waitUntil(cache.put(cacheKey, res.clone()));
       return res;
     }
@@ -251,7 +251,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     const sold = await readKey(env, SOLD_KEY, {});
     const complaints = await readKey(env, COMPLAINTS_KEY, []);
     const accounts = await readKey(env, ACCOUNTS_KEY, {});
-    return json({ ...catalog, reviews, analytics, abandoned, orders, siteReviews, rejectedReviews, sold, complaints, accounts });
+    return json({ sv: 16, ...catalog, reviews, analytics, abandoned, orders, siteReviews, rejectedReviews, sold, complaints, accounts });
   }
 
   /* ============ POST ============ */
