@@ -182,7 +182,7 @@
   <a href="https://wa.me/963938946004" target="_blank" rel="noopener" style="background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 16px;text-decoration:none;color:var(--text);font-family:Cairo;font-weight:800;font-size:.82rem;box-shadow:var(--shadow)">💬 تواصل معنا</a>
   <a href="https://wa.me/963938946004?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%20%F0%9F%91%8B%20%D8%A8%D8%AF%D9%8A%20%D8%A7%D8%B7%D9%84%D8%A8%20%D9%85%D9%86%D8%AA%D8%AC%20%D9%85%D9%86%20%D9%85%D9%88%D9%82%D8%B9%20%D8%AE%D8%A7%D8%B1%D8%AC%D9%8A%20%F0%9F%8C%8D%20%D9%87%D8%A7%D8%AF%20%D8%A7%D9%84%D8%B1%D8%A7%D8%A8%D8%B7%3A%20" target="_blank" rel="noopener" style="background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 16px;text-decoration:none;color:var(--text);font-family:Cairo;font-weight:800;font-size:.82rem;box-shadow:var(--shadow)">🌍 لطلب منتج من موقع خارجي</a>
 </div>
-<footer>SYRPHY © <span id="yr"></span> - توصيل لكل المحافظات السورية<br>للطلب والاستفسار واتساب: <span class="num">+963 938 946 004</span><br><a href="https://wa.me/963938946004?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%20%F0%9F%91%8B%20%D8%AD%D8%A7%D8%A8%D8%A8%20%D8%A7%D9%86%D8%B6%D9%85%20%D9%84%D9%81%D8%B1%D9%8A%D9%82%20SYRPHY%20%F0%9F%9A%80" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;background:var(--green);color:#fff;padding:11px 22px;border-radius:24px;text-decoration:none;font-family:Cairo;font-weight:800;font-size:.9rem;margin:4px 0 14px">🤝 انضم إلى فريقنا</a><div style="opacity:.45;font-size:.65rem;margin-top:6px">v26.07.15.4-cf</div></footer>
+<footer>SYRPHY © <span id="yr"></span> - توصيل لكل المحافظات السورية<br>للطلب والاستفسار واتساب: <span class="num">+963 938 946 004</span><br><a href="https://wa.me/963938946004?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%20%F0%9F%91%8B%20%D8%AD%D8%A7%D8%A8%D8%A8%20%D8%A7%D9%86%D8%B6%D9%85%20%D9%84%D9%81%D8%B1%D9%8A%D9%82%20SYRPHY%20%F0%9F%9A%80" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;background:var(--green);color:#fff;padding:11px 22px;border-radius:24px;text-decoration:none;font-family:Cairo;font-weight:800;font-size:.9rem;margin:4px 0 14px">🤝 انضم إلى فريقنا</a><div style="opacity:.45;font-size:.65rem;margin-top:6px">v26.07.16.1-cf</div></footer>
 <div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
 <script id="seed" type="application/json">{"products":[],"coupons":[]}</script>
 <script>
@@ -200,12 +200,25 @@ const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&g
 function seedData(){try{return JSON.parse(document.getElementById("seed").textContent)}catch(e){return {products:[],coupons:[]}}}
 function normalizeStore(data){data=data||{};S.products=Array.isArray(data.products)?data.products:[];S.coupons=Array.isArray(data.coupons)?data.coupons:[];S.products.forEach(p=>{if(!p.imgs)p.imgs=p.img?[{src:p.img,color:""}]:[]})}
 async function apiStore(method="GET",body){const headers={"Content-Type":"application/json"};if(adminPin)headers["x-admin-pin"]=adminPin;const res=await fetch(API(),{method,headers,body:body?JSON.stringify(body):undefined,cache:"no-store"});if(!res.ok)throw new Error(res.status===401?"unauthorized":"api");return res.json()}
-async function refreshStore(silent=false){try{const data=await apiStore();window.__reviews=data.reviews||{};window.__sold=data.sold||{};window.__siteRev={list:data.siteRev||[],avg:data.siteRevAvg||0,count:data.siteRevCount||0};normalizeStore(data);renderAll()}catch(e){if(!silent)toast("تعذر تحديث المنتجات");const seed=seedData();if(!S.products.length)normalizeStore(seed);renderAll()}}
+async function refreshStore(silent=false){try{const data=await apiStore();window.__loadedOK=true;window.__reviews=data.reviews||{};window.__sold=data.sold||{};window.__siteRev={list:data.siteRev||[],avg:data.siteRevAvg||0,count:data.siteRevCount||0};normalizeStore(data);renderAll()}catch(e){if(!silent)toast("تعذر تحديث المنتجات");const seed=seedData();if(!S.products.length)normalizeStore(seed);renderAll()}}
 async function load(){S.theme=localStorage.getItem(THEME_KEY)||"light";adminPin=sessionStorage.getItem(ADMIN_KEY)||"";isAdmin=Boolean(adminPin);applyTheme(S.theme);await refreshStore(true);setInterval(()=>{if(!document.hidden)refreshStore(true)},300000);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&Date.now()-(window.__lastRef||0)>120000){window.__lastRef=Date.now();refreshStore(true)}});
 visitPing();startPresence()}
 function persist(){localStorage.setItem(THEME_KEY,S.theme)}
-async function saveStore(msg){const data=await apiStore("PUT",{products:S.products,coupons:S.coupons});normalizeStore(data);renderAll();if(msg)toast(msg)}
+async function saveStore(msg,force){
+  if(!window.__loadedOK){toast("⚠️ ما انجلبت المنتجات من السيرفر — حدّث الصفحة قبل الحفظ حماية لبياناتك");throw new Error("not_loaded")}
+  try{
+    const data=await apiStore("PUT",{products:S.products,coupons:S.coupons,force:!!force});
+    normalizeStore(data);renderAll();if(msg)toast(msg);
+  }catch(e){
+    if(e.message==="refuse_empty"){toast("🛡️ منعت الحفظ: القائمة عندك فاضية والسيرفر عنده منتجات — حدّث الصفحة");throw e}
+    if(e.message==="refuse_big_delete"){
+      if(confirm("⚠️ عم تحفظ منتجات أقل بكتير من الموجود بالسيرفر — أكيد بدك تكمل؟ (إذا مو متأكد اضغط إلغاء وحدّث الصفحة)")){return saveStore(msg,true)}
+      throw e;
+    }
+    throw e;
+  }
+}
 function toast(msg){const t=document.createElement("div");t.textContent=msg;t.style.cssText="position:fixed;bottom:88px;right:50%;transform:translateX(50%);background:var(--green);color:#fff;padding:10px 20px;border-radius:24px;font-weight:700;font-size:.85rem;z-index:300;font-family:Cairo;box-shadow:0 4px 14px rgba(0,0,0,.3)";document.body.appendChild(t);setTimeout(()=>t.remove(),2000)}
 function copyText(txt,msg){navigator.clipboard?.writeText(txt).then(()=>toast(msg||"انتسخ ✓")).catch(()=>toast("انسخه يدوي"))}
 function price(p){return p.disc>0?Math.round(p.price*(1-p.disc/100)):p.price}function pimg(p){return p.imgs?.[0]?.src||p.img||""}function sizesOf(im){return String(im&&im.sizes||"").split(/[,،\s]+/).filter(Boolean)}
@@ -576,6 +589,23 @@ async function delComplaint(id){
   if(!confirm("حذف الشكوى؟"))return;
   try{await apiStore("POST",{type:"del_complaint",id});toast("انحذفت ✓");complaintsPanel()}catch(e){toast("ما زبط")}
 }
+async function backupsPanel(){
+  if(isUserMode())return userPanel();
+  sheet(`<button class="close" onclick="adminPanel()">→ رجوع</button><h3>🛟 النسخ الاحتياطية</h3><div class="empty">عم يفحص...</div>`);
+  let d;try{d=await apiStore("POST",{type:"list_backups"})}catch(e){return sheet(`<button class="close" onclick="adminPanel()">→ رجوع</button><div class="empty">تعذر الفحص</div>`)}
+  sheet(`<button class="close" onclick="adminPanel()">→ رجوع</button>
+  <h3>🛟 النسخ الاحتياطية</h3>
+  <small class="hint">الموقع بياخد نسخة احتياطية تلقائياً قبل كل حفظ. إذا ضاعت منتجاتك، ارجع لأحدث نسخة فيها منتجات.</small>
+  <div class="item"><div class="t"><b>📦 الموجود حالياً</b><span class="badge ${d.current?"g":""} num">${d.current} منتج</span></div></div>
+  <div class="item"><div class="t"><b>🛟 نسخة احتياطية 1 (الأحدث)</b><span class="badge ${d.bk1?"g":""} num">${d.bk1} منتج</span></div>
+    ${d.bk1?`<button class="mini" style="width:100%;margin-top:8px;color:var(--green)" onclick="restoreBk('bk1',${d.bk1})">♻️ استرجع هي النسخة</button>`:'<small class="hint">فاضية</small>'}</div>
+  <div class="item"><div class="t"><b>🛟 نسخة احتياطية 2 (الأقدم)</b><span class="badge ${d.bk2?"g":""} num">${d.bk2} منتج</span></div>
+    ${d.bk2?`<button class="mini" style="width:100%;margin-top:8px" onclick="restoreBk('bk2',${d.bk2})">♻️ استرجع هي النسخة</button>`:'<small class="hint">فاضية</small>'}</div>`);
+}
+async function restoreBk(which,n){
+  if(!confirm("رح ترجع "+n+" منتج من النسخة الاحتياطية وتكتب فوق الموجود حالياً. متابعة؟"))return;
+  try{const d=await apiStore("POST",{type:"restore_backup",which});toast("♻️ رجعو "+d.restored+" منتج!");await refreshStore(true);adminPanel()}catch(e){toast("ما زبط الاسترجاع: "+(e.message||""))}
+}
 function notifyForm(){
   if(isUserMode())return userPanel();
   sheet(`<button class="close" onclick="adminPanel()">→ رجوع</button><h3>📣 إشعار لكل المشتركين</h3>
@@ -623,7 +653,7 @@ const pin=_n.toUpperCase()+":"+_p;
 try{adminPin=pin;const resp=await apiStore("POST",{});isAdmin=true;sessionStorage.setItem(ADMIN_KEY,pin);sessionStorage.setItem("syrphy-role",(resp&&resp.role)==="user"?"user":"admin");if(isUserMode()){userPanel()}else{adminPanel()}refreshStore(true)}
 catch(e){adminPin="";sessionStorage.removeItem(ADMIN_KEY);toast(e.message==="locked"?"⛔ انقفل الدخول ١٥ دقيقة — محاولات غلط كتيرة":e.message==="unauthorized"?"الرمز غلط":e.message==="DATABASE_URL_missing"?"⚠️ قاعدة البيانات مو مربوطة — ضيف DATABASE_URL بإعدادات Vercel":"⚠️ خطأ: "+(e.message||"ما في اتصال")+" — ابعت هالرسالة للدعم")}}
 function userPanel(){sheet(`<button class="close" onclick="closeModal()">✕</button><h3>👥 لوحة المستخدمين</h3><small class="hint">${S.products.length} منتج</small><button class="btn" onclick="addProdForm()">＋ إضافة منتج</button><button class="btn ghost" onclick="manageProds()">🗂 إدارة المنتجات</button><button class="btn ghost" onclick="logoutAdmin()">تسجيل خروج</button>`)}
-function adminPanel(){if(isUserMode())return userPanel();sheet(`<button class="close" onclick="closeModal()">✕</button><h3>⚙️ لوحة المدير</h3><small class="hint">${S.products.length} منتج · ${S.coupons.length} كود خصم</small><button class="btn" onclick="addProdForm()">＋ إضافة منتج</button><button class="btn ghost" onclick="manageProds()">🗂 إدارة المنتجات والخصومات</button><button class="btn ghost" onclick="manageCoupons()">🏷 أكواد الخصم</button><button class="btn" onclick="ordersPanel()">📦 الطلبات وتتبع التوصيل</button><button class="btn ghost" onclick="statsPanel()">📈 الإحصائيات والزيارات</button><button class="btn ghost" onclick="notifyForm()">📣 إرسال إشعار للجميع</button><button class="btn ghost" onclick="customersPanel()">👥 داتا العملاء</button><button class="btn ghost" onclick="complaintsPanel()">📨 الشكاوي</button><button class="btn ghost" onclick="importOldSite()">📥 استيراد كل شي من الموقع القديم</button><button class="btn ghost" onclick="openDaftar()">📒 دفتر التاجر</button><button class="btn ghost" onclick="logoutAdmin()">تسجيل خروج المدير</button>`)}
+function adminPanel(){if(isUserMode())return userPanel();sheet(`<button class="close" onclick="closeModal()">✕</button><h3>⚙️ لوحة المدير</h3><small class="hint">${S.products.length} منتج · ${S.coupons.length} كود خصم</small><button class="btn" onclick="addProdForm()">＋ إضافة منتج</button><button class="btn ghost" onclick="manageProds()">🗂 إدارة المنتجات والخصومات</button><button class="btn ghost" onclick="manageCoupons()">🏷 أكواد الخصم</button><button class="btn" onclick="ordersPanel()">📦 الطلبات وتتبع التوصيل</button><button class="btn ghost" onclick="statsPanel()">📈 الإحصائيات والزيارات</button><button class="btn ghost" onclick="notifyForm()">📣 إرسال إشعار للجميع</button><button class="btn ghost" onclick="customersPanel()">👥 داتا العملاء</button><button class="btn ghost" onclick="complaintsPanel()">📨 الشكاوي</button><button class="btn ghost" onclick="importOldSite()">📥 استيراد كل شي من الموقع القديم</button><button class="btn ghost" onclick="backupsPanel()">🛟 استرجاع نسخة احتياطية</button><button class="btn ghost" onclick="openDaftar()">📒 دفتر التاجر</button><button class="btn ghost" onclick="logoutAdmin()">تسجيل خروج المدير</button>`)}
 function logoutAdmin(){isAdmin=false;adminPin="";sessionStorage.removeItem(ADMIN_KEY);sessionStorage.removeItem("syrphy-role");closeModal();toast("تم تسجيل الخروج")}
 function addProdForm(p){const e=p||{};tempImgs=e.imgs?e.imgs.map(x=>({src:x.src,color:x.color||"",sizes:x.sizes||""})):(e.img?[{src:e.img,color:""}]:[]);sheet(`<button class="close" onclick="${isUserMode()?"userPanel":"adminPanel"}()">→ رجوع</button><h3>${p?"تعديل منتج":"＋ منتج جديد"}</h3><label>رابط المنتج من شي إن أو تيمو</label><input id="ap-link" value="${esc(e.link||"")}" oninput="linkHint()"><small class="hint" id="ap-src"></small><label>اسم المنتج</label><input id="ap-name" value="${esc(e.name||"")}" oninput="catHint()"><label>صور المنتج</label><input type="file" id="ap-file" accept="image/*" multiple onchange="readImg(this)"><small class="hint">ارفع صورة أو أكثر واكتب اسم اللون تحت كل صورة.</small><div id="ap-imgs" style="margin-top:8px"></div><div class="row"><div><label>السعر الأساسي (د.إ)</label><input type="number" id="ap-base" inputmode="decimal" value="${e.basePrice||""}"></div><div><label>سعر البيع (ل.س)</label><input type="number" id="ap-price" inputmode="decimal" value="${e.price||""}"></div></div><div class="row"><div><label>الصنف <small id="ap-cat-auto"></small></label><select id="ap-cat">${CATS.filter(c=>c!=="الكل").map(c=>`<option ${e.cat===c?"selected":""}>${c}</option>`).join("")}</select></div>${!isUserMode()?`<div><label>خصم %</label><input type="number" id="ap-disc" inputmode="decimal" value="${e.disc||0}"></div>`:""}</div><button class="btn" onclick="saveProd('${e.id||""}')">💾 حفظ المنتج</button>`);linkHint();catHint();renderImgList()}
 function linkHint(){const el=document.getElementById("ap-src");if(el)el.textContent=detectSource(document.getElementById("ap-link").value)?"✓ المصدر: "+detectSource(document.getElementById("ap-link").value):""}function catHint(){const name=document.getElementById("ap-name")?.value;if(!name)return;const c=autoCat(name);document.getElementById("ap-cat-auto").textContent="(اقتراح: "+c+")";document.getElementById("ap-cat").value=c}
