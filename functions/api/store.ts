@@ -647,6 +647,27 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       return json({ ok: true });
     }
 
+    if (type === "list_backups") {
+      if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
+      const b1 = normalizeStore(await readBig(env, "catalog_bk1", {}));
+      const b2 = normalizeStore(await readBig(env, "catalog_bk2", {}));
+      const cur = normalizeStore(await readBig(env, STORE_KEY, {}));
+      return json({
+        current: cur.products.length,
+        bk1: b1.products.length,
+        bk2: b2.products.length,
+      });
+    }
+
+    if (type === "restore_backup") {
+      if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
+      const which = String(body.which || "bk1") === "bk2" ? "catalog_bk2" : "catalog_bk1";
+      const bk = normalizeStore(await readBig(env, which, {}));
+      if (!bk.products.length) return json({ error: "empty_backup" }, { status: 404 });
+      await writeBig(env, STORE_KEY, bk);
+      return json({ ok: true, restored: bk.products.length });
+    }
+
     if (type === "del_order") {
       if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
       const id = String(body.id || "");
@@ -674,6 +695,31 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       const existing = normalizeStore(await readBig(env, STORE_KEY, {}));
       data.coupons = existing.coupons;
     }
+    const existing = normalizeStore(await readBig(env, STORE_KEY, {}));
+    const body2 = (data as unknown) as { force?: boolean };
+
+    // 🛡️ حماية: ممنوع الكتابة الفاضية أو حذف أكتر من نص المنتجات دفعة وحدة
+    if (existing.products.length > 0) {
+      if (data.products.length === 0) {
+        return json({ error: "refuse_empty", have: existing.products.length }, { status: 409 });
+      }
+      if (data.products.length < existing.products.length / 2 && !body2.force) {
+        return json(
+          { error: "refuse_big_delete", have: existing.products.length, incoming: data.products.length },
+          { status: 409 }
+        );
+      }
+    }
+
+    // 🗄️ نسخة احتياطية قبل كل حفظ (آخر 3 نسخ)
+    try {
+      if (existing.products.length) {
+        const b2 = await readBig(env, "catalog_bk1", null);
+        if (b2) await writeBig(env, "catalog_bk2", b2);
+        await writeBig(env, "catalog_bk1", existing);
+      }
+    } catch (_) { /* النسخة الاحتياطية ما بتوقف الحفظ */ }
+
     try {
       await writeBig(env, STORE_KEY, data);
     } catch (e) {
