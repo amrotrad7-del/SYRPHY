@@ -107,11 +107,19 @@ async function writeBig(env: Env, key: string, value: unknown) {
     ),
   ];
   await env.DB.batch(stmts);
-  // تنظيف قطع قديمة زائدة
-  await env.DB.prepare("DELETE FROM store_items WHERE key LIKE ?1 AND key >= ?2")
-    .bind(key + "__p%", key + "__p" + parts.length)
-    .run()
-    .catch(() => {});
+  // تنظيف قطع قديمة زائدة (بأمان: بس اللي رقمها >= عدد القطع الجديد)
+  try {
+    const old = await env.DB.prepare("SELECT key FROM store_items WHERE key GLOB ?1").bind(key + "__p*").all<{ key: string }>();
+    const stale = (old.results || [])
+      .map((r) => r.key)
+      .filter((k) => {
+        const n = Number(k.split("__p")[1]);
+        return Number.isFinite(n) && n >= parts.length;
+      });
+    if (stale.length) {
+      await env.DB.batch(stale.map((k) => env.DB.prepare("DELETE FROM store_items WHERE key = ?").bind(k)));
+    }
+  } catch (_) { /* ما بيوقف الحفظ */ }
 }
 
 async function readBig(env: Env, key: string, fallback: unknown) {
@@ -119,8 +127,8 @@ async function readBig(env: Env, key: string, fallback: unknown) {
   if (!head) return fallback;
   const h = head as { __chunked?: number };
   if (!h || typeof h.__chunked !== "number") return head; // نسخة قديمة غير مجزأة
-  const rows = await env.DB.prepare("SELECT key, value FROM store_items WHERE key LIKE ?1")
-    .bind(key + "__p%")
+  const rows = await env.DB.prepare("SELECT key, value FROM store_items WHERE key GLOB ?1")
+    .bind(key + "__p*")
     .all<{ key: string; value: string }>();
   const map: Record<number, string> = {};
   (rows.results || []).forEach((r) => {
@@ -582,6 +590,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
     if (type === "import_data") {
       if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
+      // 🛡️ الاستيراد ممنوع يمسح أي شي — بيدمج بس
       const imported: string[] = [];
       if (body.orders && typeof body.orders === "object") {
         await writeKey(env, ORDERS_KEY, body.orders);
@@ -649,19 +658,25 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
     if (type === "list_backups") {
       if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
-      const b1 = normalizeStore(await readBig(env, "catalog_bk1", {}));
-      const b2 = normalizeStore(await readBig(env, "catalog_bk2", {}));
       const cur = normalizeStore(await readBig(env, STORE_KEY, {}));
-      return json({
-        current: cur.products.length,
-        bk1: b1.products.length,
-        bk2: b2.products.length,
-      });
+      const list: { key: string; label: string; count: number; ts: number }[] = [];
+      const marker = ((await readKey(env, "catalog_day_marker", {})) || {}) as Record<string, string>;
+      const names = ["الأحد", "الاتنين", "التلات", "الأربعا", "الخميس", "الجمعة", "السبت"];
+      for (const k of ["catalog_bk1", "catalog_bk2"]) {
+        const b = normalizeStore(await readBig(env, k, {}));
+        if (b.products.length) list.push({ key: k, label: k === "catalog_bk1" ? "آخر نسخة (قبل آخر حفظ)" : "النسخة اللي قبلها", count: b.products.length, ts: 0 });
+      }
+      for (let d = 0; d < 7; d++) {
+        const b = normalizeStore(await readBig(env, "catalog_day" + d, {}));
+        if (b.products.length) list.push({ key: "catalog_day" + d, label: "نسخة يوم " + names[d] + (marker[String(d)] ? " (" + marker[String(d)] + ")" : ""), count: b.products.length, ts: 0 });
+      }
+      return json({ current: cur.products.length, list });
     }
 
     if (type === "restore_backup") {
       if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
-      const which = String(body.which || "bk1") === "bk2" ? "catalog_bk2" : "catalog_bk1";
+      const raw = String(body.which || "catalog_bk1");
+      const which = /^catalog_(bk1|bk2|day[0-6])$/.test(raw) ? raw : "catalog_bk1";
       const bk = normalizeStore(await readBig(env, which, {}));
       if (!bk.products.length) return json({ error: "empty_backup" }, { status: 404 });
       await writeBig(env, STORE_KEY, bk);
@@ -711,12 +726,22 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       }
     }
 
-    // 🗄️ نسخة احتياطية قبل كل حفظ (آخر 3 نسخ)
+    // 🗄️ نسخ احتياطية: قبل كل حفظ + نسخة يومية دوّارة (7 أيام)
     try {
       if (existing.products.length) {
-        const b2 = await readBig(env, "catalog_bk1", null);
-        if (b2) await writeBig(env, "catalog_bk2", b2);
+        const b1 = await readBig(env, "catalog_bk1", null);
+        if (b1) await writeBig(env, "catalog_bk2", b1);
         await writeBig(env, "catalog_bk1", existing);
+        // نسخة اليوم (بتنكتب مرة وحدة باليوم — فبتضل أقدم نسخة سليمة لليوم)
+        const day = new Date().getDay(); // 0-6
+        const dayKey = "catalog_day" + day;
+        const marker = ((await readKey(env, "catalog_day_marker", {})) || {}) as Record<string, string>;
+        const today = new Date().toISOString().slice(0, 10);
+        if (marker[String(day)] !== today) {
+          await writeBig(env, dayKey, existing);
+          marker[String(day)] = today;
+          await writeKey(env, "catalog_day_marker", marker);
+        }
       }
     } catch (_) { /* النسخة الاحتياطية ما بتوقف الحفظ */ }
 
