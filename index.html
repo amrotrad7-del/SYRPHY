@@ -185,7 +185,7 @@
   <a href="https://wa.me/971566135365" target="_blank" rel="noopener" style="background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 16px;text-decoration:none;color:var(--text);font-family:Cairo;font-weight:800;font-size:.82rem;box-shadow:var(--shadow)">💬 تواصل معنا</a>
   <a href="https://wa.me/971566135365?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%20%F0%9F%91%8B%20%D8%A8%D8%AF%D9%8A%20%D8%A7%D8%B7%D9%84%D8%A8%20%D9%85%D9%86%D8%AA%D8%AC%20%D9%85%D9%86%20%D9%85%D9%88%D9%82%D8%B9%20%D8%AE%D8%A7%D8%B1%D8%AC%D9%8A%20%F0%9F%8C%8D%20%D9%87%D8%A7%D8%AF%20%D8%A7%D9%84%D8%B1%D8%A7%D8%A8%D8%B7%3A%20" target="_blank" rel="noopener" style="background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 16px;text-decoration:none;color:var(--text);font-family:Cairo;font-weight:800;font-size:.82rem;box-shadow:var(--shadow)">🌍 لطلب منتج من موقع خارجي</a>
 </div>
-<footer>SYRPHY © <span id="yr"></span> - توصيل لكل المحافظات السورية<br>للطلب والاستفسار واتساب: <span class="num">+971 56 613 5365</span><br><a id="team-sec" href="https://wa.me/971566135365?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%20%F0%9F%91%8B%20%D8%AD%D8%A7%D8%A8%D8%A8%20%D8%A7%D9%86%D8%B6%D9%85%20%D9%84%D9%81%D8%B1%D9%8A%D9%82%20SYRPHY%20%F0%9F%9A%80" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;background:var(--green);color:#fff;padding:11px 22px;border-radius:24px;text-decoration:none;font-family:Cairo;font-weight:800;font-size:.9rem;margin:4px 0 14px">🤝 انضم إلى فريقنا</a><div style="opacity:.45;font-size:.65rem;margin-top:6px">v26.07.19.2-cf</div></footer>
+<footer>SYRPHY © <span id="yr"></span> - توصيل لكل المحافظات السورية<br>للطلب والاستفسار واتساب: <span class="num">+971 56 613 5365</span><br><a id="team-sec" href="https://wa.me/971566135365?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%20%F0%9F%91%8B%20%D8%AD%D8%A7%D8%A8%D8%A8%20%D8%A7%D9%86%D8%B6%D9%85%20%D9%84%D9%81%D8%B1%D9%8A%D9%82%20SYRPHY%20%F0%9F%9A%80" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;background:var(--green);color:#fff;padding:11px 22px;border-radius:24px;text-decoration:none;font-family:Cairo;font-weight:800;font-size:.9rem;margin:4px 0 14px">🤝 انضم إلى فريقنا</a><div style="opacity:.45;font-size:.65rem;margin-top:6px">v26.07.19.3-cf</div></footer>
 <div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
 <script id="seed" type="application/json">{"products":[],"coupons":[]}</script>
 <script>
@@ -354,7 +354,7 @@ function sharePromo(p){
   <small class="hint">الأفضل: "مشاركة مع الصور" — بترفق صور المنتج فعلياً بالواتساب (القناة والكروب) والفيسبوك.</small>
   <div style="display:flex;gap:6px;overflow-x:auto;padding:8px 0">${imgs.slice(0,5).map(im=>`<img src="${esc(im.src)}" style="width:74px;height:74px;object-fit:cover;border-radius:10px;border:1px solid var(--line)">`).join("")}</div>
   <textarea id="promo-txt" style="height:150px;font-size:.85rem">${esc(txt)}</textarea>
-  <button class="btn" onclick="promoShareFiles()">📲 مشاركة مع الصور (قناة · كروب · فيسبوك)</button>
+  <button class="btn" onclick="promoShareFiles()">📲 نشر ببوست واحد بكل الألوان (قناة · كروب · فيس)</button>
   <div class="hr"></div>
   <small class="hint">أو انشر بالرابط — بتطلع بطاقة معاينة فيها صورة المنتج تلقائياً:</small>
   <div class="row">
@@ -369,21 +369,51 @@ async function promoShare(){const txt=window.__promoTxt||"";if(navigator.share){
 async function promoShareFiles(){window.__autoPromo=false;
   const p=window.__promo;if(!p)return;
   const txt=document.getElementById("promo-txt").value;
-  const imgs=(p.imgs&&p.imgs.length?p.imgs:[{src:p.img}]).filter(x=>x&&x.src).slice(0,5);
   try{
-    const files=[];
-    for(let i=0;i<imgs.length;i++){
-      const r=await fetch(imgs[i].src);const b=await r.blob();
-      files.push(new File([b],"syrphy-"+p.id+"-"+(i+1)+".jpg",{type:b.type||"image/jpeg"}));
-    }
-    if(files.length&&navigator.canShare&&navigator.canShare({files})){await navigator.share({files,text:txt});return}
+    const blob=await makeCollage(p);
+    const file=new File([blob],"syrphy-"+p.id+".jpg",{type:"image/jpeg"});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],text:txt});return}
     if(navigator.share){await navigator.share({text:txt});return}
     throw new Error("no_share");
   }catch(e){
     if(e&&e.name==="AbortError")return;
-    imgs.forEach((im,i)=>{const a=document.createElement("a");a.href=im.src;a.download="syrphy-"+p.id+"-"+(i+1)+".jpg";document.body.appendChild(a);a.click();a.remove()});
-    copyText(txt,"نزّلت الصور ونسخت النص — ارفقهن بالمنشور 📎");
+    try{
+      const blob=await makeCollage(p);
+      const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="syrphy-"+p.id+".jpg";document.body.appendChild(a);a.click();a.remove();
+      copyText(txt,"نزّلت صورة المنشور ونسخت النص — ارفقهن 📎");
+    }catch(_){copyText(txt,"انتسخ النص 📋")}
   }
+}
+function loadImg(src){return new Promise((res,rej)=>{const im=new Image();im.onload=()=>res(im);im.onerror=rej;im.src=src})}
+function coverDraw(ctx,im,x,y,w,h){
+  const r=Math.max(w/im.width,h/im.height);
+  const nw=im.width*r,nh=im.height*r;
+  ctx.save();ctx.beginPath();ctx.rect(x,y,w,h);ctx.clip();
+  ctx.drawImage(im,x+(w-nw)/2,y+(h-nh)/2,nw,nh);ctx.restore();
+}
+async function makeCollage(p){
+  const srcs=(p.imgs&&p.imgs.length?p.imgs:[{src:p.img}]).filter(x=>x&&x.src).slice(0,4).map(x=>x.src);
+  const ims=await Promise.all(srcs.map(loadImg));
+  const W=900,BAR=120,H=900+BAR,G=6;
+  const cv=document.createElement("canvas");cv.width=W;cv.height=H;
+  const ctx=cv.getContext("2d");
+  ctx.fillStyle="#fff";ctx.fillRect(0,0,W,H);
+  const n=ims.length;
+  if(n===1)coverDraw(ctx,ims[0],0,0,W,900);
+  else if(n===2){coverDraw(ctx,ims[0],0,0,(W-G)/2,900);coverDraw(ctx,ims[1],(W+G)/2,0,(W-G)/2,900)}
+  else if(n===3){coverDraw(ctx,ims[0],0,0,(W-G)/2,900);coverDraw(ctx,ims[1],(W+G)/2,0,(W-G)/2,(900-G)/2);coverDraw(ctx,ims[2],(W+G)/2,(900+G)/2,(W-G)/2,(900-G)/2)}
+  else{const s=(900-G)/2,sw=(W-G)/2;coverDraw(ctx,ims[0],0,0,sw,s);coverDraw(ctx,ims[1],sw+G,0,sw,s);coverDraw(ctx,ims[2],0,s+G,sw,s);coverDraw(ctx,ims[3],sw+G,s+G,sw,s)}
+  // شريط العلامة والسعر
+  const grad=ctx.createLinearGradient(0,900,W,H);grad.addColorStop(0,"#14532D");grad.addColorStop(1,"#0B7A3E");
+  ctx.fillStyle=grad;ctx.fillRect(0,900,W,BAR);
+  ctx.fillStyle="#fff";ctx.font="bold 46px Cairo, Arial";ctx.textAlign="right";ctx.direction="rtl";
+  ctx.fillText("SYRPHY 🇸🇾",W-28,900+52);
+  ctx.font="600 30px Cairo, Arial";ctx.fillText((p.name||"").slice(0,32),W-28,900+96);
+  ctx.textAlign="left";ctx.fillStyle="#FFD873";ctx.font="bold 44px Arial";
+  const pr=fmt(price(p))+" ل.س";
+  ctx.fillText(pr,28,900+58);
+  if(p.disc>0){ctx.fillStyle="#fff";ctx.font="bold 26px Cairo, Arial";ctx.fillText("خصم "+p.disc+"% 🔥",28,900+98)}
+  return new Promise(res=>cv.toBlob(res,"image/jpeg",0.92));
 }
 async function ordersPanel(){
   if(isUserMode())return userPanel();
