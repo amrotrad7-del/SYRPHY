@@ -14,7 +14,7 @@ export interface Env {
 }
 
 const SUBS_KEY = "push_subs";
-const ADMIN_PIN = "1573";
+const ADMIN_CREDS = ["AMRO:1573", "AMRO:971566135365"];
 const VAPID = {
   subject: "mailto:syrphy@pages.dev",
   publicKey: "BPEfaUeEw5DAvQ_mtivM7Uvr3psOFZtrZVv6dNR91yFTS_pz4_9o-gZEmnSl6J86potg_kkNp5EpNJJrhE44CQs",
@@ -79,7 +79,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     }
 
     if (type === "notify") {
-      if ((req.headers.get("x-admin-pin") || "") !== ADMIN_PIN) return json({ error: "unauthorized" }, { status: 401 });
+      if (!ADMIN_CREDS.includes(String(req.headers.get("x-admin-pin") || "").replace(/\s+/g, "").toUpperCase())) return json({ error: "unauthorized" }, { status: 401 });
       const title = String(body.title || "SYRPHY 🇸🇾").slice(0, 80);
       const msg = String(body.body || "في خصومات قوية بالمتجر!").slice(0, 180);
       const subs = ((await readKey(env, SUBS_KEY, {})) || {}) as Record<string, StoredSub>;

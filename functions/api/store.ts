@@ -44,7 +44,7 @@ const BDAY_COUNTER_KEY = "bday_counter";
 const BDAY_CLAIMS_KEY = "bday_claims";
 const MAX_FAILS = 5;
 const LOCK_MS = 15 * 60 * 1000;
-const SPIN_COOLDOWN = 29 * 60 * 60 * 1000;
+const SPIN_COOLDOWN = 15 * 60 * 60 * 1000;
 const STATUSES = ["بانتظار التأكيد", "تم التأكيد", "جاري التجهيز", "وصلت للمطار", "وصلت لسوريا", "تم التسليم"];
 
 const CORS = {
@@ -424,8 +424,17 @@ export const onRequest: PagesFunction<Env> = async (context) => {
         return json({ ok: true, hidden: true });
       }
       const rname = String(body.name || "").trim().slice(0, 40);
-      const list = ((await readKey(env, SITE_REV_KEY, [])) || []) as { s: number; c: string; ts: number; n?: string }[];
-      list.push({ s: stars, c: comment, ts: Date.now(), n: rname });
+      let list = ((await readKey(env, SITE_REV_KEY, [])) || []) as { s: number; c: string; ts: number; n?: string }[];
+      // إزالة المكرر: نفس النص + نفس الاسم
+      const seenRev = new Set<string>();
+      list = list.filter((r) => {
+        const k = (r.n || "") + "|" + (r.c || "");
+        if (seenRev.has(k)) return false;
+        seenRev.add(k);
+        return true;
+      });
+      const dupKey = rname + "|" + comment;
+      if (!seenRev.has(dupKey)) list.push({ s: stars, c: comment, ts: Date.now(), n: rname });
       while (list.length > 300) list.shift();
       await writeKey(env, SITE_REV_KEY, list);
       let code = "";
@@ -525,7 +534,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       const acc = String(body.acc || "").replace(/[^0-9]/g, "");
       const idk = acc || dev;
       if (!idk) return json({ error: "bad_request" }, { status: 400 });
-      // قفل الـ 29 ساعة: بالحساب + الجهاز + عنوان الشبكة
+      // قفل الـ 15 ساعة: بالحساب + الجهاز + عنوان الشبكة
       const ip = clientIP(req);
       const now = Date.now();
       const w = ((await readKey(env, WHEEL_KEY, {})) || {}) as Record<string, number>;
