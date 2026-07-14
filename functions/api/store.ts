@@ -35,6 +35,10 @@ const ADMIN_CRED = "AMRO:1573";
 const USER_CRED = "USER:157";
 const ADMIN_ACC = "AMRO:971566135365"; // حساب أمرو — دخوله بالموقع بيفتح الصلاحيات
 const WINNER_COUNTER_KEY = "winner_counter";
+const WELCOME_COUNTER_KEY = "welcome_counter";
+const THANKS_COUNTER_KEY = "thanks_counter";
+const REFERRALS_KEY = "referrals";
+const VISITORS_KEY = "visitors_live";
 const MAX_FAILS = 5;
 const LOCK_MS = 15 * 60 * 1000;
 const SPIN_COOLDOWN = 29 * 60 * 60 * 1000;
@@ -259,7 +263,8 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     const sold = await readKey(env, SOLD_KEY, {});
     const complaints = await readKey(env, COMPLAINTS_KEY, []);
     const accounts = await readKey(env, ACCOUNTS_KEY, {});
-    return json({ sv: 16, ...catalog, reviews, analytics, abandoned, orders, siteReviews, rejectedReviews, sold, complaints, accounts });
+    const visitors = await readKey(env, VISITORS_KEY, []);
+    return json({ sv: 17, ...catalog, reviews, analytics, abandoned, orders, siteReviews, rejectedReviews, sold, complaints, accounts, visitors });
   }
 
   /* ============ POST ============ */
@@ -268,6 +273,13 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     const type = typeof body.type === "string" ? body.type : "";
 
     if (type === "visit") {
+      // تسجيل الزائر بالسجل الحي (للمدير)
+      try {
+        const v = ((await readKey(env, VISITORS_KEY, [])) || []) as unknown[];
+        v.push({ ts: Date.now(), country: String(body.country || "").slice(0, 40), city: String(body.city || "").slice(0, 60), name: String(body.name || "").slice(0, 60), phone: String(body.phone || "").slice(0, 20), ip: clientIP(req) });
+        while (v.length > 200) v.shift();
+        await writeKey(env, VISITORS_KEY, v);
+      } catch (_) {}
       const a = ((await readKey(env, ANALYTICS_KEY, emptyAnalytics())) || emptyAnalytics()) as Analytics;
       a.total = (a.total || 0) + 1;
       a.byDay = a.byDay || {};
@@ -443,7 +455,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       const cp = (catalog.coupons as { code: string; pct: number }[]).find((x) => String(x.code).toUpperCase() === code);
       if (cp) return json({ pct: Number(cp.pct) || 0 });
       const otc = ((await readKey(env, OTC_KEY, {})) || {}) as Record<string, { pct: number; used: boolean }>;
-      if (otc[code] && !otc[code].used) return json({ pct: otc[code].pct, otc: true });
+      if (otc[code] && !otc[code].used) return json({ pct: otc[code].pct, otc: true, nodisc: !!(otc[code] as {nodisc?:boolean}).nodisc });
       return json({ error: "not_found" }, { status: 404 });
     }
 
@@ -540,7 +552,38 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       while (ks.length > 5000) delete accounts[ks.shift() as string];
       await writeKey(env, ACCOUNTS_KEY, accounts);
       const adminAcc = ("AMRO:" + akey) === ADMIN_ACC;
-      return json({ ok: true, admin: adminAcc && name.trim().toUpperCase() === "AMRO" });
+      // 🎁 كود ترحيب 10% (للمنتجات بلا خصم فقط) — مرة وحدة لكل رقم
+      let welcomeCode = "";
+      const wc = Number(await readKey(env, WELCOME_COUNTER_KEY, 1)) || 1;
+      if (wc <= 2000) {
+        welcomeCode = "WELCOME" + wc;
+        const otc = ((await readKey(env, OTC_KEY, {})) || {}) as Record<string, { pct: number; used: boolean; ts: number; nodisc?: boolean }>;
+        otc[welcomeCode] = { pct: 10, used: false, ts: Date.now(), nodisc: true };
+        await writeKey(env, OTC_KEY, otc);
+        await writeKey(env, WELCOME_COUNTER_KEY, wc + 1);
+      }
+      // تسجيل الإحالة إذا جا عن طريق معرّف صديق
+      const refBy = String(body.ref || "").replace(/[^0-9]/g, "").slice(0, 20);
+      if (refBy && refBy !== akey) {
+        const refs = ((await readKey(env, REFERRALS_KEY, {})) || {}) as Record<string, string[]>;
+        refs[refBy] = refs[refBy] || [];
+        if (!refs[refBy].includes(akey)) refs[refBy].push(akey);
+        await writeKey(env, REFERRALS_KEY, refs);
+        // وصل 10 محالين؟ كود THANKS 20%
+        if (refs[refBy].length === 10) {
+          const tc = Number(await readKey(env, THANKS_COUNTER_KEY, 1)) || 1;
+          if (tc <= 2000) {
+            const tCode = "THANKS" + tc;
+            const otc2 = ((await readKey(env, OTC_KEY, {})) || {}) as Record<string, { pct: number; used: boolean; ts: number; nodisc?: boolean }>;
+            otc2[tCode] = { pct: 20, used: false, ts: Date.now(), nodisc: true };
+            await writeKey(env, OTC_KEY, otc2);
+            await writeKey(env, THANKS_COUNTER_KEY, tc + 1);
+            const accs = ((await readKey(env, ACCOUNTS_KEY, {})) || {}) as Record<string, { thanks?: string[] }>;
+            if (accs[refBy]) { accs[refBy].thanks = accs[refBy].thanks || []; accs[refBy].thanks!.push(tCode); await writeKey(env, ACCOUNTS_KEY, accs); }
+          }
+        }
+      }
+      return json({ ok: true, admin: adminAcc && name.trim().toUpperCase() === "AMRO", welcome: welcomeCode });
     }
 
     if (type === "login") {
@@ -570,6 +613,14 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       while (list.length > 300) list.shift();
       await writeKey(env, COMPLAINTS_KEY, list);
       return json({ ok: true });
+    }
+
+    if (type === "my_referrals") {
+      const acc = String(body.acc || "").replace(/[^0-9]/g, "");
+      if (!acc) return json({ error: "bad_request" }, { status: 400 });
+      const refs = ((await readKey(env, REFERRALS_KEY, {})) || {}) as Record<string, string[]>;
+      const accs = ((await readKey(env, ACCOUNTS_KEY, {})) || {}) as Record<string, { thanks?: string[] }>;
+      return json({ count: (refs[acc] || []).length, thanks: (accs[acc] || {}).thanks || [] });
     }
 
     if (type === "my_orders") {
