@@ -40,6 +40,8 @@ const THANKS_COUNTER_KEY = "thanks_counter";
 const REFERRALS_KEY = "referrals";
 const VISITORS_KEY = "visitors_live";
 const SETTINGS_KEY = "site_settings";
+const BDAY_COUNTER_KEY = "bday_counter";
+const BDAY_CLAIMS_KEY = "bday_claims";
 const MAX_FAILS = 5;
 const LOCK_MS = 15 * 60 * 1000;
 const SPIN_COOLDOWN = 29 * 60 * 60 * 1000;
@@ -265,7 +267,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     const sold = await readKey(env, SOLD_KEY, {});
     const complaints = await readKey(env, COMPLAINTS_KEY, []);
     const accounts = await readKey(env, ACCOUNTS_KEY, {});
-    const visitors = await readKey(env, VISITORS_KEY, []);
+    const visitors = await readKey(env, VISITORS_KEY, {});
     const settings = await readKey(env, SETTINGS_KEY, { team: true });
     const otcAll = await readKey(env, OTC_KEY, {});
     const points = await readKey(env, POINTS_KEY, {});
@@ -279,12 +281,27 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     const type = typeof body.type === "string" ? body.type : "";
 
     if (type === "visit") {
-      // تسجيل الزائر بالسجل الحي (للمدير)
+      // سجل الزوار: زائر واحد بعدد زياراته (بلا تكرار)
       try {
-        const v = ((await readKey(env, VISITORS_KEY, [])) || []) as unknown[];
-        v.push({ ts: Date.now(), country: String(body.country || "").slice(0, 40), city: String(body.city || "").slice(0, 60), name: String(body.name || "").slice(0, 60), phone: String(body.phone || "").slice(0, 20), ip: clientIP(req) });
-        while (v.length > 200) v.shift();
-        await writeKey(env, VISITORS_KEY, v);
+        const vmap = ((await readKey(env, VISITORS_KEY, {})) || {}) as Record<string, { visits: number; first: number; last: number; country?: string; city?: string; name?: string; phone?: string }>;
+        const phone = String(body.phone || "").slice(0, 20);
+        const vkey = (phone || "ip:" + clientIP(req)).slice(0, 40);
+        const prev = vmap[vkey];
+        vmap[vkey] = {
+          visits: (prev?.visits || 0) + 1,
+          first: prev?.first || Date.now(),
+          last: Date.now(),
+          country: String(body.country || "").slice(0, 40) || prev?.country,
+          city: String(body.city || "").slice(0, 60) || prev?.city,
+          name: String(body.name || "").slice(0, 60) || prev?.name,
+          phone: phone || prev?.phone,
+        };
+        const vk = Object.keys(vmap);
+        if (vk.length > 500) {
+          vk.sort((a, b) => (vmap[a].last || 0) - (vmap[b].last || 0));
+          while (vk.length > 500) delete vmap[vk.shift() as string];
+        }
+        await writeKey(env, VISITORS_KEY, vmap);
       } catch (_) {}
       const a = ((await readKey(env, ANALYTICS_KEY, emptyAnalytics())) || emptyAnalytics()) as Analytics;
       a.total = (a.total || 0) + 1;
@@ -461,7 +478,11 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       const cp = (catalog.coupons as { code: string; pct: number }[]).find((x) => String(x.code).toUpperCase() === code);
       if (cp) return json({ pct: Number(cp.pct) || 0 });
       const otc = ((await readKey(env, OTC_KEY, {})) || {}) as Record<string, { pct: number; used: boolean }>;
-      if (otc[code] && !otc[code].used) return json({ pct: otc[code].pct, otc: true, nodisc: !!(otc[code] as {nodisc?:boolean}).nodisc });
+      const oc = otc[code] as { pct: number; used: boolean; nodisc?: boolean; exp?: number } | undefined;
+      if (oc && !oc.used) {
+        if (oc.exp && Date.now() > oc.exp) return json({ error: "expired" }, { status: 410 });
+        return json({ pct: oc.pct, otc: true, nodisc: !!oc.nodisc });
+      }
       return json({ error: "not_found" }, { status: 404 });
     }
 
@@ -553,7 +574,9 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       const accounts = ((await readKey(env, ACCOUNTS_KEY, {})) || {}) as Record<string, { name: string; ts: number }>;
       const akey = cc + phone;
       if (accounts[akey]) return json({ error: "exists" }, { status: 409 });
-      accounts[akey] = { name, ts: Date.now() };
+      const email = String(body.email || "").trim().slice(0, 80);
+      const bday = String(body.bday || "").slice(0, 10); // YYYY-MM-DD
+      accounts[akey] = { name, ts: Date.now(), email, bday };
       const ks = Object.keys(accounts);
       while (ks.length > 5000) delete accounts[ks.shift() as string];
       await writeKey(env, ACCOUNTS_KEY, accounts);
@@ -619,6 +642,30 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       while (list.length > 300) list.shift();
       await writeKey(env, COMPLAINTS_KEY, list);
       return json({ ok: true });
+    }
+
+    if (type === "birthday_check") {
+      const acc = String(body.acc || "").replace(/[^0-9]/g, "");
+      if (!acc) return json({ error: "bad_request" }, { status: 400 });
+      const accounts = ((await readKey(env, ACCOUNTS_KEY, {})) || {}) as Record<string, { name?: string; bday?: string }>;
+      const a = accounts[acc];
+      if (!a || !a.bday) return json({ ok: false });
+      const today = new Date();
+      const b = new Date(a.bday + "T00:00:00");
+      if (b.getMonth() !== today.getMonth() || b.getDate() !== today.getDate()) return json({ ok: false });
+      const year = String(today.getFullYear());
+      const claims = ((await readKey(env, BDAY_CLAIMS_KEY, {})) || {}) as Record<string, string>;
+      if (claims[acc] === year) return json({ ok: false, already: true });
+      const n = Number(await readKey(env, BDAY_COUNTER_KEY, 1)) || 1;
+      if (n > 1500) return json({ ok: false });
+      const code = "HAPPYBIRTHDAY" + n;
+      const otc = ((await readKey(env, OTC_KEY, {})) || {}) as Record<string, { pct: number; used: boolean; ts: number; nodisc?: boolean; exp?: number }>;
+      otc[code] = { pct: 50, used: false, ts: Date.now(), nodisc: true, exp: Date.now() + 48 * 3600 * 1000 };
+      await writeKey(env, OTC_KEY, otc);
+      await writeKey(env, BDAY_COUNTER_KEY, n + 1);
+      claims[acc] = year;
+      await writeKey(env, BDAY_CLAIMS_KEY, claims);
+      return json({ ok: true, code, name: a.name || "", hours: 48 });
     }
 
     if (type === "my_referrals") {
