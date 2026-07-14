@@ -117,6 +117,7 @@
   <button class="d-item" id="d-bell" onclick="enablePush()">🔔 إشعارات الخصومات</button>
   <a class="d-item" href="https://www.facebook.com/share/1G1Ratw1eP/" target="_blank" rel="noopener">📘 صفحتنا عالفيسبوك</a>
   <a class="d-item" href="https://chat.whatsapp.com/K6iPbsG65492qbsX5AZd21?s=cl&p=a&ilr=4&amv=3" target="_blank" rel="noopener">👥 كروب الواتساب</a>
+  <a class="d-item" href="https://whatsapp.com/channel/0029Vb8afZPIiRoyfAXGjt2I" target="_blank" rel="noopener">📢 قناة الواتساب</a>
   <div class="d-cap">🔐 الإدارة</div>
   <button class="d-item" onclick="closeDrawer();adminGate()">🔑 دخول المدير</button>
   <button class="d-item" onclick="closeDrawer();userGate()">👤 دخول المستخدمين</button>
@@ -184,7 +185,7 @@
   <a href="https://wa.me/971566135365" target="_blank" rel="noopener" style="background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 16px;text-decoration:none;color:var(--text);font-family:Cairo;font-weight:800;font-size:.82rem;box-shadow:var(--shadow)">💬 تواصل معنا</a>
   <a href="https://wa.me/971566135365?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%20%F0%9F%91%8B%20%D8%A8%D8%AF%D9%8A%20%D8%A7%D8%B7%D9%84%D8%A8%20%D9%85%D9%86%D8%AA%D8%AC%20%D9%85%D9%86%20%D9%85%D9%88%D9%82%D8%B9%20%D8%AE%D8%A7%D8%B1%D8%AC%D9%8A%20%F0%9F%8C%8D%20%D9%87%D8%A7%D8%AF%20%D8%A7%D9%84%D8%B1%D8%A7%D8%A8%D8%B7%3A%20" target="_blank" rel="noopener" style="background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 16px;text-decoration:none;color:var(--text);font-family:Cairo;font-weight:800;font-size:.82rem;box-shadow:var(--shadow)">🌍 لطلب منتج من موقع خارجي</a>
 </div>
-<footer>SYRPHY © <span id="yr"></span> - توصيل لكل المحافظات السورية<br>للطلب والاستفسار واتساب: <span class="num">+971 56 613 5365</span><br><a href="https://wa.me/971566135365?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%20%F0%9F%91%8B%20%D8%AD%D8%A7%D8%A8%D8%A8%20%D8%A7%D9%86%D8%B6%D9%85%20%D9%84%D9%81%D8%B1%D9%8A%D9%82%20SYRPHY%20%F0%9F%9A%80" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;background:var(--green);color:#fff;padding:11px 22px;border-radius:24px;text-decoration:none;font-family:Cairo;font-weight:800;font-size:.9rem;margin:4px 0 14px">🤝 انضم إلى فريقنا</a><div style="opacity:.45;font-size:.65rem;margin-top:6px">v26.07.18.1-cf</div></footer>
+<footer>SYRPHY © <span id="yr"></span> - توصيل لكل المحافظات السورية<br>للطلب والاستفسار واتساب: <span class="num">+971 56 613 5365</span><br><a href="https://wa.me/971566135365?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%20%F0%9F%91%8B%20%D8%AD%D8%A7%D8%A8%D8%A8%20%D8%A7%D9%86%D8%B6%D9%85%20%D9%84%D9%81%D8%B1%D9%8A%D9%82%20SYRPHY%20%F0%9F%9A%80" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;background:var(--green);color:#fff;padding:11px 22px;border-radius:24px;text-decoration:none;font-family:Cairo;font-weight:800;font-size:.9rem;margin:4px 0 14px">🤝 انضم إلى فريقنا</a><div style="opacity:.45;font-size:.65rem;margin-top:6px">v26.07.18.2-cf</div></footer>
 <div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
 <script id="seed" type="application/json">{"products":[],"coupons":[]}</script>
 <script>
@@ -202,7 +203,7 @@ const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&g
 function seedData(){try{return JSON.parse(document.getElementById("seed").textContent)}catch(e){return {products:[],coupons:[]}}}
 function normalizeStore(data){data=data||{};S.products=Array.isArray(data.products)?data.products:[];S.coupons=Array.isArray(data.coupons)?data.coupons:[];S.products.forEach(p=>{if(!p.imgs)p.imgs=p.img?[{src:p.img,color:""}]:[]})}
 async function apiStore(method="GET",body){const headers={"Content-Type":"application/json"};if(adminPin)headers["x-admin-pin"]=adminPin;const res=await fetch(API(),{method,headers,body:body?JSON.stringify(body):undefined,cache:"no-store"});if(!res.ok)throw new Error(res.status===401?"unauthorized":"api");return res.json()}
-async function refreshStore(silent=false){try{const data=await apiStore();window.__loadedOK=true;window.__reviews=data.reviews||{};window.__sold=data.sold||{};window.__siteRev={list:data.siteRev||[],avg:data.siteRevAvg||0,count:data.siteRevCount||0};normalizeStore(data);renderAll()}catch(e){if(!silent)toast("تعذر تحديث المنتجات");const seed=seedData();if(!S.products.length)normalizeStore(seed);renderAll()}}
+async function refreshStore(silent=false){try{const data=await apiStore();window.__loadedOK=true;window.__reviews=data.reviews||{};window.__sold=data.sold||{};window.__settings=data.settings||{team:true};window.__siteRev={list:data.siteRev||[],avg:data.siteRevAvg||0,count:data.siteRevCount||0};normalizeStore(data);renderAll()}catch(e){if(!silent)toast("تعذر تحديث المنتجات");const seed=seedData();if(!S.products.length)normalizeStore(seed);renderAll()}}
 async function load(){S.theme=localStorage.getItem(THEME_KEY)||"light";adminPin=sessionStorage.getItem(ADMIN_KEY)||"";isAdmin=Boolean(adminPin);applyTheme(S.theme);await refreshStore(true);setInterval(()=>{if(!document.hidden)refreshStore(true)},300000);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&Date.now()-(window.__lastRef||0)>120000){window.__lastRef=Date.now();refreshStore(true)}});
 startPresence();
@@ -295,7 +296,7 @@ function pvSizes(){const p=S.products.find(x=>x.id===window.__viewId);if(!p)retu
 function pvSizeSel(s,btn){window.__viewSize=s;document.querySelectorAll("#pv-sizes .mini").forEach(b=>{b.style.borderColor="var(--line)";b.style.color="var(--text)"});btn.style.borderColor="var(--green)";btn.style.color="var(--green)"}
 function pvSel(i){const p=S.products.find(x=>x.id===window.__viewId);if(!p)return;window.__viewSel=i;pvSizes();document.getElementById("pv-main").src=p.imgs[i].src;p.imgs.forEach((_,k)=>{const t=document.getElementById("pv-t"+k);if(t)t.style.borderColor=k===i?"var(--green)":"var(--line)"});document.getElementById("pv-color").innerHTML=p.imgs[i].color?"اللون المختار: <b>"+esc(p.imgs[i].color)+"</b>":""}function pvAdd(){const p=S.products.find(x=>x.id===window.__viewId);if(!p)return;const im=p.imgs?.[window.__viewSel]||{};const sz=sizesOf(im);if(sz.length&&!window.__viewSize)return toast("اختار القياس أول 📏");addCart(p.id,im.color||"",true,window.__viewSize||"");closeModal()}
 function renderSiteReviews(){}
-function renderAll(){renderSiteReviews();renderPills();renderGrid();renderCartN();document.getElementById("yr").textContent=new Date().getFullYear()}function sheet(html){document.getElementById("sheet").innerHTML=html;document.getElementById("modal").classList.add("on")}function closeModal(){document.getElementById("modal").classList.remove("on")}document.getElementById("modal").addEventListener("click",e=>{if(e.target.id==="modal")closeModal()});
+function renderAll(){const ts=document.getElementById("team-sec");if(ts)ts.style.display=(window.__settings&&window.__settings.team===false)?"none":"";renderSiteReviews();renderPills();renderGrid();renderCartN();document.getElementById("yr").textContent=new Date().getFullYear()}function sheet(html){document.getElementById("sheet").innerHTML=html;document.getElementById("modal").classList.add("on")}function closeModal(){document.getElementById("modal").classList.remove("on")}document.getElementById("modal").addEventListener("click",e=>{if(e.target.id==="modal")closeModal()});
 function addCart(id,color="",fromView=false,size=""){const p=S.products.find(x=>x.id===id);if(!p)return;if(!fromView&&(colorList(p).length>1||hasSizes(p))){prodView(id);toast(hasSizes(p)?"اختار اللون والقياس 🎨📏":"اختار اللون يلي بيناسبك");return}if(!fromView&&!color&&colorList(p).length===1)color=colorList(p)[0].color;const ex=CART.find(c=>c.id===id&&c.color===color&&(c.size||"")===size);ex?ex.qty++:CART.push({id,color,size,qty:1});renderCartN();toast("انضاف للسلة ✓")}
 function renderCartN(){const n=CART.reduce((a,cc)=>a+cc.qty,0);[["cart-n",n],["d-cart-n",n]].forEach(([id,v])=>{const el=document.getElementById(id);if(el){el.style.display=v?"inline-flex":"none";el.textContent=v}})}function chQty(i,d){if(!CART[i])return;CART[i].qty+=d;if(CART[i].qty<=0)CART.splice(i,1);renderCartN();openCart()}
 function cartTotals(){let sub=0;CART.forEach(c=>{const p=S.products.find(x=>x.id===c.id);if(p)sub+=price(p)*c.qty});const autoPct=sub>750000?5:0;const auto=Math.round(sub*autoPct/100);let disc=0;
@@ -491,11 +492,27 @@ async function customersPanel(){
   if(isUserMode())return userPanel();
   sheet(`<button class="close" onclick="adminPanel()">→ رجوع</button><h3>👥 داتا العملاء</h3><div class="empty">عم حمّل...</div>`);
   let d;try{d=await apiStore()}catch(e){return sheet(`<button class="close" onclick="adminPanel()">→ رجوع</button><div class="empty">تعذر الجلب</div>`)}
-  const cs=buildCustomers(d.orders,d.accounts);
-  window.__customers=cs;
-  const html=cs.map(cu=>`<div class="item"><div class="t"><b>${esc(cu.name)}</b><span class="badge g num">${fmt(cu.total)} ل.س</span></div>
-    <div class="s">📞 <span class="num">${esc(cu.phone)}</span> · ${cu.orders?`🛍️ ${cu.orders} ${cu.orders>1?"طلبات":"طلب"}`:`<span style="color:var(--green)">👤 حساب مسجل${cu.reg?"":""}</span>`} · 🕐 آخر طلب: ${cu.last?new Date(cu.last).toLocaleDateString("ar-SY-u-nu-latn",{day:"numeric",month:"short"}):"-"}</div>
-    <div class="s">📍 ${esc(cu.addr)}</div></div>`).join("")||'<div class="empty">ما في عملاء بعد</div>';
+  const cs=buildCustomers(d.orders,d.accounts,d);
+  window.__customers=cs;window.__otcAll=d.otcAll||{};
+  const html=cs.map((cu,ci)=>{
+    const myCodes=Object.entries(window.__otcAll||{}).filter(([code,v])=>!v.used&&(cu.thanks||[]).includes(code)).map(([code])=>code);
+    const codes=[...(cu.thanks||[])];
+    const ordsHtml=(cu.ords||[]).slice().reverse().map(o=>`<div style="background:var(--bg);border-radius:8px;padding:7px 10px;margin-top:5px;font-size:.78rem">
+      🧾 <b>${fmt(o.total)} ل.س</b> · ${esc(o.status||"-")} · <small style="color:var(--muted)">${new Date(o.ts).toLocaleDateString("ar-SY-u-nu-latn",{day:"numeric",month:"short"})}</small><br>
+      🛒 ${(o.items||[]).map(it=>esc(it.name)+" ×"+it.qty).join("، ")}
+    </div>`).join("")||'<div class="s" style="color:var(--muted)">ما في طلبات</div>';
+    return `<div class="item">
+    <div class="t" style="cursor:pointer" onclick="const x=document.getElementById('cu-${ci}');x.style.display=x.style.display==='none'?'block':'none'">
+      <b>${esc(cu.name)}</b><span class="badge g num">${fmt(cu.total)} ل.س</span></div>
+    <div class="s">📞 <span class="num">${esc(cu.phone)}</span> · ${cu.orders?`🛍️ ${cu.orders} ${cu.orders>1?"طلبات":"طلب"}`:`<span style="color:var(--green)">👤 حساب مسجل</span>`} · 🎁 <b class="num">${cu.points||0}</b> نقطة${cu.refs?` · 🤝 ${cu.refs} إحالة`:""}</div>
+    <div id="cu-${ci}" style="display:none;margin-top:8px">
+      <div class="s">📍 ${esc(cu.addr)}</div>
+      <div class="s" style="margin-top:6px"><b>🎁 النقاط:</b> ${cu.points||0} نقطة${cu.points>=100?' <span style="color:var(--green)">(بيقدر يستبدل!)</span>':""}</div>
+      <div class="s"><b>🏷️ أكواد ربحها:</b> ${codes.length?codes.map(x=>`<span class="badge g num" style="margin:2px">${esc(x)}</span>`).join(""):"ما في"}</div>
+      <div class="s" style="margin-top:6px"><b>📦 سجل الطلبات (${(cu.ords||[]).length}):</b></div>
+      ${ordsHtml}
+    </div></div>`;
+  }).join("")||'<div class="empty">ما في عملاء بعد</div>';
   sheet(`<button class="close" onclick="adminPanel()">→ رجوع</button>
     <h3>👥 داتا العملاء (${cs.length})</h3>
     <small class="hint">🧾 ${cs.filter(x=>x.orders).length} زبون اشترى · 👤 ${cs.filter(x=>x.reg&&!x.orders).length} حساب مسجل — مرتبين حسب الأحدث.</small>
@@ -594,6 +611,15 @@ async function runImport(){
   log("<b style=\"color:var(--green)\">🎉 خلص الدمج! ولا معلومة انمسحت — حدّث الصفحة وشوف</b>");
   refreshStore(true);
 }
+async function toggleTeam(){
+  const on=!(window.__settings&&window.__settings.team===false);
+  try{
+    const d=await apiStore("POST",{type:"set_setting",key:"team",value:!on});
+    window.__settings=d.settings;
+    toast(!on?"✅ انفعّلت ميزة انضم لفريقنا":"🚫 انطفت ميزة انضم لفريقنا");
+    renderAll();adminPanel();
+  }catch(e){toast("ما زبط")}
+}
 async function visitorsPanel(){
   if(isUserMode())return userPanel();
   sheet(`<button class="close" onclick="adminPanel()">→ رجوع</button><h3>👁️ الزوار</h3><div class="empty">عم حمّل...</div>`);
@@ -691,7 +717,7 @@ const pin=_n.toUpperCase()+":"+_p;
 try{adminPin=pin;const resp=await apiStore("POST",{});isAdmin=true;sessionStorage.setItem(ADMIN_KEY,pin);sessionStorage.setItem("syrphy-role",(resp&&resp.role)==="user"?"user":"admin");if(isUserMode()){userPanel()}else{adminPanel()}refreshStore(true)}
 catch(e){adminPin="";sessionStorage.removeItem(ADMIN_KEY);toast(e.message==="locked"?"⛔ انقفل الدخول ١٥ دقيقة — محاولات غلط كتيرة":e.message==="unauthorized"?"الرمز غلط":e.message==="DATABASE_URL_missing"?"⚠️ قاعدة البيانات مو مربوطة — ضيف DATABASE_URL بإعدادات Vercel":"⚠️ خطأ: "+(e.message||"ما في اتصال")+" — ابعت هالرسالة للدعم")}}
 function userPanel(){sheet(`<button class="close" onclick="closeModal()">✕</button><h3>👥 لوحة المستخدمين</h3><small class="hint">${S.products.length} منتج</small><button class="btn" onclick="addProdForm()">＋ إضافة منتج</button><button class="btn ghost" onclick="manageProds()">🗂 إدارة المنتجات</button><button class="btn ghost" onclick="logoutAdmin()">تسجيل خروج</button>`)}
-function adminPanel(){if(isUserMode())return userPanel();sheet(`<button class="close" onclick="closeModal()">✕</button><h3>⚙️ لوحة المدير</h3><small class="hint">${S.products.length} منتج · ${S.coupons.length} كود خصم</small><button class="btn" onclick="addProdForm()">＋ إضافة منتج</button><button class="btn ghost" onclick="manageProds()">🗂 إدارة المنتجات والخصومات</button><button class="btn ghost" onclick="manageCoupons()">🏷 أكواد الخصم</button><button class="btn" onclick="ordersPanel()">📦 الطلبات وتتبع التوصيل</button><button class="btn ghost" onclick="statsPanel()">📈 الإحصائيات والزيارات</button><button class="btn ghost" onclick="notifyForm()">📣 إرسال إشعار للجميع</button><button class="btn ghost" onclick="customersPanel()">👥 داتا العملاء</button><button class="btn ghost" onclick="complaintsPanel()">📨 الشكاوي</button><button class="btn ghost" onclick="visitorsPanel()">👁️ الزوار المباشر</button><button class="btn ghost" onclick="importOldSite()">📥 استيراد كل شي من الموقع القديم</button><button class="btn ghost" onclick="backupsPanel()">🛟 استرجاع نسخة احتياطية</button><button class="btn ghost" onclick="openDaftar()">📒 دفتر التاجر</button><button class="btn ghost" onclick="logoutAdmin()">تسجيل خروج المدير</button>`)}
+function adminPanel(){setTimeout(()=>{const b=document.getElementById("team-toggle");if(b)b.textContent=(window.__settings&&window.__settings.team===false)?"👔 انضم لفريقنا: مطفية — شغّلها":"👔 انضم لفريقنا: شغالة — طفّيها"},50);if(isUserMode())return userPanel();sheet(`<button class="close" onclick="closeModal()">✕</button><h3>⚙️ لوحة المدير</h3><small class="hint">${S.products.length} منتج · ${S.coupons.length} كود خصم</small><button class="btn" onclick="addProdForm()">＋ إضافة منتج</button><button class="btn ghost" onclick="manageProds()">🗂 إدارة المنتجات والخصومات</button><button class="btn ghost" onclick="manageCoupons()">🏷 أكواد الخصم</button><button class="btn" onclick="ordersPanel()">📦 الطلبات وتتبع التوصيل</button><button class="btn ghost" onclick="statsPanel()">📈 الإحصائيات والزيارات</button><button class="btn ghost" onclick="notifyForm()">📣 إرسال إشعار للجميع</button><button class="btn ghost" onclick="customersPanel()">👥 داتا العملاء</button><button class="btn ghost" onclick="complaintsPanel()">📨 الشكاوي</button><button class="btn ghost" onclick="visitorsPanel()">👁️ الزوار المباشر</button><button class="btn ghost" id="team-toggle" onclick="toggleTeam()">👔 ميزة انضم لفريقنا</button><button class="btn ghost" onclick="importOldSite()">📥 استيراد كل شي من الموقع القديم</button><button class="btn ghost" onclick="backupsPanel()">🛟 استرجاع نسخة احتياطية</button><button class="btn ghost" onclick="openDaftar()">📒 دفتر التاجر</button><button class="btn ghost" onclick="logoutAdmin()">تسجيل خروج المدير</button>`)}
 function logoutAdmin(){isAdmin=false;adminPin="";sessionStorage.removeItem(ADMIN_KEY);sessionStorage.removeItem("syrphy-role");closeModal();toast("تم تسجيل الخروج")}
 function addProdForm(p){const e=p||{};tempImgs=e.imgs?e.imgs.map(x=>({src:x.src,color:x.color||"",sizes:x.sizes||""})):(e.img?[{src:e.img,color:""}]:[]);sheet(`<button class="close" onclick="${isUserMode()?"userPanel":"adminPanel"}()">→ رجوع</button><h3>${p?"تعديل منتج":"＋ منتج جديد"}</h3><label>رابط المنتج من شي إن أو تيمو</label><input id="ap-link" value="${esc(e.link||"")}" oninput="linkHint()"><small class="hint" id="ap-src"></small><label>اسم المنتج</label><input id="ap-name" value="${esc(e.name||"")}" oninput="catHint()"><label>صور المنتج</label><input type="file" id="ap-file" accept="image/*" multiple onchange="readImg(this)"><small class="hint">ارفع صورة أو أكثر واكتب اسم اللون تحت كل صورة.</small><div id="ap-imgs" style="margin-top:8px"></div><div class="row"><div><label>السعر الأساسي (د.إ)</label><input type="number" id="ap-base" inputmode="decimal" value="${e.basePrice||""}" oninput="autoPrice()"></div><div><label>الوزن (كغ)</label><input type="number" id="ap-weight" inputmode="decimal" step="0.05" value="${e.weight||PR.weight}" oninput="autoPrice()"></div></div>
 <div id="ap-calc" style="background:var(--bg);border:1px dashed var(--green);border-radius:10px;padding:9px 12px;font-size:.76rem;line-height:1.9;margin:6px 0;display:none"></div>
@@ -1159,7 +1185,7 @@ async function statsPanel(){if(isUserMode())return userPanel();
   <div class="hr"></div><h3 style="font-size:.95rem">🌍 بلدان الزوار</h3>${countries}
     <div class="hr"></div><h3 style="font-size:.95rem">🛒 طلبات ما كملوها الزبائن (${ab.length})</h3>
     ${ab.length?'<button class="mini" style="color:var(--red);margin:6px 0" onclick="clearAbandoned()">🗑 مسح الكل</button>':""}
-    ${abHtml}${(d.siteReviews||[]).length?`<div class="hr"></div><h3 style="font-size:.95rem">⭐ تقييمات الموقع (${(d.siteReviews||[]).length})</h3>`+(d.siteReviews||[]).slice().reverse().slice(0,20).map(r=>`<div style="background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 12px;margin-top:7px;font-size:.83rem">${"⭐".repeat(r.s||1)}<br>${esc(r.c||"(بلا تعليق)")}</div>`).join(""):""}${(d.rejectedReviews||[]).length?`<div class="hr"></div><h3 style="font-size:.95rem;color:var(--red)">📵 تقييمات محجوبة (${(d.rejectedReviews||[]).length}) — بس أنت بتشوفها</h3>`+(d.rejectedReviews||[]).slice().reverse().slice(0,30).map(r=>`<div style="background:var(--bg);border:1px solid var(--line);border-right:3px solid var(--red);border-radius:10px;padding:9px 12px;margin-top:7px;font-size:.83rem">${"⭐".repeat(r.s||1)} ${r.src==="prod"?"· <b>"+esc((S.products.find(p=>p.id===r.pid)||{}).name||"منتج")+"</b>":"· الموقع"}<br>${esc(r.c||"(بلا تعليق)")}</div>`).join(""):""}`);
+    ${abHtml}${(d.siteReviews||[]).length?`<div class="hr"></div><h3 style="font-size:.95rem">⭐ تقييمات الموقع (${(d.siteReviews||[]).length})</h3>`+(d.siteReviews||[]).slice().reverse().slice(0,20).map(r=>`<div style="background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 12px;margin-top:7px;font-size:.83rem"><b>👤 ${esc(r.n||"زائر")}</b> ${"⭐".repeat(r.s||1)}<br>${esc(r.c||"(بلا تعليق)")}<br><small style="color:var(--muted)">${new Date(r.ts).toLocaleDateString("ar-SY-u-nu-latn",{day:"numeric",month:"short"})}</small></div>`).join(""):""}${(d.rejectedReviews||[]).length?`<div class="hr"></div><h3 style="font-size:.95rem;color:var(--red)">📵 تقييمات محجوبة (${(d.rejectedReviews||[]).length}) — بس أنت بتشوفها</h3>`+(d.rejectedReviews||[]).slice().reverse().slice(0,30).map(r=>`<div style="background:var(--bg);border:1px solid var(--line);border-right:3px solid var(--red);border-radius:10px;padding:9px 12px;margin-top:7px;font-size:.83rem">${"⭐".repeat(r.s||1)} ${r.src==="prod"?"· <b>"+esc((S.products.find(p=>p.id===r.pid)||{}).name||"منتج")+"</b>":"· الموقع"}<br>${esc(r.c||"(بلا تعليق)")}</div>`).join(""):""}`);
 }
 async function clearAbandoned(){
   if(!confirm("مسح كل الطلبات المتروكة؟"))return;
