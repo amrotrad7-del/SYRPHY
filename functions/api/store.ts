@@ -39,6 +39,7 @@ const WELCOME_COUNTER_KEY = "welcome_counter";
 const THANKS_COUNTER_KEY = "thanks_counter";
 const REFERRALS_KEY = "referrals";
 const VISITORS_KEY = "visitors_live";
+const SETTINGS_KEY = "site_settings";
 const MAX_FAILS = 5;
 const LOCK_MS = 15 * 60 * 1000;
 const SPIN_COOLDOWN = 29 * 60 * 60 * 1000;
@@ -240,7 +241,8 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       const srAll = ((await readKey(env, SITE_REV_KEY, [])) || []) as { s: number; c: string; ts: number }[];
       const siteRev = srAll.slice(-12).reverse();
       const siteRevAvg = srAll.length ? Math.round((srAll.reduce((a, r) => a + (r.s || 0), 0) / srAll.length) * 10) / 10 : 0;
-      const res = json({ sv: 16, ...catalog, reviews, sold, siteRev, siteRevAvg, siteRevCount: srAll.length }, { headers: { "Cache-Control": "public, s-maxage=120" } });
+      const settings = await readKey(env, SETTINGS_KEY, { team: true });
+      const res = json({ sv: 17, settings, ...catalog, reviews, sold, siteRev, siteRevAvg, siteRevCount: srAll.length }, { headers: { "Cache-Control": "public, s-maxage=120" } });
       context.waitUntil(cache.put(cacheKey, res.clone()));
       return res;
     }
@@ -264,7 +266,11 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     const complaints = await readKey(env, COMPLAINTS_KEY, []);
     const accounts = await readKey(env, ACCOUNTS_KEY, {});
     const visitors = await readKey(env, VISITORS_KEY, []);
-    return json({ sv: 17, ...catalog, reviews, analytics, abandoned, orders, siteReviews, rejectedReviews, sold, complaints, accounts, visitors });
+    const settings = await readKey(env, SETTINGS_KEY, { team: true });
+    const otcAll = await readKey(env, OTC_KEY, {});
+    const points = await readKey(env, POINTS_KEY, {});
+    const referrals = await readKey(env, REFERRALS_KEY, {});
+    return json({ sv: 17, settings, otcAll, points, referrals, ...catalog, reviews, analytics, abandoned, orders, siteReviews, rejectedReviews, sold, complaints, accounts, visitors });
   }
 
   /* ============ POST ============ */
@@ -732,6 +738,16 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       if (!bk.products.length) return json({ error: "empty_backup" }, { status: 404 });
       await writeBig(env, STORE_KEY, bk);
       return json({ ok: true, restored: bk.products.length });
+    }
+
+    if (type === "set_setting") {
+      if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
+      const s = ((await readKey(env, SETTINGS_KEY, { team: true })) || {}) as Record<string, unknown>;
+      const key = String(body.key || "");
+      if (!["team"].includes(key)) return json({ error: "bad_key" }, { status: 400 });
+      s[key] = !!body.value;
+      await writeKey(env, SETTINGS_KEY, s);
+      return json({ ok: true, settings: s });
     }
 
     if (type === "del_order") {
