@@ -783,6 +783,9 @@ async function empManage(){
   try{d=await apiStore()}catch(e){
     return sheet(`<button class="close" onclick="adminPanel()">→ رجوع</button><h3>👥 الموظفين</h3><div class="empty">⚠️ فشل الجلب: ${esc(e.message||"?")}<br><small>خود صورة لهالشاشة وابعتها</small></div>`);
   }
+  if(d.fatal){
+    return sheet(`<button class="close" onclick="adminPanel()">→ رجوع</button><h3>👥 الموظفين</h3><div class="empty">⚠️ خطأ بالسيرفر:<br><b style="direction:ltr;display:block;font-size:.75rem">${esc(d.fatal)}</b><br><small>صوّر هالشاشة وابعتها</small></div>`);
+  }
   if(!d.employees&&d.sv&&d.sv<18){
     return sheet(`<button class="close" onclick="adminPanel()">→ رجوع</button><h3>👥 الموظفين</h3><div class="empty">السيرفر الحي نسخته <b class="num">sv:${d.sv}</b> — نظام الموظفين بدو <b class="num">sv:18</b>.<br>يعني store.ts الجديد ما وصل: يمكن النشرة فشلت أو الرفعة راحت لمكان تاني.<br><small>افتح Cloudflare → Deployments وشوف آخر نشرة Success ولا لأ، وصورلي</small></div>`);
   }
