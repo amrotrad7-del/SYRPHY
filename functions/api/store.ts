@@ -725,10 +725,16 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     if (type === "emp_add") {
       if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
       const emps = ((await readKey(env, EMP_KEY, {})) || {}) as Record<string, { name: string; pass: string; target: number; pct: number; ts: number }>;
-      const id = "e" + Date.now().toString(36);
-      emps[id] = { name: String(body.name || "").slice(0, 40), pass: String(body.pass || "").slice(0, 30), target: Number(body.target) || 0, pct: Number(body.pct) || 0, ts: Date.now() };
-      await writeKey(env, EMP_KEY, emps);
-      return json({ ok: true, id });
+      try {
+        const id = "e" + Date.now().toString(36);
+        const nm = String(body.name || "").trim().slice(0, 40);
+        if (!nm) return json({ error: "no_name" }, { status: 400 });
+        emps[id] = { name: nm, pass: String(body.pass || "").slice(0, 30), target: Number(body.target) || 0, pct: Number(body.pct) || 0, ts: Date.now() };
+        await writeKey(env, EMP_KEY, emps);
+        return json({ ok: true, id, count: Object.keys(emps).length });
+      } catch (e) {
+        return json({ error: "emp_add_failed", detail: String((e as Error)?.message || e) }, { status: 500 });
+      }
     }
     if (type === "emp_update") {
       if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
