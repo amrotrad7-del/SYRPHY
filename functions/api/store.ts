@@ -259,6 +259,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     }
 
     // المدير: كل شي بلا كاش
+    try {
     const catalog = normalizeStore(await readBig(env, STORE_KEY, {}));
     const pr = ((await readKey(env, PROD_REV_KEY, {})) || {}) as Record<string, { s: number; c: string; ts: number }[]>;
     const reviews: Record<string, { avg: number; count: number; last: { s: number; c: string; ts: number }[] }> = {};
@@ -284,6 +285,9 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     const points = await readKey(env, POINTS_KEY, {});
     const referrals = await readKey(env, REFERRALS_KEY, {});
     return json({ sv: 18, settings, otcAll, points, referrals, employees, empPays, ...catalog, reviews, analytics, abandoned, orders, siteReviews, rejectedReviews, sold, complaints, accounts, visitors });
+    } catch (e) {
+      return json({ sv: 18, fatal: String((e as Error)?.message || e) });
+    }
   }
 
   /* ============ POST ============ */
