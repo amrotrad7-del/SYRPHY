@@ -203,7 +203,7 @@
   <a href="https://wa.me/971566135365" target="_blank" rel="noopener" style="background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 16px;text-decoration:none;color:var(--text);font-family:Cairo;font-weight:800;font-size:.82rem;box-shadow:var(--shadow)">💬 تواصل معنا</a>
   <a href="https://wa.me/971566135365?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%20%F0%9F%91%8B%20%D8%A8%D8%AF%D9%8A%20%D8%A7%D8%B7%D9%84%D8%A8%20%D9%85%D9%86%D8%AA%D8%AC%20%D9%85%D9%86%20%D9%85%D9%88%D9%82%D8%B9%20%D8%AE%D8%A7%D8%B1%D8%AC%D9%8A%20%F0%9F%8C%8D%20%D9%87%D8%A7%D8%AF%20%D8%A7%D9%84%D8%B1%D8%A7%D8%A8%D8%B7%3A%20" target="_blank" rel="noopener" style="background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 16px;text-decoration:none;color:var(--text);font-family:Cairo;font-weight:800;font-size:.82rem;box-shadow:var(--shadow)">🌍 لطلب منتج من موقع خارجي</a>
 </div>
-<footer>SYRPHY © <span id="yr"></span> - توصيل لكل المحافظات السورية<br>للطلب والاستفسار واتساب: <span class="num">+971 56 613 5365</span><br><a id="team-sec" href="https://wa.me/971566135365?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%20%F0%9F%91%8B%20%D8%AD%D8%A7%D8%A8%D8%A8%20%D8%A7%D9%86%D8%B6%D9%85%20%D9%84%D9%81%D8%B1%D9%8A%D9%82%20SYRPHY%20%F0%9F%9A%80" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;background:var(--green);color:#fff;padding:11px 22px;border-radius:24px;text-decoration:none;font-family:Cairo;font-weight:800;font-size:.9rem;margin:4px 0 14px">🤝 انضم إلى فريقنا</a><div style="opacity:.45;font-size:.65rem;margin-top:6px">v26.07.21.2-cf</div></footer>
+<footer>SYRPHY © <span id="yr"></span> - توصيل لكل المحافظات السورية<br>للطلب والاستفسار واتساب: <span class="num">+971 56 613 5365</span><br><a id="team-sec" href="https://wa.me/971566135365?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%20%F0%9F%91%8B%20%D8%AD%D8%A7%D8%A8%D8%A8%20%D8%A7%D9%86%D8%B6%D9%85%20%D9%84%D9%81%D8%B1%D9%8A%D9%82%20SYRPHY%20%F0%9F%9A%80" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;background:var(--green);color:#fff;padding:11px 22px;border-radius:24px;text-decoration:none;font-family:Cairo;font-weight:800;font-size:.9rem;margin:4px 0 14px">🤝 انضم إلى فريقنا</a><div style="opacity:.45;font-size:.65rem;margin-top:6px">v26.07.22.1-cf</div></footer>
 <div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
 <script id="seed" type="application/json">{"products":[],"coupons":[]}</script>
 <script>
@@ -489,6 +489,7 @@ async function ordersPanel(){
   let d;try{d=await apiStore()}catch(e){return sheet(`<button class="close" onclick="adminPanel()">→ رجوع</button><div class="empty">تعذر الجلب</div>`)}
   window.__orders=d.orders||{};
   const ords=Object.entries(d.orders||{}).sort((x,y)=>(y[1].ts||0)-(x[1].ts||0));
+  window.__emps=d.employees||window.__emps||{};
   const html=ords.map(([id,o],idx)=>{
     const when=new Date(o.ts).toLocaleString("ar-SY-u-nu-latn",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
     const items=(o.items||[]).map(it=>`${esc(it.name)}${it.color?" ("+esc(it.color)+")":""}${it.size?" ق:"+esc(it.size):""} ×${it.qty}`).join("، ");
@@ -505,7 +506,7 @@ async function ordersPanel(){
       <div class="s">🛒 ${items}</div>
       <div class="row" style="margin-top:9px;align-items:center">
         <select onchange="setOrderStatus('${id}',this.value)" style="flex:2">${opts}</select>
-        ${wa?`<a class="mini" style="text-decoration:none;text-align:center;flex:1" href="https://wa.me/${wa}" target="_blank">💬</a>`:""}
+        ${wa?`<a class="mini" style="text-decoration:none;text-align:center;flex:1" href="https://wa.me/${wa}" target="_blank">💬</a>`:""}</div><div class="row" style="margin-top:6px"><select onchange="apiStore('POST',{type:'set_emp',id:'${id}',emp:this.value}).then(()=>toast('انربط بالموظف ✓'))" style="flex:1"><option value="">👥 الموظف البائع...</option>${Object.entries(window.__emps||{}).map(([eid,e])=>`<option value="${eid}" ${o.emp===eid?"selected":""}>${esc(e.name)}</option>`).join("")}</select>
         <button class="mini" style="flex:1" onclick="printInvoice('${id}')">🖨</button>
         <button class="mini" style="color:var(--red);flex:1" onclick="delOrder('${id}')">🗑</button>
       </div>
@@ -618,7 +619,7 @@ async function customersPanel(){
   sheet(`<button class="close" onclick="adminPanel()">→ رجوع</button><h3>👥 داتا العملاء</h3><div class="empty">عم حمّل...</div>`);
   let d;try{d=await apiStore()}catch(e){return sheet(`<button class="close" onclick="adminPanel()">→ رجوع</button><div class="empty">تعذر الجلب</div>`)}
   const cs=buildCustomers(d.orders,d.accounts,d);
-  window.__customers=cs;window.__otcAll=d.otcAll||{};
+  window.__customers=cs;window.__otcAll=d.otcAll||{};window.__emps=d.employees||{};
   const html=cs.map((cu,ci)=>{
     const myCodes=Object.entries(window.__otcAll||{}).filter(([code,v])=>!v.used&&(cu.thanks||[]).includes(code)).map(([code])=>code);
     const codes=[...(cu.thanks||[])];
@@ -744,6 +745,79 @@ async function toggleMix(){
   const on=!(window.__settings&&window.__settings.mix===false);
   try{const d=await apiStore("POST",{type:"set_setting",key:"mix",value:!on});window.__settings=d.settings;toast(!on?"✅ انفعّلت نسّق إطلالتك":"🚫 انطفت نسّق إطلالتك");renderAll();adminPanel()}catch(e){toast("ما زبط")}
 }
+function empGate(){
+  sheet(`<button class="close" onclick="closeModal()">✕</button><h3>👥 دخول الموظفين</h3>
+  <label>الاسم</label><input id="eg-n"><label>كلمة السر</label><input id="eg-p" type="password">
+  <button class="btn" onclick="empLogin()">🔓 دخول</button>`);
+}
+async function empLogin(){
+  try{
+    const r=await fetch(API(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"emp_login",name:document.getElementById("eg-n").value,pass:document.getElementById("eg-p").value})});
+    const d=await r.json();
+    if(!r.ok)return toast("الاسم أو كلمة السر غلط");
+    sessionStorage.setItem("syrphy-emp",d.id);
+    empDash(d);
+  }catch(e){toast("ما في اتصال")}
+}
+async function empDash(d){
+  if(!d){
+    const id=sessionStorage.getItem("syrphy-emp");if(!id)return empGate();
+    try{const r=await fetch(API(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"emp_stats",id})});d=await r.json();if(!d.ok)return empGate()}catch(e){return empGate()}
+  }
+  const prog=d.target?Math.min(100,Math.round(d.sold/d.target*100)):0;
+  sheet(`<button class="close" onclick="closeModal()">✕</button>
+  <h3>👋 أهلاً ${esc(d.name)}</h3>
+  <small class="hint">لوحة مبيعاتك لشهر <b class="num">${d.month}</b></small>
+  <div class="item"><div class="t"><span>💰 مبيعاتك هالشهر</span><b class="num" style="color:var(--green)">${fmt(d.sold)} ل.س</b></div>
+  <div class="s num">${d.cnt} طلب مأكد</div></div>
+  <div class="item"><div class="t"><span>🎯 التارجت المطلوب</span><b class="num">${fmt(d.target)} ل.س</b></div>
+  <div style="background:var(--bg);border-radius:20px;height:14px;overflow:hidden;border:1px solid var(--line);margin-top:8px"><div style="width:${prog}%;height:100%;background:${prog>=100?"#FFD873":"var(--green)"}"></div></div>
+  <div class="s" style="text-align:center;font-weight:800">${prog}% ${prog>=100?"🏆 حققت التارجت!":""}</div></div>
+  <div class="item"><div class="t"><span>💵 ربحك (${d.pct}% من المبيع)</span><b class="num" style="color:var(--green)">${fmt(d.profit)} ل.س</b></div>
+  <div class="s">مدفوع لهلق: <b class="num">${fmt(d.paid)}</b> · باقيلك: <b class="num" style="color:var(--green)">${fmt(Math.max(0,d.profit-d.paid))}</b></div></div>`);
+}
+async function empManage(){
+  if(isUserMode())return userPanel();
+  sheet(`<button class="close" onclick="adminPanel()">→ رجوع</button><h3>👥 الموظفين</h3><div class="empty">عم حمّل...</div>`);
+  let d;try{d=await apiStore()}catch(e){return toast("ما زبط")}
+  const emps=d.employees||{},pays=d.empPays||[];
+  const rows=(await Promise.all(Object.keys(emps).map(async id=>{
+    let s={sold:0,profit:0,paid:0,cnt:0};
+    try{const r=await fetch(API(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"emp_stats",id})});s=await r.json()}catch(_){}
+    const e=emps[id];
+    return `<div class="item"><div class="t"><b>👤 ${esc(e.name)}</b><span class="badge g num">${fmt(s.sold||0)} ل.س</span></div>
+    <div class="s num">🎯 ${fmt(e.target)} · 💵 ${e.pct}% = ${fmt(s.profit||0)} · مدفوع ${fmt(s.paid||0)}</div>
+    <div class="row" style="margin-top:8px">
+      <button class="mini" onclick="empEdit('${id}',${e.target},${e.pct})">⚙️ تعديل</button>
+      <button class="mini" style="color:var(--green)" onclick="empPay('${id}','${esc(e.name)}')">💰 دفع راتب</button>
+      <button class="mini" style="color:var(--red)" onclick="empDel('${id}')">🗑</button>
+    </div></div>`;
+  }))).join("")||'<div class="empty">ما في موظفين بعد</div>';
+  sheet(`<button class="close" onclick="adminPanel()">→ رجوع</button><h3>👥 الموظفين (${Object.keys(emps).length})</h3>
+  <button class="btn" onclick="empAddForm()">➕ إضافة موظف</button>${rows}`);
+}
+function empAddForm(){
+  sheet(`<button class="close" onclick="empManage()">→ رجوع</button><h3>➕ موظف جديد</h3>
+  <label>الاسم</label><input id="ea-n"><label>كلمة السر</label><input id="ea-p">
+  <div class="row"><div><label>التارجت الشهري (ل.س)</label><input id="ea-t" type="number"></div><div><label>نسبة الربح %</label><input id="ea-c" type="number"></div></div>
+  <button class="btn" onclick="empAdd()">✅ إضافة</button>`);
+}
+async function empAdd(){
+  try{await apiStore("POST",{type:"emp_add",name:document.getElementById("ea-n").value,pass:document.getElementById("ea-p").value,target:document.getElementById("ea-t").value,pct:document.getElementById("ea-c").value});toast("انضاف ✓");empManage()}catch(e){toast("ما زبط")}
+}
+async function empEdit(id,t,p){
+  const nt=prompt("التارجت الشهري (ل.س):",t);if(nt===null)return;
+  const np=prompt("نسبة الربح %:",p);if(np===null)return;
+  try{await apiStore("POST",{type:"emp_update",id,target:nt,pct:np});toast("اتعدل ✓");empManage()}catch(e){toast("ما زبط")}
+}
+async function empPay(id,name){
+  const a=prompt("المبلغ اللي رح تدفعه لـ"+name+" (ل.س):");if(!a)return;
+  try{await apiStore("POST",{type:"emp_pay",id,amount:a});toast("💰 اندفع وانسجل");empManage()}catch(e){toast("ما زبط")}
+}
+async function empDel(id){
+  if(!confirm("حذف الموظف؟"))return;
+  try{await apiStore("POST",{type:"emp_del",id});toast("انحذف");empManage()}catch(e){toast("ما زبط")}
+}
 async function toggleTeam(){
   const on=!(window.__settings&&window.__settings.team===false);
   try{
@@ -850,7 +924,7 @@ const pin=_n.toUpperCase()+":"+_p;
 try{adminPin=pin;const resp=await apiStore("POST",{});isAdmin=true;sessionStorage.setItem(ADMIN_KEY,pin);sessionStorage.setItem("syrphy-role",(resp&&resp.role)==="user"?"user":"admin");if(isUserMode()){userPanel()}else{adminPanel()}refreshStore(true)}
 catch(e){adminPin="";sessionStorage.removeItem(ADMIN_KEY);toast(e.message==="locked"?"⛔ انقفل الدخول ١٥ دقيقة — محاولات غلط كتيرة":e.message==="unauthorized"?"الرمز غلط":e.message==="DATABASE_URL_missing"?"⚠️ قاعدة البيانات مو مربوطة — ضيف DATABASE_URL بإعدادات Vercel":"⚠️ خطأ: "+(e.message||"ما في اتصال")+" — ابعت هالرسالة للدعم")}}
 function userPanel(){sheet(`<button class="close" onclick="closeModal()">✕</button><h3>👥 لوحة المستخدمين</h3><small class="hint">${S.products.length} منتج</small><button class="btn" onclick="addProdForm()">＋ إضافة منتج</button><button class="btn ghost" onclick="manageProds()">🗂 إدارة المنتجات</button><button class="btn ghost" onclick="logoutAdmin()">تسجيل خروج</button>`)}
-function adminPanel(){setTimeout(()=>{const b=document.getElementById("team-toggle");if(b)b.textContent=(window.__settings&&window.__settings.team===false)?"👔 انضم لفريقنا: مطفية — شغّلها":"👔 انضم لفريقنا: شغالة — طفّيها";const m=document.getElementById("mix-toggle");if(m)m.textContent=(window.__settings&&window.__settings.mix===false)?"🧥 نسّق إطلالتك: مطفية — شغّلها":"🧥 نسّق إطلالتك: شغالة — طفّيها"},50);if(isUserMode())return userPanel();sheet(`<button class="close" onclick="closeModal()">✕</button><h3>⚙️ لوحة المدير</h3><small class="hint">${S.products.length} منتج · ${S.coupons.length} كود خصم</small><button class="btn" onclick="addProdForm()">＋ إضافة منتج</button><button class="btn ghost" onclick="manageProds()">🗂 إدارة المنتجات والخصومات</button><button class="btn ghost" onclick="manageCoupons()">🏷 أكواد الخصم</button><button class="btn" onclick="ordersPanel()">📦 الطلبات وتتبع التوصيل</button><button class="btn ghost" onclick="statsPanel()">📈 الإحصائيات والزيارات</button><button class="btn ghost" onclick="notifyForm()">📣 إرسال إشعار للجميع</button><button class="btn ghost" onclick="customersPanel()">👥 داتا العملاء</button><button class="btn ghost" onclick="complaintsPanel()">📨 الشكاوي</button><button class="btn ghost" onclick="visitorsPanel()">👁️ الزوار المباشر</button><button class="btn ghost" id="team-toggle" onclick="toggleTeam()">👔 ميزة انضم لفريقنا</button><button class="btn ghost" onclick="importOldSite()">📥 استيراد كل شي من الموقع القديم</button><button class="btn ghost" onclick="backupsPanel()">🛟 استرجاع نسخة احتياطية</button><button class="btn ghost" onclick="openDaftar()">📒 دفتر التاجر</button><button class="btn ghost" onclick="logoutAdmin()">تسجيل خروج المدير</button>`)}
+function adminPanel(){setTimeout(()=>{const b=document.getElementById("team-toggle");if(b)b.textContent=(window.__settings&&window.__settings.team===false)?"👔 انضم لفريقنا: مطفية — شغّلها":"👔 انضم لفريقنا: شغالة — طفّيها";const m=document.getElementById("mix-toggle");if(m)m.textContent=(window.__settings&&window.__settings.mix===false)?"🧥 نسّق إطلالتك: مطفية — شغّلها":"🧥 نسّق إطلالتك: شغالة — طفّيها"},50);if(isUserMode())return userPanel();sheet(`<button class="close" onclick="closeModal()">✕</button><h3>⚙️ لوحة المدير</h3><small class="hint">${S.products.length} منتج · ${S.coupons.length} كود خصم</small><button class="btn" onclick="addProdForm()">＋ إضافة منتج</button><button class="btn ghost" onclick="manageProds()">🗂 إدارة المنتجات والخصومات</button><button class="btn ghost" onclick="manageCoupons()">🏷 أكواد الخصم</button><button class="btn" onclick="ordersPanel()">📦 الطلبات وتتبع التوصيل</button><button class="btn ghost" onclick="statsPanel()">📈 الإحصائيات والزيارات</button><button class="btn ghost" onclick="notifyForm()">📣 إرسال إشعار للجميع</button><button class="btn ghost" onclick="customersPanel()">👥 داتا العملاء</button><button class="btn ghost" onclick="complaintsPanel()">📨 الشكاوي</button><button class="btn ghost" onclick="visitorsPanel()">👁️ الزوار المباشر</button><button class="btn ghost" onclick="empManage()">👥 إدارة الموظفين</button><button class="btn ghost" id="team-toggle" onclick="toggleTeam()">👔 ميزة انضم لفريقنا</button><button class="btn ghost" onclick="importOldSite()">📥 استيراد كل شي من الموقع القديم</button><button class="btn ghost" onclick="backupsPanel()">🛟 استرجاع نسخة احتياطية</button><button class="btn ghost" onclick="openDaftar()">📒 دفتر التاجر</button><button class="btn ghost" onclick="logoutAdmin()">تسجيل خروج المدير</button>`)}
 function logoutAdmin(){isAdmin=false;adminPin="";sessionStorage.removeItem(ADMIN_KEY);sessionStorage.removeItem("syrphy-role");closeModal();toast("تم تسجيل الخروج")}
 function addProdForm(p){const e=p||{};tempImgs=e.imgs?e.imgs.map(x=>({src:x.src,color:x.color||"",sizes:x.sizes||""})):(e.img?[{src:e.img,color:""}]:[]);sheet(`<button class="close" onclick="${isUserMode()?"userPanel":"adminPanel"}()">→ رجوع</button><h3>${p?"تعديل منتج":"＋ منتج جديد"}</h3><label>رابط المنتج من شي إن أو تيمو</label><input id="ap-link" value="${esc(e.link||"")}" oninput="linkHint()"><small class="hint" id="ap-src"></small><label>اسم المنتج</label><input id="ap-name" value="${esc(e.name||"")}" oninput="catHint()"><label>صور المنتج</label><input type="file" id="ap-file" accept="image/*" multiple onchange="readImg(this)"><small class="hint">ارفع صورة أو أكثر واكتب اسم اللون تحت كل صورة.</small><div id="ap-imgs" style="margin-top:8px"></div><div class="row"><div><label>السعر الأساسي (د.إ)</label><input type="number" id="ap-base" inputmode="decimal" value="${e.basePrice||""}" oninput="autoPrice()"></div><div><label>الوزن (كغ)</label><input type="number" id="ap-weight" inputmode="decimal" step="0.05" value="${e.weight||PR.weight}" oninput="autoPrice()"></div></div>
 <div id="ap-calc" style="background:var(--bg);border:1px dashed var(--green);border-radius:10px;padding:9px 12px;font-size:.76rem;line-height:1.9;margin:6px 0;display:none"></div>

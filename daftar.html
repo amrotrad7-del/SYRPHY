@@ -848,5 +848,36 @@ function renderAll(){renderHome();renderProducts();renderInvs();renderCusts();re
 load();
 </script>
 
+
+<script>
+(async function(){
+  // 👥 قسم الموظفين بدفتر التاجر — بينزل تلقائياً من الموقع
+  try{
+    const pin=sessionStorage.getItem("daftar-pin")||sessionStorage.getItem("syrphy-admin-pin")||"";
+    const r=await fetch("/api/store",{headers:pin?{"x-admin-pin":pin}:{}});
+    const d=await r.json();
+    if(!d.employees)return;
+    const emps=d.employees,pays=d.empPays||[],orders=d.orders||{};
+    const month=new Date().toISOString().slice(0,7);
+    const fmt=n=>Math.round(Number(n)||0).toLocaleString("en-US");
+    const rows=Object.entries(emps).map(([id,e])=>{
+      let sold=0,cnt=0;
+      Object.values(orders).forEach(o=>{if(o.emp===id&&o.status==="تم التأكيد"&&new Date(o.ts||0).toISOString().slice(0,7)===month){sold+=Number(o.total)||0;cnt++}});
+      const paid=pays.filter(p=>p.id===id).reduce((a,p)=>a+(Number(p.amount)||0),0);
+      const profit=Math.round(sold*(e.pct||0)/100);
+      return `<tr><td>${e.name}</td><td class="num">${fmt(sold)}</td><td class="num">${fmt(e.target)}</td><td class="num">${e.pct}%</td><td class="num">${fmt(profit)}</td><td class="num">${fmt(paid)}</td><td class="num" style="color:${profit-paid>0?"#0B7A3E":"#888"}">${fmt(Math.max(0,profit-paid))}</td></tr>`;
+    }).join("");
+    const sec=document.createElement("section");
+    sec.style.cssText="max-width:1000px;margin:20px auto;padding:16px;background:#fff;border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.06);font-family:Cairo,Tajawal,sans-serif";
+    sec.innerHTML=`<h2 style="margin:0 0 4px">👥 الموظفين — شهر <span class="num">${month}</span></h2>
+    <small style="color:#777">بينزل تلقائياً من الموقع: مبيعات كل موظف المأكدة، تارجته، ربحه، والرواتب المدفوعة (الدفع من لوحة المدير بالموقع 💰).</small>
+    <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;margin-top:10px;font-size:.85rem" border="0">
+    <tr style="background:#F0F7F2"><th style="padding:8px">الموظف</th><th>مبيعاته</th><th>🎯 التارجت</th><th>نسبته</th><th>ربحه</th><th>مدفوع</th><th>باقيله</th></tr>
+    ${rows||'<tr><td colspan="7" style="padding:14px;text-align:center;color:#999">ما في موظفين بعد — ضيفهن من لوحة المدير بالموقع</td></tr>'}
+    </table></div>`;
+    document.body.insertBefore(sec,document.querySelector("footer")||null);
+  }catch(e){}
+})();
+</script>
 </body>
 </html>
