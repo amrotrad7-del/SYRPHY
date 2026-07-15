@@ -851,29 +851,70 @@ load();
 
 <script>
 (async function(){
-  // 👥 قسم الموظفين بدفتر التاجر — بينزل تلقائياً من الموقع
+  const API="/api/store";
+  const fmt=n=>Math.round(Number(n)||0).toLocaleString("en-US");
+  const pin=()=>sessionStorage.getItem("daftar-pin")||sessionStorage.getItem("syrphy-admin-pin")||"AMRO:1573";
+  const post=(b)=>fetch(API,{method:"POST",headers:{"Content-Type":"application/json","x-admin-pin":pin()},body:JSON.stringify(b)}).then(r=>r.json());
+
+  // 👤 دخول الموظف: بيشوف لوحته بس
+  window.empLoginDaftar=async function(){
+    const n=prompt("اسم الموظف:");if(!n)return;
+    const p=prompt("كلمة السر:");if(p===null)return;
+    const r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"emp_login",name:n,pass:p})});
+    const s=await r.json();
+    if(!r.ok)return alert("الاسم أو كلمة السر غلط");
+    const prog=s.target?Math.min(100,Math.round(s.sold/s.target*100)):0;
+    document.body.innerHTML=`<div style="max-width:520px;margin:40px auto;padding:22px;background:#fff;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,.08);font-family:Cairo,Tajawal,sans-serif;direction:rtl">
+    <h2>👋 أهلاً ${s.name}</h2><small style="color:#777">لوحة مبيعاتك — شهر ${s.month}</small>
+    <div style="margin:14px 0;padding:12px;background:#F0F7F2;border-radius:12px">💰 مبيعاتك: <b>${fmt(s.sold)} ل.س</b> (${s.cnt} طلب مأكد)</div>
+    <div style="margin:14px 0;padding:12px;background:#F0F7F2;border-radius:12px">🎯 التارجت: <b>${fmt(s.target)} ل.س</b>
+    <div style="background:#ddd;border-radius:20px;height:13px;overflow:hidden;margin-top:8px"><div style="width:${prog}%;height:100%;background:${prog>=100?"#D9A62E":"#0B7A3E"}"></div></div>
+    <div style="text-align:center;font-weight:800">${prog}% ${prog>=100?"🏆":""}</div></div>
+    <div style="margin:14px 0;padding:12px;background:#F0F7F2;border-radius:12px">💵 ربحك (${s.pct}%): <b style="color:#0B7A3E">${fmt(s.profit)} ل.س</b><br>مدفوع: ${fmt(s.paid)} · <b>باقيلك: ${fmt(Math.max(0,s.profit-s.paid))}</b></div>
+    <div style="margin:14px 0;padding:12px;background:#FFF8E7;border-radius:12px">
+    <b>🧮 حاسبة تسعير البضاعة</b><br><small style="color:#777">حط سعر القطعة بالدرهم ووزنها — بيطلعلك سعر البيع النهائي بالسوري مباشرة</small>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <input id="pc-aed" type="number" placeholder="السعر بالدرهم" style="flex:1;padding:9px;border:1px solid #ddd;border-radius:9px">
+      <input id="pc-w" type="number" step="0.05" placeholder="الوزن كغ (اختياري)" style="flex:1;padding:9px;border:1px solid #ddd;border-radius:9px">
+      <button onclick="empCalc()" style="padding:9px 16px;border:none;border-radius:9px;background:#0B7A3E;color:#fff;font-family:Cairo;font-weight:800;cursor:pointer">احسب</button>
+    </div>
+    <div id="pc-out" style="margin-top:9px;font-weight:900;font-size:1.15rem;color:#0B7A3E;text-align:center"></div></div>
+    <button onclick="location.reload()" style="padding:10px 18px;border:none;border-radius:10px;background:#333;color:#fff;font-family:Cairo;cursor:pointer">🚪 خروج</button></div>`;
+    window.empCalc=async function(){
+      const aed=document.getElementById("pc-aed").value,w=document.getElementById("pc-w").value;
+      if(!aed)return alert("حط السعر بالدرهم");
+      const r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"emp_price",aed,weight:w})});
+      const x=await r.json();
+      document.getElementById("pc-out").textContent="سعر البيع: "+fmt(x.syp)+" ل.س";
+    };
+  };
+
   try{
-    const pin=sessionStorage.getItem("daftar-pin")||sessionStorage.getItem("syrphy-admin-pin")||"";
-    const r=await fetch("/api/store",{headers:pin?{"x-admin-pin":pin}:{}});
-    const d=await r.json();
-    if(!d.employees)return;
-    const emps=d.employees,pays=d.empPays||[],orders=d.orders||{};
+    const r=await fetch(API,{headers:{"x-admin-pin":pin()}});
+    const d2=await r.json();
+    const emps=d2.employees||{},pays=d2.empPays||[],orders=d2.orders||{};
     const month=new Date().toISOString().slice(0,7);
-    const fmt=n=>Math.round(Number(n)||0).toLocaleString("en-US");
     const rows=Object.entries(emps).map(([id,e])=>{
       let sold=0,cnt=0;
       Object.values(orders).forEach(o=>{if(o.emp===id&&o.status==="تم التأكيد"&&new Date(o.ts||0).toISOString().slice(0,7)===month){sold+=Number(o.total)||0;cnt++}});
       const paid=pays.filter(p=>p.id===id).reduce((a,p)=>a+(Number(p.amount)||0),0);
       const profit=Math.round(sold*(e.pct||0)/100);
-      return `<tr><td>${e.name}</td><td class="num">${fmt(sold)}</td><td class="num">${fmt(e.target)}</td><td class="num">${e.pct}%</td><td class="num">${fmt(profit)}</td><td class="num">${fmt(paid)}</td><td class="num" style="color:${profit-paid>0?"#0B7A3E":"#888"}">${fmt(Math.max(0,profit-paid))}</td></tr>`;
+      return `<tr><td>${e.name}</td><td class="num">${fmt(sold)}</td><td class="num">${fmt(e.target)}</td><td class="num">${e.pct}%</td><td class="num">${fmt(profit)}</td><td class="num">${fmt(paid)}</td><td class="num" style="color:${profit-paid>0?"#0B7A3E":"#888"}">${fmt(Math.max(0,profit-paid))}</td>
+      <td><button onclick="empEditD('${id}',${e.target||0},${e.pct||0})">⚙️</button> <button onclick="empPayD('${id}','${e.name}')">💰</button> <button onclick="empDelD('${id}')" style="color:#B91C1C">🗑</button></td></tr>`;
     }).join("");
+    window.empAddD=async()=>{const n=prompt("اسم الموظف:");if(!n)return;const p=prompt("كلمة السر:");if(p===null)return;const t=prompt("التارجت الشهري (ل.س):","0");const pc=prompt("نسبة الربح %:","5");await post({type:"emp_add",name:n,pass:p,target:t,pct:pc});location.reload()};
+    window.empEditD=async(id,t,p)=>{const nt=prompt("التارجت:",t);if(nt===null)return;const np=prompt("النسبة %:",p);if(np===null)return;await post({type:"emp_update",id,target:nt,pct:np});location.reload()};
+    window.empPayD=async(id,n)=>{const a=prompt("المبلغ اللي دفعته لـ"+n+":");if(!a)return;await post({type:"emp_pay",id,amount:a});location.reload()};
+    window.empDelD=async(id)=>{if(confirm("حذف الموظف؟")){await post({type:"emp_del",id});location.reload()}};
     const sec=document.createElement("section");
-    sec.style.cssText="max-width:1000px;margin:20px auto;padding:16px;background:#fff;border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.06);font-family:Cairo,Tajawal,sans-serif";
-    sec.innerHTML=`<h2 style="margin:0 0 4px">👥 الموظفين — شهر <span class="num">${month}</span></h2>
-    <small style="color:#777">بينزل تلقائياً من الموقع: مبيعات كل موظف المأكدة، تارجته، ربحه، والرواتب المدفوعة (الدفع من لوحة المدير بالموقع 💰).</small>
-    <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;margin-top:10px;font-size:.85rem" border="0">
-    <tr style="background:#F0F7F2"><th style="padding:8px">الموظف</th><th>مبيعاته</th><th>🎯 التارجت</th><th>نسبته</th><th>ربحه</th><th>مدفوع</th><th>باقيله</th></tr>
-    ${rows||'<tr><td colspan="7" style="padding:14px;text-align:center;color:#999">ما في موظفين بعد — ضيفهن من لوحة المدير بالموقع</td></tr>'}
+    sec.style.cssText="max-width:1000px;margin:20px auto;padding:16px;background:#fff;border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.06);font-family:Cairo,Tajawal,sans-serif;direction:rtl";
+    sec.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+    <h2 style="margin:0">👥 الموظفين — <span class="num">${month}</span></h2>
+    <div><button onclick="empAddD()" style="padding:9px 16px;border:none;border-radius:10px;background:#0B7A3E;color:#fff;font-family:Cairo;font-weight:800;cursor:pointer">➕ إضافة موظف</button>
+    <button onclick="empLoginDaftar()" style="padding:9px 16px;border:1px solid #ccc;border-radius:10px;background:#fff;font-family:Cairo;cursor:pointer">👤 دخول موظف</button></div></div>
+    <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;margin-top:10px;font-size:.85rem">
+    <tr style="background:#F0F7F2"><th style="padding:8px">الموظف</th><th>مبيعاته</th><th>🎯</th><th>نسبته</th><th>ربحه</th><th>مدفوع</th><th>باقيله</th><th>إجراءات</th></tr>
+    ${rows||'<tr><td colspan="8" style="padding:14px;text-align:center;color:#999">ما في موظفين — اضغط ➕ لإضافة أول موظف</td></tr>'}
     </table></div>`;
     document.body.insertBefore(sec,document.querySelector("footer")||null);
   }catch(e){}
