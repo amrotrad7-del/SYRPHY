@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta property="og:title" content="SYRPHY 🇸🇾 — توصيل لباب بيتك">
-  <meta property="og:description" content="منتجات مختارة من شي إن وتيمو — بنوصلها لعندك وين ما كنت بسوريا، أو اهدي حدا بتحبه 🎁">
+  <meta property="og:description" content="منتجات مختارة من SHEIN و Trendyol — بنوصلها لعندك وين ما كنت بسوريا، أو اهدي حدا بتحبه 🎁">
   <meta property="og:image" content="https://syrphy.pages.dev/og-image.png">
   <meta property="og:url" content="https://syrphy.pages.dev">
   <meta property="og:type" content="website">
@@ -35,6 +35,10 @@
 .hrow{display:flex;align-items:center;gap:10px}
 .hrow .brand{flex:1;min-width:0}
 .menu-btn{font-size:1.35rem}
+.ctrl-row{gap:7px;justify-content:flex-start;flex-wrap:wrap}
+.ctrl-row .hbtn{width:auto;height:36px;padding:0 12px;font-size:.78rem;font-family:Cairo;font-weight:800;display:inline-flex;align-items:center;gap:5px}
+.ctrl-row .online{padding:7px 12px}
+#like-btn.liked{border-color:#E0605A;color:#E0605A}
 .acc-cta{flex:1;background:linear-gradient(135deg,var(--green),#0d8a47);color:#fff;border:none;border-radius:12px;padding:10px;font-family:Cairo;font-weight:800;font-size:.85rem;cursor:pointer}
 .wl-pill{background:var(--bg);border:1px solid var(--green);color:var(--green);border-radius:20px;padding:7px 14px;font-family:Cairo;font-weight:800;font-size:.8rem;flex:1;text-align:center}
 .pts-box{background:#FFD873;color:#4A3200;border:none;border-radius:20px;padding:7px 14px;font-family:Cairo;font-weight:900;font-size:.82rem;cursor:pointer}
@@ -66,7 +70,12 @@
 .hero .arrow{font-size:1.5rem;vertical-align:middle;display:inline-block;animation:go 1.6s infinite}@keyframes go{0%,100%{transform:translateX(0)}50%{transform:translateX(-7px)}}.hero svg.map{position:absolute;left:4px;bottom:-6px;width:235px;opacity:.32;z-index:1}
     .pills{display:flex;gap:7px;overflow-x:auto;padding:4px 14px 10px;-webkit-overflow-scrolling:touch}.pills button{background:var(--card);border:1px solid var(--line);color:var(--muted);border-radius:22px;padding:9px 18px;font-family:"Cairo";font-weight:700;font-size:.9rem;white-space:nowrap}.pills button.on{background:var(--green);border-color:var(--green);color:#fff}
     .sec-title{padding:6px 16px;font-size:1rem;font-weight:800;display:flex;align-items:center;gap:8px}.sec-title:before{content:"";width:4px;height:17px;background:var(--green);border-radius:3px}.sec-title.hot:before{background:var(--red)}
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:11px;padding:8px 14px 20px}.prod{background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column}.prod .im{position:relative;aspect-ratio:1/1.05;background:var(--bg)}.prod .im img{width:100%;height:100%;object-fit:cover;display:block}.noimg{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2.2rem;color:var(--muted)}.prod .soldb{position:absolute;bottom:8px;right:8px;background:rgba(20,20,20,.78);color:#fff;font-size:.62rem;font-weight:800;padding:4px 10px;border-radius:14px;font-family:Cairo;backdrop-filter:blur(3px)}
+    .cat-sec{margin:18px 0 6px}
+.cat-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.cat-head h3{font-family:Cairo;font-size:1.05rem;margin:0;border-right:4px solid var(--green);padding-right:10px}
+.cat-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+@media(min-width:700px){.cat-row{grid-template-columns:repeat(4,1fr)}}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:11px;padding:8px 14px 20px}.prod{background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column}.prod .im{position:relative;aspect-ratio:1/1.05;background:var(--bg)}.prod .im img{width:100%;height:100%;object-fit:cover;display:block}.noimg{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2.2rem;color:var(--muted)}.prod .soldb{position:absolute;bottom:8px;right:8px;background:rgba(20,20,20,.78);color:#fff;font-size:.62rem;font-weight:800;padding:4px 10px;border-radius:14px;font-family:Cairo;backdrop-filter:blur(3px)}
 .prod .newb{position:absolute;top:8px;left:8px;background:#FFD873;color:#4A3200;font-size:.64rem;font-weight:800;padding:3px 9px;border-radius:14px;font-family:Cairo}
 .prod .disc-timer{position:absolute;top:34px;left:8px;background:#B91C1C;color:#fff;font-size:.6rem;font-weight:800;padding:3px 8px;border-radius:12px;font-family:Cairo}
 .prod .off{position:absolute;top:8px;right:8px;background:var(--red);color:#fff;font-size:.66rem;font-weight:800;padding:3px 8px;border-radius:14px;font-family:"Cairo"}.prod .bd{padding:10px 11px 11px;display:flex;flex-direction:column;gap:6px;flex:1}.prod .nm{font-size:.9rem;font-weight:600;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.3em}.prod .pr{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap}.prod .pr b{font-family:"Cairo";color:var(--green);font-size:1.05rem}.prod .pr s{color:var(--muted);font-size:.8rem}.prod .add{margin-top:auto;background:var(--green);color:#fff;border:none;border-radius:11px;padding:10px;font-family:"Cairo";font-weight:800;font-size:.9rem}.prod .cat-tag{font-size:.72rem;color:var(--muted)}
@@ -91,9 +100,12 @@
       <svg class="flag" width="46" height="32" viewBox="0 0 60 42" aria-label="علم سوريا"><rect width="60" height="14" fill="#0B7A3E"/><rect y="14" width="60" height="14" fill="#fff"/><rect y="28" width="60" height="14" fill="#141414"/><g fill="#CE1126"><polygon points="15,16.4 16.09,19.5 19.37,19.58 16.76,21.57 17.7,24.72 15,22.85 12.3,24.72 13.24,21.57 10.63,19.58 13.91,19.5"/><polygon points="30,16.4 31.09,19.5 34.37,19.58 31.76,21.57 32.7,24.72 30,22.85 27.3,24.72 28.24,21.57 25.63,19.58 28.91,19.5"/><polygon points="45,16.4 46.09,19.5 49.37,19.58 46.76,21.57 47.7,24.72 45,22.85 42.3,24.72 43.24,21.57 40.63,19.58 43.91,19.5"/></g></svg>
       <div><div class="name">SYR<i>PHY</i></div><small>من دبي لقلب سوريا</small></div>
     </div>
+  </div>
+  <div class="hrow ctrl-row">
     <div class="online" id="online-badge" title="الأشخاص الموجودين الآن"><span class="num" id="online-n">1</span><span>أونلاين</span></div>
-    <button class="hbtn" id="theme-btn" onclick="toggleTheme()" title="الوضع الليلي" style="width:38px;height:38px">🌙</button>
-    <button class="hbtn" id="cur-btn" onclick="currencyMenu()" title="العملة" style="width:auto;padding:0 10px;font-size:.75rem;font-family:Cairo;font-weight:800">💱 SYP</button>
+    <button class="hbtn" id="theme-btn" onclick="toggleTheme()" title="الوضع الليلي">🌙</button>
+    <button class="hbtn" id="cur-btn" onclick="currencyMenu()" title="العملة">💱 SYP</button>
+    <button class="hbtn" id="like-btn" onclick="siteLike()" title="بتحب SYRPHY؟">❤️ <span class="num" id="likes-n">0</span></button>
   </div>
   <div class="hrow" id="acc-row">
     <button id="acc-cta" class="acc-cta" onclick="accountSheet()">👤 إنشاء حساب / تسجيل دخول</button>
@@ -140,7 +152,7 @@
     <div class="hslides">
       <div class="hslide on">
         <h2>توصيل لباب بيتك <span class="arrow">⬅</span></h2>
-        <p>منتجات مختارة من شي إن وتيمو - بنوصلها لعندك وين ما كنت بسوريا، أو اهدي حدا بتحبه.</p>
+        <p>منتجات مختارة من <b style="letter-spacing:.5px">SHEIN</b> و <b style="letter-spacing:.5px">Trendyol</b> - بنوصلها لعندك وين ما كنت بسوريا، أو اهدي حدا بتحبه.</p>
       </div>
       <div class="hslide">
         <h2><span class="offer-tag">🔥 عرض</span> خصم خاص!</h2>
@@ -203,7 +215,7 @@
   <a href="https://wa.me/971566135365" target="_blank" rel="noopener" style="background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 16px;text-decoration:none;color:var(--text);font-family:Cairo;font-weight:800;font-size:.82rem;box-shadow:var(--shadow)">💬 تواصل معنا</a>
   <a href="https://wa.me/971566135365?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%20%F0%9F%91%8B%20%D8%A8%D8%AF%D9%8A%20%D8%A7%D8%B7%D9%84%D8%A8%20%D9%85%D9%86%D8%AA%D8%AC%20%D9%85%D9%86%20%D9%85%D9%88%D9%82%D8%B9%20%D8%AE%D8%A7%D8%B1%D8%AC%D9%8A%20%F0%9F%8C%8D%20%D9%87%D8%A7%D8%AF%20%D8%A7%D9%84%D8%B1%D8%A7%D8%A8%D8%B7%3A%20" target="_blank" rel="noopener" style="background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 16px;text-decoration:none;color:var(--text);font-family:Cairo;font-weight:800;font-size:.82rem;box-shadow:var(--shadow)">🌍 لطلب منتج من موقع خارجي</a>
 </div>
-<footer>SYRPHY © <span id="yr"></span> - توصيل لكل المحافظات السورية<br>للطلب والاستفسار واتساب: <span class="num">+971 56 613 5365</span><br><a id="team-sec" href="https://wa.me/971566135365?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%20%F0%9F%91%8B%20%D8%AD%D8%A7%D8%A8%D8%A8%20%D8%A7%D9%86%D8%B6%D9%85%20%D9%84%D9%81%D8%B1%D9%8A%D9%82%20SYRPHY%20%F0%9F%9A%80" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;background:var(--green);color:#fff;padding:11px 22px;border-radius:24px;text-decoration:none;font-family:Cairo;font-weight:800;font-size:.9rem;margin:4px 0 14px">🤝 انضم إلى فريقنا</a><div style="opacity:.45;font-size:.65rem;margin-top:6px">v26.07.22.1-cf</div></footer>
+<footer>SYRPHY © <span id="yr"></span> - توصيل لكل المحافظات السورية<br>للطلب والاستفسار واتساب: <span class="num">+971 56 613 5365</span><br><a id="team-sec" href="javascript:void(0)" onclick="teamSheet()" style="display:inline-flex;align-items:center;gap:8px;background:var(--green);color:#fff;padding:11px 22px;border-radius:24px;text-decoration:none;font-family:Cairo;font-weight:800;font-size:.9rem;margin:4px 0 14px">🤝 انضم إلى فريقنا</a><div style="opacity:.45;font-size:.65rem;margin-top:6px">v26.07.23.1-cf</div></footer>
 <div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
 <script id="seed" type="application/json">{"products":[],"coupons":[]}</script>
 <script>
@@ -245,7 +257,7 @@ const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&g
 function seedData(){try{return JSON.parse(document.getElementById("seed").textContent)}catch(e){return {products:[],coupons:[]}}}
 function normalizeStore(data){data=data||{};S.products=Array.isArray(data.products)?data.products:[];S.coupons=Array.isArray(data.coupons)?data.coupons:[];S.products.forEach(p=>{if(!p.imgs)p.imgs=p.img?[{src:p.img,color:""}]:[]})}
 async function apiStore(method="GET",body){const headers={"Content-Type":"application/json"};if(adminPin)headers["x-admin-pin"]=adminPin;const res=await fetch(API(),{method,headers,body:body?JSON.stringify(body):undefined,cache:"no-store"});if(!res.ok)throw new Error(res.status===401?"unauthorized":"api");return res.json()}
-async function refreshStore(silent=false){try{const data=await apiStore();window.__loadedOK=true;if(window.__openPid){const _op=window.__openPid;window.__openPid=null;setTimeout(()=>{if((data.products||[]).some(x=>x.id===_op))prodView(_op)},400)}window.__reviews=data.reviews||{};window.__sold=data.sold||{};window.__settings=data.settings||{team:true};window.__siteRev={list:data.siteRev||[],avg:data.siteRevAvg||0,count:data.siteRevCount||0};normalizeStore(data);renderAll()}catch(e){if(!silent)toast("تعذر تحديث المنتجات");const seed=seedData();if(!S.products.length)normalizeStore(seed);renderAll()}}
+async function refreshStore(silent=false){try{const data=await apiStore();window.__loadedOK=true;if(window.__openPid){const _op=window.__openPid;window.__openPid=null;setTimeout(()=>{if((data.products||[]).some(x=>x.id===_op))prodView(_op)},400)}window.__reviews=data.reviews||{};window.__sold=data.sold||{};window.__settings=data.settings||{team:true};const ln=document.getElementById("likes-n");if(ln&&data.likes!==undefined)ln.textContent=fmt(data.likes);if(localStorage.getItem("syrphy-liked")==="1"){const lb=document.getElementById("like-btn");if(lb)lb.classList.add("liked")}window.__siteRev={list:data.siteRev||[],avg:data.siteRevAvg||0,count:data.siteRevCount||0};normalizeStore(data);renderAll()}catch(e){if(!silent)toast("تعذر تحديث المنتجات");const seed=seedData();if(!S.products.length)normalizeStore(seed);renderAll()}}
 async function load(){S.theme=localStorage.getItem(THEME_KEY)||"light";adminPin=sessionStorage.getItem(ADMIN_KEY)||"";isAdmin=Boolean(adminPin);applyTheme(S.theme);await refreshStore(true);setInterval(()=>{if(!document.hidden)refreshStore(true)},300000);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&Date.now()-(window.__lastRef||0)>120000){window.__lastRef=Date.now();refreshStore(true)}});
 startPresence();
@@ -275,8 +287,16 @@ function copyText(txt,msg){navigator.clipboard?.writeText(txt).then(()=>toast(ms
 function price(p){return p.disc>0?Math.round(p.price*(1-p.disc/100)):p.price}function pimg(p){return p.imgs?.[0]?.src||p.img||""}function sizesOf(im){return String(im&&im.sizes||"").split(/[,،\s]+/).filter(Boolean)}
 function hasSizes(p){return (p.imgs||[]).some(im=>sizesOf(im).length)}
 function colorList(p){return (p.imgs||[]).filter(x=>x.color&&x.color.trim())}
-function applyTheme(t){S.theme=t;document.documentElement.setAttribute("data-theme",t);const tb=document.getElementById("theme-btn");if(tb)tb.textContent=t==="dark"?"☀️":"🌙";}function toggleTheme(){applyTheme(S.theme==="dark"?"light":"dark");persist()}
-function autoCat(name){const n=(name||"").toLowerCase();for(const cat in CAT_WORDS){if(CAT_WORDS[cat].some(w=>n.includes(w)))return cat}return "أخرى"}function detectSource(link){const l=(link||"").toLowerCase();if(l.includes("shein"))return "شي إن";if(l.includes("temu"))return "تيمو";return l?"رابط":""}
+function applyTheme(t){S.theme=t;document.documentElement.setAttribute("data-theme",t);const tb=document.getElementById("theme-btn");if(tb)tb.textContent=t==="dark"?"☀️":"🌙";}async function siteLike(){
+  if(localStorage.getItem("syrphy-liked")==="1")return toast("❤️ حبك واصل من قبل!");
+  try{
+    const r=await fetch(API(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"site_like",dev:devId()})});
+    const d=await r.json();
+    if(d.likes!==undefined){document.getElementById("likes-n").textContent=fmt(d.likes);localStorage.setItem("syrphy-liked","1");document.getElementById("like-btn").classList.add("liked");confettiBurst();toast("❤️ شكراً لحبك!")}
+  }catch(e){toast("ما في اتصال")}
+}
+function toggleTheme(){applyTheme(S.theme==="dark"?"light":"dark");persist()}
+function autoCat(name){const n=(name||"").toLowerCase();for(const cat in CAT_WORDS){if(CAT_WORDS[cat].some(w=>n.includes(w)))return cat}return "أخرى"}function detectSource(link){const l=(link||"").toLowerCase();if(l.includes("shein"))return "SHEIN";if(l.includes("temu"))return "Temu";if(l.includes("trendyol"))return "Trendyol";return l?"رابط":""}
 function renderPills(){const used=new Set(S.products.map(p=>p.cat));const cats=CATS.filter(cc=>cc==="الكل"||used.has(cc));const hasDisc=S.products.some(p=>p.disc>0);let html=cats.map(cc=>`<button class="${cc===curCat?"on":""}" onclick="setCat('${cc}')">${cc}</button>`).join("");if(hasDisc)html=`<button class="${curCat==="الخصومات"?"on":""}" style="${curCat==="الخصومات"?"":"border-color:var(--red);color:var(--red)"}" onclick="setCat('الخصومات')">🔥 الخصومات</button>`+html;document.getElementById("cat-pills").innerHTML=html}
 function setCat(c){curCat=c;renderPills();renderGrid()}
 function discLeft(end){
@@ -289,10 +309,34 @@ function discLeft(end){
   return "بينتهي اليوم";
 }
 function prodCard(p){const src=pimg(p),multi=(p.imgs||[]).length>1,img=src?`<img data-cyc="${multi?p.id:""}" src="${esc(src)}" loading="lazy" style="transition:opacity .4s" onerror="this.outerHTML='<div class=noimg>🛍️</div>'">`:`<div class="noimg">🛍️</div>`;const cols=colorList(p);return `<div class="prod"><div class="im" onclick="prodView('${p.id}')">${img}${p.disc>0?`<span class="off">-${p.disc}%</span>`:""}${p.disc>0&&p.discEnd&&discLeft(p.discEnd)?`<span class="disc-timer">⏳ ${discLeft(p.discEnd)}</span>`:""}${(p.createdAt||"").slice(0,10)===new Date().toISOString().slice(0,10)?`<span class="newb">✨ جديد اليوم</span>`:""}${(window.__sold||{})[p.id]?`<span class="soldb" title="القطع المباعة">🔥 ${(window.__sold)[p.id]} انباعت</span>`:""}</div><div class="bd"><div class="nm" onclick="prodView('${p.id}')">${esc(p.name)}</div><div class="cat-tag">${esc(p.cat)}${cols.length>1?" · "+cols.length+" ألوان":""}${(window.__reviews||{})[p.id]?` · ⭐ ${(window.__reviews)[p.id].avg}`:""}</div><div class="pr"><b class="num">${syp(price(p))}</b>${p.disc>0?`<s class="num">${fmt(p.price)}</s>`:""}</div><button class="add" onclick="addCart('${p.id}')">＋ ضيف للسلة</button></div></div>`}
-function renderGrid(){let list;if(curCat==="الخصومات"){list=S.products.filter(p=>p.disc>0)}else if(curCat==="الكل"){list=S.products.filter(p=>!(p.disc>0))}else{list=S.products.filter(p=>p.cat===curCat)}
-document.getElementById("all-title").textContent=curCat==="الكل"?"كل المنتجات":curCat==="الخصومات"?"🔥 قسم الخصومات":curCat;
-document.getElementById("grid").innerHTML=list.map(prodCard).join("");
-document.getElementById("grid-empty").innerHTML=list.length?"":'<div class="empty"><span class="ic">🛍️</span>ما في منتجات بهالقسم بعد - قريباً!</div>'}
+function renderGrid(){
+  const grid=document.getElementById("grid"),empty=document.getElementById("grid-empty");
+  if(curCat==="الكل"){
+    // الرئيسية: كل قسم بعنوانه + 4 منتجات + عرض المزيد
+    const pool=S.products.filter(p=>!(p.disc>0));
+    document.getElementById("all-title").textContent="";
+    const cats=CATS.filter(cat=>cat!=="الكل"&&pool.some(p=>p.cat===cat));
+    grid.innerHTML="";
+    grid.style.display="block";
+    grid.innerHTML=cats.map(cat=>{
+      const items=pool.filter(p=>p.cat===cat);
+      return `<div class="cat-sec">
+        <div class="cat-head"><h3>${esc(cat)}</h3>${items.length>4?`<button class="mini" onclick="pickCat('${esc(cat)}')">عرض المزيد ←</button>`:""}</div>
+        <div class="cat-row">${items.slice(0,4).map(prodCard).join("")}</div>
+      </div>`;
+    }).join("");
+    empty.innerHTML=pool.length?"":'<div class="empty"><span class="ic">🛍️</span>ما في منتجات بعد - قريباً!</div>';
+    return;
+  }
+  grid.style.display="";
+  let list;
+  if(curCat==="الخصومات"){list=S.products.filter(p=>p.disc>0)}
+  else{list=S.products.filter(p=>p.cat===curCat)}
+  document.getElementById("all-title").textContent=curCat==="الخصومات"?"🔥 قسم الخصومات":curCat;
+  grid.innerHTML=list.map(prodCard).join("");
+  empty.innerHTML=list.length?"":'<div class="empty"><span class="ic">🛍️</span>ما في منتجات بهالقسم بعد - قريباً!</div>';
+}
+function pickCat(cat){curCat=cat;renderPills();renderGrid();window.scrollTo({top:document.getElementById("cat-pills").offsetTop-70,behavior:"smooth"})}
 function prodView(id){const p=S.products.find(x=>x.id===id);if(!p)return;const imgs=p.imgs?.length?p.imgs:(p.img?[{src:p.img,color:""}]:[]);window.__viewSel=0;window.__viewId=id;const thumbs=imgs.length>1?`<div style="display:flex;gap:8px;overflow-x:auto;padding:4px 0">${imgs.map((im,i)=>`<div onclick="pvSel(${i})" style="flex:none;text-align:center"><img src="${esc(im.src)}" id="pv-t${i}" style="width:58px;height:58px;object-fit:cover;border-radius:10px;border:2px solid ${i===0?"var(--green)":"var(--line)"}">${im.color?`<div style="font-size:.72rem;color:var(--muted);margin-top:2px">${esc(im.color)}</div>`:""}</div>`).join("")}</div>`:"";sheet(`<button class="close" onclick="closeModal()">✕</button><div style="border-radius:14px;overflow:hidden;margin-bottom:10px;max-height:340px">${imgs.length?`<img id="pv-main" src="${esc(imgs[0].src)}" style="width:100%;display:block;object-fit:cover">`:'<div style="height:180px;display:flex;align-items:center;justify-content:center;font-size:3rem;background:var(--bg)">🛍️</div>'}</div>${thumbs}<h3>${esc(p.name)}</h3><div style="margin:6px 0"><span class="badge g">${esc(p.cat)}</span> ${p.disc>0?`<span class="badge r">خصم ${p.disc}%</span>`:""}</div>${(window.__sold||{})[p.id]?`<div style="color:var(--red);font-size:.82rem;font-weight:700;margin:4px 0">🔥 انباع منها ${(window.__sold)[p.id]} قطعة</div>`:""}${p.disc>0&&p.discEnd&&discLeft(p.discEnd)?`<div style="color:#B91C1C;font-size:.85rem;font-weight:800;margin:4px 0">⏳ عرض الخصم ${discLeft(p.discEnd)}</div>`:""}<div id="pv-sizes" style="display:flex;gap:7px;flex-wrap:wrap;margin:8px 0"></div><div id="pv-color" style="font-size:.88rem;margin:4px 0 2px">${imgs[0]?.color?"اللون المختار: <b>"+esc(imgs[0].color)+"</b>":""}</div><div class="pr" style="display:flex;align-items:baseline;gap:10px;margin:8px 0"><b class="num" style="font-family:Cairo;font-size:1.35rem;color:var(--green)">${syp(price(p))}</b>${p.disc>0?`<s class="num" style="color:var(--muted)">${syp(p.price)}</s>`:""}</div><button class="btn" onclick="pvAdd()">🛒 ضيف للسلة</button>
     <div id="pv-similar"></div><div id="pv-reviews" style="margin-top:14px"></div>`);pvSizes();pvReviews(p.id);pvSimilar(p)}
 function pvSimilar(p){
@@ -1413,6 +1457,26 @@ async function spinWheel(){
 }
 let __cycT=0;
 setInterval(()=>{__cycT++;document.querySelectorAll('img[data-cyc]').forEach(im=>{const pid=im.getAttribute("data-cyc");if(!pid)return;const p=S.products.find(x=>x.id===pid);if(!p||!(p.imgs||[]).length)return;const idx=__cycT%p.imgs.length;const next=p.imgs[idx].src;if(im.src!==next){im.style.opacity="0.25";setTimeout(()=>{im.src=next;im.style.opacity="1"},220)}})},2600);
+function teamSheet(){
+  sheet(`<button class="close" onclick="closeModal()">✕</button>
+  <h3>🤝 انضم إلى فريق SYRPHY</h3>
+  <small class="hint">عبّي معلوماتك وبنتواصل معك بأسرع وقت.</small>
+  <label>الاسم الكامل</label><input id="tm-name">
+  <div class="row"><div><label>الدولة</label><select id="tm-country"><option>سوريا</option><option>الإمارات</option><option>تركيا</option><option>لبنان</option><option>الأردن</option><option>أخرى</option></select></div>
+  <div><label>العمر</label><input id="tm-age" type="number" inputmode="numeric"></div></div>
+  <label>المحافظة / المدينة</label><input id="tm-gov" placeholder="مثال: دمشق">
+  <label>رقم الموبايل (مع رمز الدولة)</label><input id="tm-phone" inputmode="tel" placeholder="+963..." style="direction:ltr;text-align:left">
+  <label>معلومات إضافية (خبرتك، شو بتشتغل...)</label><textarea id="tm-info" style="height:80px"></textarea>
+  <button class="btn" onclick="sendTeam()">📩 إرسال الطلب</button>`);
+}
+function sendTeam(){
+  const g=id=>document.getElementById(id).value.trim();
+  const name=g("tm-name"),age=g("tm-age"),gov=g("tm-gov"),phone=g("tm-phone");
+  if(name.length<3||!phone)return toast("اكتب اسمك ورقمك عالأقل");
+  const txt=`🤝 طلب انضمام لفريق SYRPHY\n👤 الاسم: ${name}\n🌍 الدولة: ${g("tm-country")}\n📍 المحافظة: ${gov||"-"}\n📞 الرقم: ${phone}\n🎂 العمر: ${age||"-"}\n📝 معلومات: ${g("tm-info")||"-"}`;
+  window.open("https://wa.me/971566135365?text="+encodeURIComponent(txt),"_blank");
+  closeModal();toast("📩 كمّل الإرسال بالواتساب");
+}
 function waMenu(){const m=document.getElementById("wa-menu");m.style.display=m.style.display==="flex"?"none":"flex"}
 function openDrawer(){document.getElementById("drawer").classList.add("on");document.getElementById("drawer-ov").classList.add("on")}
 function closeDrawer(){document.getElementById("drawer").classList.remove("on");document.getElementById("drawer-ov").classList.remove("on")}
