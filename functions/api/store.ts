@@ -272,9 +272,11 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     const visitors = await readKey(env, VISITORS_KEY, {});
     const settings = await readKey(env, SETTINGS_KEY, { team: true, mix: true });
     const otcAll = await readKey(env, OTC_KEY, {});
+    const employees = await readKey(env, EMP_KEY, {});
+    const empPays = await readKey(env, EMP_PAY_KEY, []);
     const points = await readKey(env, POINTS_KEY, {});
     const referrals = await readKey(env, REFERRALS_KEY, {});
-    return json({ sv: 17, settings, otcAll, points, referrals, ...catalog, reviews, analytics, abandoned, orders, siteReviews, rejectedReviews, sold, complaints, accounts, visitors });
+    return json({ sv: 18, settings, otcAll, points, referrals, employees, empPays, ...catalog, reviews, analytics, abandoned, orders, siteReviews, rejectedReviews, sold, complaints, accounts, visitors });
   }
 
   /* ============ POST ============ */
@@ -704,6 +706,73 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       r.reply = text;
       await writeKey(env, SITE_REV_KEY, list);
       return json({ ok: true });
+    }
+
+    // ===== نظام الموظفين =====
+    if (type === "emp_add") {
+      if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
+      const emps = ((await readKey(env, EMP_KEY, {})) || {}) as Record<string, { name: string; pass: string; target: number; pct: number; ts: number }>;
+      const id = "e" + Date.now().toString(36);
+      emps[id] = { name: String(body.name || "").slice(0, 40), pass: String(body.pass || "").slice(0, 30), target: Number(body.target) || 0, pct: Number(body.pct) || 0, ts: Date.now() };
+      await writeKey(env, EMP_KEY, emps);
+      return json({ ok: true, id });
+    }
+    if (type === "emp_update") {
+      if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
+      const emps = ((await readKey(env, EMP_KEY, {})) || {}) as Record<string, { name: string; pass: string; target: number; pct: number }>;
+      const e = emps[String(body.id || "")];
+      if (!e) return json({ error: "not_found" }, { status: 404 });
+      if (body.target !== undefined) e.target = Number(body.target) || 0;
+      if (body.pct !== undefined) e.pct = Number(body.pct) || 0;
+      if (body.pass) e.pass = String(body.pass).slice(0, 30);
+      await writeKey(env, EMP_KEY, emps);
+      return json({ ok: true });
+    }
+    if (type === "emp_del") {
+      if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
+      const emps = ((await readKey(env, EMP_KEY, {})) || {}) as Record<string, unknown>;
+      delete emps[String(body.id || "")];
+      await writeKey(env, EMP_KEY, emps);
+      return json({ ok: true });
+    }
+    if (type === "emp_pay") {
+      if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
+      const pays = ((await readKey(env, EMP_PAY_KEY, [])) || []) as unknown[];
+      pays.push({ id: String(body.id || ""), amount: Number(body.amount) || 0, ts: Date.now(), note: String(body.note || "").slice(0, 100) });
+      while (pays.length > 1000) pays.shift();
+      await writeKey(env, EMP_PAY_KEY, pays);
+      return json({ ok: true });
+    }
+    if (type === "set_emp") {
+      if (role !== "admin" && role !== "user") return json({ error: "unauthorized" }, { status: 401 });
+      const orders = ((await readKey(env, ORDERS_KEY, {})) || {}) as Record<string, { emp?: string }>;
+      const o = orders[String(body.id || "")];
+      if (!o) return json({ error: "not_found" }, { status: 404 });
+      o.emp = String(body.emp || "");
+      await writeKey(env, ORDERS_KEY, orders);
+      return json({ ok: true });
+    }
+    if (type === "emp_login" || type === "emp_stats") {
+      const emps = ((await readKey(env, EMP_KEY, {})) || {}) as Record<string, { name: string; pass: string; target: number; pct: number }>;
+      let id = String(body.id || "");
+      if (type === "emp_login") {
+        const nm = String(body.name || "").trim().toLowerCase();
+        const ps = String(body.pass || "");
+        id = Object.keys(emps).find((k) => emps[k].name.trim().toLowerCase() === nm && emps[k].pass === ps) || "";
+        if (!id) return json({ error: "not_found" }, { status: 404 });
+      }
+      const e = emps[id];
+      if (!e) return json({ error: "not_found" }, { status: 404 });
+      const month = new Date().toISOString().slice(0, 7);
+      const orders = ((await readKey(env, ORDERS_KEY, {})) || {}) as Record<string, { emp?: string; status?: string; total?: number; ts?: number }>;
+      let sold = 0, cnt = 0;
+      Object.values(orders).forEach((o) => {
+        if (o.emp === id && o.status === "تم التأكيد" && new Date(o.ts || 0).toISOString().slice(0, 7) === month) { sold += Number(o.total) || 0; cnt++; }
+      });
+      const pays = ((await readKey(env, EMP_PAY_KEY, [])) || []) as { id: string; amount: number }[];
+      const paid = pays.filter((p) => p.id === id).reduce((a, p) => a + (Number(p.amount) || 0), 0);
+      const profit = Math.round(sold * (e.pct || 0) / 100);
+      return json({ ok: true, id, name: e.name, target: e.target, pct: e.pct, sold, cnt, profit, paid, month });
     }
 
     if (type === "boxes") {
