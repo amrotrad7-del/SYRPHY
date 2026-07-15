@@ -283,9 +283,15 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     const type = typeof body.type === "string" ? body.type : "";
 
     if (type === "visit") {
-      // سجل الزوار: زائر واحد بعدد زياراته (بلا تكرار)
+      // سجل الزوار: زائر واحد بعدد زياراته — بيتصفر يومياً 12:00AM
       try {
-        const vmap = ((await readKey(env, VISITORS_KEY, {})) || {}) as Record<string, { visits: number; first: number; last: number; country?: string; city?: string; name?: string; phone?: string }>;
+        const today = new Date(Date.now() + 3 * 3600 * 1000).toISOString().slice(0, 10); // توقيت دمشق تقريباً
+        const dayMark = String(await readKey(env, "visitors_day", ""));
+        let vmap = ((await readKey(env, VISITORS_KEY, {})) || {}) as Record<string, { visits: number; first: number; last: number; country?: string; city?: string; name?: string; phone?: string }>;
+        if (dayMark !== today) {
+          vmap = {};
+          await writeKey(env, "visitors_day", today);
+        }
         const phone = String(body.phone || "").slice(0, 20);
         const vkey = (phone || "ip:" + clientIP(req)).slice(0, 40);
         const prev = vmap[vkey];
