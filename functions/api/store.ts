@@ -41,6 +41,8 @@ const REFERRALS_KEY = "referrals";
 const VISITORS_KEY = "visitors_live";
 const SETTINGS_KEY = "site_settings";
 const BDAY_COUNTER_KEY = "bday_counter";
+const BOXES_KEY = "boxes_plays";
+const BOX_COUNTER_KEY = "box_counter";
 const BDAY_CLAIMS_KEY = "bday_claims";
 const MAX_FAILS = 5;
 const LOCK_MS = 15 * 60 * 1000;
@@ -243,7 +245,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       const srAll = ((await readKey(env, SITE_REV_KEY, [])) || []) as { s: number; c: string; ts: number }[];
       const siteRev = srAll.slice(-12).reverse();
       const siteRevAvg = srAll.length ? Math.round((srAll.reduce((a, r) => a + (r.s || 0), 0) / srAll.length) * 10) / 10 : 0;
-      const settings = await readKey(env, SETTINGS_KEY, { team: true });
+      const settings = await readKey(env, SETTINGS_KEY, { team: true, mix: true });
       const res = json({ sv: 17, settings, ...catalog, reviews, sold, siteRev, siteRevAvg, siteRevCount: srAll.length }, { headers: { "Cache-Control": "public, s-maxage=120" } });
       context.waitUntil(cache.put(cacheKey, res.clone()));
       return res;
@@ -268,7 +270,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     const complaints = await readKey(env, COMPLAINTS_KEY, []);
     const accounts = await readKey(env, ACCOUNTS_KEY, {});
     const visitors = await readKey(env, VISITORS_KEY, {});
-    const settings = await readKey(env, SETTINGS_KEY, { team: true });
+    const settings = await readKey(env, SETTINGS_KEY, { team: true, mix: true });
     const otcAll = await readKey(env, OTC_KEY, {});
     const points = await readKey(env, POINTS_KEY, {});
     const referrals = await readKey(env, REFERRALS_KEY, {});
@@ -314,6 +316,20 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       const country = String(body.country || "غير معروف").slice(0, 40) || "غير معروف";
       a.byCountry[country] = (a.byCountry[country] || 0) + 1;
       await writeKey(env, ANALYTICS_KEY, a);
+      return json({ ok: true });
+    }
+
+    if (type === "visit_end") {
+      try {
+        const vmap = ((await readKey(env, VISITORS_KEY, {})) || {}) as Record<string, { time?: number; last?: number }>;
+        const phone = String(body.phone || "").slice(0, 20);
+        const vkey = (phone || "ip:" + clientIP(req)).slice(0, 40);
+        const dur = Math.min(Math.max(Number(body.dur) || 0, 0), 6 * 3600);
+        if (vmap[vkey]) {
+          vmap[vkey].time = (vmap[vkey].time || 0) + dur;
+          await writeKey(env, VISITORS_KEY, vmap);
+        }
+      } catch (_) {}
       return json({ ok: true });
     }
 
@@ -470,9 +486,11 @@ export const onRequest: PagesFunction<Env> = async (context) => {
         await writeKey(env, REJECTED_KEY, rej);
         return json({ ok: true, hidden: true });
       }
-      const pr = ((await readKey(env, PROD_REV_KEY, {})) || {}) as Record<string, { s: number; c: string; ts: number }[]>;
+      const rimg = String(body.img || "");
+      const imgOk = rimg.startsWith("data:image/") && rimg.length < 300000 ? rimg : "";
+      const pr = ((await readKey(env, PROD_REV_KEY, {})) || {}) as Record<string, { s: number; c: string; ts: number; img?: string }[]>;
       pr[pid] = pr[pid] || [];
-      pr[pid].push({ s: stars, c: comment, ts: Date.now() });
+      pr[pid].push({ s: stars, c: comment, ts: Date.now(), img: imgOk });
       while (pr[pid].length > 50) pr[pid].shift();
       const pids = Object.keys(pr);
       while (pids.length > 300) delete pr[pids.shift() as string];
@@ -549,25 +567,26 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       while (keys.length > 3000) delete w[keys.shift() as string];
       await writeKey(env, WHEEL_KEY, w);
 
-      const issueCode = async (counterKey: string, prefix: string, pct: number) => {
+      const issueCode = async (counterKey: string, prefix: string, pct: number, expMs?: number) => {
         const counter = Number(await readKey(env, counterKey, 1)) || 1;
         if (counter > 1500) return "";
         const codeStr = prefix + counter;
-        const otc = ((await readKey(env, OTC_KEY, {})) || {}) as Record<string, { pct: number; used: boolean; ts: number }>;
-        otc[codeStr] = { pct, used: false, ts: Date.now() };
+        const otc = ((await readKey(env, OTC_KEY, {})) || {}) as Record<string, { pct: number; used: boolean; ts: number; nodisc?: boolean; exp?: number }>;
+        otc[codeStr] = { pct, used: false, ts: Date.now(), nodisc: true, exp: expMs ? Date.now() + expMs : undefined };
         await writeKey(env, OTC_KEY, otc);
         await writeKey(env, counterKey, counter + 1);
         return codeStr;
       };
 
       // الدولاب: 50%→0.1 · 20%→0.02 · 10%→20 · الباقي حظ أوفر
+      // النسب: 50%→0.9 · 20%→5 · 10%→25 · الباقي حظ أوفر
       const r = Math.random() * 100;
       let prize: number | null = null;
-      if (r < 0.1) prize = 50;
-      else if (r < 0.12) prize = 20;
-      else if (r < 20.12) prize = 10;
+      if (r < 0.9) prize = 50;
+      else if (r < 5.9) prize = 20;
+      else if (r < 30.9) prize = 10;
       let code = "";
-      if (prize) code = await issueCode(WINNER_COUNTER_KEY, "WINNER", prize);
+      if (prize) code = await issueCode(WINNER_COUNTER_KEY, "WINNER", prize, 24 * 3600 * 1000);
       if (!code) prize = null;
       return json({ prize, code, cooldownMs: cooldown });
     }
@@ -651,6 +670,65 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       while (list.length > 300) list.shift();
       await writeKey(env, COMPLAINTS_KEY, list);
       return json({ ok: true });
+    }
+
+    if (type === "review_like") {
+      const ts = Number(body.ts) || 0;
+      const dev = String(body.dev || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 60);
+      const list = ((await readKey(env, SITE_REV_KEY, [])) || []) as { ts: number; l?: number; ld?: string[] }[];
+      const r = list.find((x) => x.ts === ts);
+      if (!r) return json({ error: "not_found" }, { status: 404 });
+      r.ld = r.ld || [];
+      if (dev && !r.ld.includes(dev)) {
+        r.ld.push(dev);
+        if (r.ld.length > 500) r.ld.shift();
+        r.l = (r.l || 0) + 1;
+        await writeKey(env, SITE_REV_KEY, list);
+      }
+      return json({ ok: true, l: r.l || 0 });
+    }
+
+    if (type === "review_reply") {
+      if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
+      const ts = Number(body.ts) || 0;
+      const text = String(body.text || "").trim().slice(0, 200);
+      const list = ((await readKey(env, SITE_REV_KEY, [])) || []) as { ts: number; reply?: string }[];
+      const r = list.find((x) => x.ts === ts);
+      if (!r) return json({ error: "not_found" }, { status: 404 });
+      r.reply = text;
+      await writeKey(env, SITE_REV_KEY, list);
+      return json({ ok: true });
+    }
+
+    if (type === "boxes") {
+      const dev = String(body.dev || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 60);
+      const acc = String(body.acc || "").replace(/[^0-9]/g, "");
+      const idk = acc || dev;
+      if (!idk) return json({ error: "bad_request" }, { status: 400 });
+      const ip = clientIP(req);
+      const now = Date.now();
+      const w = ((await readKey(env, BOXES_KEY, {})) || {}) as Record<string, number>;
+      const last = Math.max(w[idk] || 0, w[dev] || 0, w["ip:" + ip] || 0);
+      const COOL = 15 * 3600 * 1000;
+      if (now - last < COOL) return json({ error: "cooldown", waitMs: COOL - (now - last) }, { status: 429 });
+      w[idk] = now; if (dev) w[dev] = now; w["ip:" + ip] = now;
+      const wk = Object.keys(w).sort((a, b) => w[a] - w[b]);
+      while (wk.length > 3000) delete w[wk.shift() as string];
+      await writeKey(env, BOXES_KEY, w);
+      // فرصة الربح 30%
+      const win = Math.random() < 0.30;
+      let code = "";
+      if (win) {
+        const n = Number(await readKey(env, BOX_COUNTER_KEY, 1)) || 1;
+        if (n <= 1500) {
+          code = "BOX" + n;
+          const otc = ((await readKey(env, OTC_KEY, {})) || {}) as Record<string, { pct: number; used: boolean; ts: number; nodisc?: boolean; exp?: number }>;
+          otc[code] = { pct: 15, used: false, ts: Date.now(), nodisc: true, exp: Date.now() + 12 * 3600 * 1000 };
+          await writeKey(env, OTC_KEY, otc);
+          await writeKey(env, BOX_COUNTER_KEY, n + 1);
+        }
+      }
+      return json({ win: !!code, code, prize: 15, cooldownMs: COOL });
     }
 
     if (type === "birthday_check") {
@@ -798,9 +876,9 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
     if (type === "set_setting") {
       if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
-      const s = ((await readKey(env, SETTINGS_KEY, { team: true })) || {}) as Record<string, unknown>;
+      const s = ((await readKey(env, SETTINGS_KEY, { team: true, mix: true })) || {}) as Record<string, unknown>;
       const key = String(body.key || "");
-      if (!["team"].includes(key)) return json({ error: "bad_key" }, { status: 400 });
+      if (!["team", "mix"].includes(key)) return json({ error: "bad_key" }, { status: 400 });
       s[key] = !!body.value;
       await writeKey(env, SETTINGS_KEY, s);
       return json({ ok: true, settings: s });
