@@ -779,7 +779,13 @@ async function empDash(d){
 async function empManage(){
   if(isUserMode())return userPanel();
   sheet(`<button class="close" onclick="adminPanel()">→ رجوع</button><h3>👥 الموظفين</h3><div class="empty">عم حمّل...</div>`);
-  let d;try{d=await apiStore()}catch(e){return toast(e.message==="unauthorized"?"سجل دخول المدير من جديد 🔑":"السيرفر القديم لسا شغال — تأكد إنك رفعت store.ts الجديد لـ functions/api ⚠️")}
+  let d;
+  try{d=await apiStore()}catch(e){
+    return sheet(`<button class="close" onclick="adminPanel()">→ رجوع</button><h3>👥 الموظفين</h3><div class="empty">⚠️ فشل الجلب: ${esc(e.message||"?")}<br><small>خود صورة لهالشاشة وابعتها</small></div>`);
+  }
+  if(!d.employees&&d.sv&&d.sv<18){
+    return sheet(`<button class="close" onclick="adminPanel()">→ رجوع</button><h3>👥 الموظفين</h3><div class="empty">السيرفر الحي نسخته <b class="num">sv:${d.sv}</b> — نظام الموظفين بدو <b class="num">sv:18</b>.<br>يعني store.ts الجديد ما وصل: يمكن النشرة فشلت أو الرفعة راحت لمكان تاني.<br><small>افتح Cloudflare → Deployments وشوف آخر نشرة Success ولا لأ، وصورلي</small></div>`);
+  }
   const emps=d.employees||{},pays=d.empPays||[];
   const rows=(await Promise.all(Object.keys(emps).map(async id=>{
     let s={sold:0,profit:0,paid:0,cnt:0};
