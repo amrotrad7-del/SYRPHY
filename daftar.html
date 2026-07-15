@@ -856,12 +856,25 @@ load();
   const pin=()=>sessionStorage.getItem("daftar-pin")||sessionStorage.getItem("syrphy-admin-pin")||"AMRO:1573";
   const post=(b)=>fetch(API,{method:"POST",headers:{"Content-Type":"application/json","x-admin-pin":pin()},body:JSON.stringify(b)}).then(r=>r.json());
 
-  // زر عائم دائم
+  // زر الزوار/الموظفين: دخول الموظف فقط (بلا أي إدارة)
   const fab=document.createElement("button");
-  fab.textContent="👥 الموظفين";
+  fab.textContent="👤 دخول الموظفين";
   fab.style.cssText="position:fixed;bottom:96px;left:14px;z-index:99999;padding:12px 18px;border:none;border-radius:24px;background:#0B7A3E;color:#fff;font-family:Cairo,sans-serif;font-weight:800;font-size:.9rem;box-shadow:0 6px 18px rgba(0,0,0,.4);cursor:pointer";
-  fab.onclick=openEmp;
+  fab.onclick=()=>empLoginDaftar();
   document.body.appendChild(fab);
+  if(location.hash==="#emp")setTimeout(()=>empLoginDaftar(),600);
+
+  // زر الإدارة: بيظهر فقط بعد ما المدير يفوت من البوابة
+  const adminFab=document.createElement("button");
+  adminFab.textContent="👥 إدارة الموظفين";
+  adminFab.style.cssText="position:fixed;bottom:150px;left:14px;z-index:99999;padding:12px 18px;border:none;border-radius:24px;background:#D9A62E;color:#161200;font-family:Cairo,sans-serif;font-weight:800;font-size:.9rem;box-shadow:0 6px 18px rgba(0,0,0,.4);cursor:pointer;display:none";
+  adminFab.onclick=openEmp;
+  document.body.appendChild(adminFab);
+  setInterval(()=>{
+    const gateOpen=!!document.getElementById("daftar-gate");
+    const ok=sessionStorage.getItem("daftar-ok")==="1";
+    adminFab.style.display=(ok&&!gateOpen)?"block":"none";
+  },800);
 
   function overlay(html){
     let ov=document.getElementById("emp-ov");
