@@ -779,7 +779,7 @@ async function empDash(d){
 async function empManage(){
   if(isUserMode())return userPanel();
   sheet(`<button class="close" onclick="adminPanel()">→ رجوع</button><h3>👥 الموظفين</h3><div class="empty">عم حمّل...</div>`);
-  let d;try{d=await apiStore()}catch(e){return toast("ما زبط")}
+  let d;try{d=await apiStore()}catch(e){return toast(e.message==="unauthorized"?"سجل دخول المدير من جديد 🔑":"السيرفر القديم لسا شغال — تأكد إنك رفعت store.ts الجديد لـ functions/api ⚠️")}
   const emps=d.employees||{},pays=d.empPays||[];
   const rows=(await Promise.all(Object.keys(emps).map(async id=>{
     let s={sold:0,profit:0,paid:0,cnt:0};
@@ -803,7 +803,7 @@ function empAddForm(){
   <button class="btn" onclick="empAdd()">✅ إضافة</button>`);
 }
 async function empAdd(){
-  try{await apiStore("POST",{type:"emp_add",name:document.getElementById("ea-n").value,pass:document.getElementById("ea-p").value,target:document.getElementById("ea-t").value,pct:document.getElementById("ea-c").value});toast("انضاف ✓");empManage()}catch(e){toast("ما زبط")}
+  try{await apiStore("POST",{type:"emp_add",name:document.getElementById("ea-n").value,pass:document.getElementById("ea-p").value,target:document.getElementById("ea-t").value,pct:document.getElementById("ea-c").value});toast("انضاف ✓");empManage()}catch(e){toast(e.message==="unauthorized"?"سجل دخول المدير من جديد 🔑":"⚠️ ما زبطت الإضافة — الأغلب store.ts الجديد مو مرفوع بعد")}
 }
 async function empEdit(id,t,p){
   const nt=prompt("التارجت الشهري (ل.س):",t);if(nt===null)return;
