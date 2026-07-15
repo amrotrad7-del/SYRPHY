@@ -44,6 +44,7 @@ const BDAY_COUNTER_KEY = "bday_counter";
 const BOXES_KEY = "boxes_plays";
 const EMP_KEY = "employees";
 const EMP_PAY_KEY = "emp_payments";
+const SITE_LIKES_KEY = "site_likes";
 const BOX_COUNTER_KEY = "box_counter";
 const BDAY_CLAIMS_KEY = "bday_claims";
 const MAX_FAILS = 5;
@@ -298,7 +299,8 @@ const handleAll: PagesFunction<Env> = async (context) => {
       const siteRev = srAll.slice(-12).reverse();
       const siteRevAvg = srAll.length ? Math.round((srAll.reduce((a, r) => a + (r.s || 0), 0) / srAll.length) * 10) / 10 : 0;
       const settings = await readKey(env, SETTINGS_KEY, { team: true, mix: true });
-      const res = json({ sv: 17, settings, ...catalog, reviews, sold, siteRev, siteRevAvg, siteRevCount: srAll.length }, { headers: { "Cache-Control": "public, s-maxage=30" } });
+      const L = ((await readKey(env, SITE_LIKES_KEY, { n: 0 })) || { n: 0 }) as { n: number };
+      const res = json({ sv: 17, likes: L.n || 0, settings, ...catalog, reviews, sold, siteRev, siteRevAvg, siteRevCount: srAll.length }, { headers: { "Cache-Control": "public, s-maxage=30" } });
       context.waitUntil(cache.put(cacheKey, res.clone()));
       return res;
     }
@@ -900,6 +902,19 @@ const handleAll: PagesFunction<Env> = async (context) => {
       const w = Number(body.weight) > 0 ? Number(body.weight) : p.weight;
       const total = aed + aed * p.profit / 100 + w * p.perKg + p.uae + p.syr;
       return json({ syp: Math.round(total * p.rate) });
+    }
+
+    if (type === "site_like") {
+      const dev = String(body.dev || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 60);
+      if (!dev) return json({ error: "bad_request" }, { status: 400 });
+      const L = ((await readKey(env, SITE_LIKES_KEY, { n: 0, devs: [] })) || { n: 0, devs: [] }) as { n: number; devs: string[] };
+      if (!L.devs.includes(dev)) {
+        L.devs.push(dev);
+        if (L.devs.length > 20000) L.devs.shift();
+        L.n = (L.n || 0) + 1;
+        await writeKey(env, SITE_LIKES_KEY, L);
+      }
+      return json({ ok: true, likes: L.n });
     }
 
     if (type === "emp_sale") {
