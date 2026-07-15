@@ -231,6 +231,35 @@ const handleAll: PagesFunction<Env> = async (context) => {
   const req = context.request;
   const env = context.env;
 
+  // 🔬 فحص مباشر عبر الرابط: ?diag=emps / ?diag=addemp (بكلمة سر المدير)
+  {
+    const u = new URL(req.url);
+    const diag = u.searchParams.get("diag");
+    if (diag) {
+      const dpin = String(u.searchParams.get("pin") || "").replace(/\s+/g, "").toUpperCase();
+      if (dpin !== "AMRO:1573" && dpin !== "AMRO:971566135365") {
+        return new Response(JSON.stringify({ error: "bad_pin" }), { status: 401, headers: { "Content-Type": "application/json" } });
+      }
+      try {
+        if (diag === "addemp") {
+          const emps = ((await readKey(env, EMP_KEY, {})) || {}) as Record<string, unknown>;
+          const id = "e" + Date.now().toString(36);
+          emps[id] = { name: String(u.searchParams.get("name") || "تجربة"), pass: String(u.searchParams.get("pass") || "1"), target: Number(u.searchParams.get("target")) || 0, pct: Number(u.searchParams.get("pct")) || 5, ts: Date.now() };
+          await writeKey(env, EMP_KEY, emps);
+          const back = ((await readKey(env, EMP_KEY, {})) || {}) as Record<string, unknown>;
+          return new Response(JSON.stringify({ ok: true, added: id, count_after_readback: Object.keys(back).length, names: Object.values(back).map((e) => (e as { name: string }).name) }), { headers: { "Content-Type": "application/json; charset=utf-8" } });
+        }
+        if (diag === "emps") {
+          const emps = ((await readKey(env, EMP_KEY, {})) || {}) as Record<string, unknown>;
+          return new Response(JSON.stringify({ count: Object.keys(emps).length, employees: emps }), { headers: { "Content-Type": "application/json; charset=utf-8" } });
+        }
+        return new Response(JSON.stringify({ error: "unknown_diag" }), { status: 400, headers: { "Content-Type": "application/json" } });
+      } catch (e) {
+        return new Response(JSON.stringify({ error: "diag_crash", detail: String((e as Error)?.message || e), at: String((e as Error)?.stack || "").split("\n")[1] || "" }), { status: 500, headers: { "Content-Type": "application/json" } });
+      }
+    }
+  }
+
   const purgePublicCache = async () => {
     try {
       const cacheKey = new Request(new URL(req.url).origin + "/api/store#public", { method: "GET" });
