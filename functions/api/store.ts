@@ -217,6 +217,13 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   const req = context.request;
   const env = context.env;
 
+  const purgePublicCache = async () => {
+    try {
+      const cacheKey = new Request(new URL(req.url).origin + "/api/store#public", { method: "GET" });
+      await caches.default.delete(cacheKey);
+    } catch (_) {}
+  };
+
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
   if (!env.DB) return json({ error: "D1_binding_missing" }, { status: 500 });
   await ensureTable(env);
@@ -246,7 +253,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       const siteRev = srAll.slice(-12).reverse();
       const siteRevAvg = srAll.length ? Math.round((srAll.reduce((a, r) => a + (r.s || 0), 0) / srAll.length) * 10) / 10 : 0;
       const settings = await readKey(env, SETTINGS_KEY, { team: true, mix: true });
-      const res = json({ sv: 17, settings, ...catalog, reviews, sold, siteRev, siteRevAvg, siteRevCount: srAll.length }, { headers: { "Cache-Control": "public, s-maxage=120" } });
+      const res = json({ sv: 17, settings, ...catalog, reviews, sold, siteRev, siteRevAvg, siteRevCount: srAll.length }, { headers: { "Cache-Control": "public, s-maxage=30" } });
       context.waitUntil(cache.put(cacheKey, res.clone()));
       return res;
     }
@@ -946,6 +953,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       const bk = normalizeStore(await readBig(env, which, {}));
       if (!bk.products.length) return json({ error: "empty_backup" }, { status: 404 });
       await writeBig(env, STORE_KEY, bk);
+      await purgePublicCache();
       return json({ ok: true, restored: bk.products.length });
     }
 
@@ -1026,6 +1034,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     } catch (e) {
       return json({ error: "save_failed", detail: String((e as Error)?.message || e) }, { status: 500 });
     }
+    await purgePublicCache();
     return json(data);
   }
 
