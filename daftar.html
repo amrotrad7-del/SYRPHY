@@ -947,6 +947,15 @@ load();
       <div style="background:#333;border-radius:20px;height:13px;overflow:hidden;margin-top:8px"><div style="width:${prog}%;height:100%;background:${prog>=100?"#D9A62E":"#0B7A3E"}"></div></div>
       <div style="text-align:center;font-weight:800">${prog}% ${prog>=100?"🏆":""}</div></div>
     <div style="margin:12px 0;padding:13px;background:#1a2230;border-radius:12px">💵 ربحك (${s.pct}%): <b style="color:#4ADE80">${fmt(s.profit)} ل.س</b><br>مدفوع: ${fmt(s.paid)} · <b style="color:#FFD873">باقيلك: ${fmt(Math.max(0,s.profit-s.paid))}</b></div>
+    <div style="margin:12px 0;padding:13px;background:#16261a;border-radius:12px">
+      <b>➕ سجّل مبيعة جديدة</b><br><small style="color:#9aa">باعت قطعة؟ سجلها هون وبتنحسب بتارجتك فوراً</small>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+        <input id="es-item" placeholder="اسم المنتج" style="flex:2;min-width:130px;padding:10px;border:1px solid #345;border-radius:9px;background:#10151d;color:#eee">
+        <input id="es-total" type="number" placeholder="السعر ل.س" style="flex:1;min-width:100px;padding:10px;border:1px solid #345;border-radius:9px;background:#10151d;color:#eee">
+        <button onclick="empSale('${s.name.replace(/'/g,"")}')" style="padding:10px 16px;border:none;border-radius:9px;background:#0B7A3E;color:#fff;font-weight:800;cursor:pointer">سجّل</button>
+      </div>
+      <div id="es-out" style="margin-top:8px;text-align:center;font-weight:800;color:#4ADE80"></div>
+    </div>
     <div style="margin:12px 0;padding:13px;background:#2a2416;border-radius:12px">
       <b>🧮 حاسبة تسعير البضاعة</b><br><small style="color:#9aa">سعر القطعة بالدرهم + وزنها → سعر البيع النهائي</small>
       <div style="display:flex;gap:8px;margin-top:8px">
@@ -956,6 +965,20 @@ load();
       </div>
       <div id="pc-out" style="margin-top:9px;font-weight:900;font-size:1.15rem;color:#4ADE80;text-align:center"></div>
     </div></div>`);
+  };
+  window.empSale=async function(nm){
+    const item=document.getElementById("es-item").value.trim();
+    const total=document.getElementById("es-total").value;
+    if(!item||!total)return alert("اكتب اسم المنتج والسعر");
+    let ps=sessionStorage.getItem("emp-pass")||"";
+    if(!ps){ps=prompt("أكد كلمة سرك:")||"";if(!ps)return;sessionStorage.setItem("emp-pass",ps)}
+    try{
+      const r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"emp_sale",name:nm,pass:ps,item,total})});
+      const x=await r.json().catch(()=>({}));
+      if(!r.ok){if(r.status===401){sessionStorage.removeItem("emp-pass");return alert("كلمة السر غلط — جرب من جديد")}return alert("⚠️ ما زبط ("+r.status+"): "+(x.error||"؟"))}
+      document.getElementById("es-out").textContent="✅ انسجلت المبيعة! حدّث لوحتك لتشوف الرقم الجديد";
+      document.getElementById("es-item").value="";document.getElementById("es-total").value="";
+    }catch(e){alert("ما في اتصال")}
   };
   window.empCalc=async function(){
     const aed=document.getElementById("pc-aed").value,w=document.getElementById("pc-w").value;
