@@ -917,7 +917,18 @@ load();
     ${rows||'<p style="color:#889">ما في موظفين بعد — اضغط ➕</p>'}`);
   }
 
-  window.empAddD=async()=>{const n=prompt("اسم الموظف:");if(!n)return;const p=prompt("كلمة السر:");if(p===null)return;const t=prompt("التارجت الشهري (ل.س):","0");const pc=prompt("نسبة الربح %:","5");const r=await post({type:"emp_add",name:n,pass:p,target:t,pct:pc});if(r.error)alert("⚠️ "+r.error);openEmp()};
+  window.empAddD=async()=>{
+    const n=prompt("اسم الموظف:");if(!n)return;
+    const p=prompt("كلمة السر:");if(p===null)return;
+    const t=prompt("التارجت الشهري (ل.س):","0");const pc=prompt("نسبة الربح %:","5");
+    try{
+      const res=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json","x-admin-pin":pin()},body:JSON.stringify({type:"emp_add",name:n,pass:p,target:t,pct:pc})});
+      let r={};try{r=await res.json()}catch(_){}
+      if(!res.ok||r.error){alert("⚠️ فشلت الإضافة ("+res.status+"): "+(r.error||"?")+(r.detail?" — "+r.detail:""));return}
+      alert("✅ انضاف "+n+" — صار عندك "+(r.count||"?")+" موظف");
+    }catch(e){alert("⚠️ ما في اتصال: "+(e.message||"؟"))}
+    openEmp();
+  };
   window.empEditD=async(id,t,p)=>{const nt=prompt("التارجت:",t);if(nt===null)return;const np=prompt("النسبة %:",p);if(np===null)return;await post({type:"emp_update",id,target:nt,pct:np});openEmp()};
   window.empPayD=async(id,n)=>{const a=prompt("المبلغ المدفوع لـ"+n+":");if(!a)return;await post({type:"emp_pay",id,amount:a});openEmp()};
   window.empDelD=async(id)=>{if(confirm("حذف الموظف؟")){await post({type:"emp_del",id});openEmp()}};
