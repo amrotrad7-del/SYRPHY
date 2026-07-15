@@ -216,6 +216,18 @@ type AbandonedMap = Record<
 const emptyAnalytics = (): Analytics => ({ total: 0, byDay: {}, byCountry: {} });
 
 export const onRequest: PagesFunction<Env> = async (context) => {
+  try {
+    return await handleAll(context);
+  } catch (e) {
+    const err = e as Error;
+    return new Response(JSON.stringify({ error: "crash", detail: String(err?.message || e), at: String(err?.stack || "").split("\n")[1] || "" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+    });
+  }
+};
+
+const handleAll: PagesFunction<Env> = async (context) => {
   const req = context.request;
   const env = context.env;
 
@@ -233,6 +245,8 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   /* ============ GET ============ */
   if (req.method === "GET") {
     const role = await checkPin(env, req);
+
+
 
     // كاش الحافة للزوار العاديين — توفير هائل بالطلبات
     if (role !== "admin") {
@@ -721,7 +735,85 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       return json({ ok: true });
     }
 
-    // ===== نظام الموظفين =====
+        if (type === "boxes") {
+      const dev = String(body.dev || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 60);
+      const acc = String(body.acc || "").replace(/[^0-9]/g, "");
+      const idk = acc || dev;
+      if (!idk) return json({ error: "bad_request" }, { status: 400 });
+      const ip = clientIP(req);
+      const now = Date.now();
+      const w = ((await readKey(env, BOXES_KEY, {})) || {}) as Record<string, number>;
+      const last = Math.max(w[idk] || 0, w[dev] || 0, w["ip:" + ip] || 0);
+      const COOL = 15 * 3600 * 1000;
+      if (now - last < COOL) return json({ error: "cooldown", waitMs: COOL - (now - last) }, { status: 429 });
+      w[idk] = now; if (dev) w[dev] = now; w["ip:" + ip] = now;
+      const wk = Object.keys(w).sort((a, b) => w[a] - w[b]);
+      while (wk.length > 3000) delete w[wk.shift() as string];
+      await writeKey(env, BOXES_KEY, w);
+      // فرصة الربح 30%
+      const win = Math.random() < 0.30;
+      let code = "";
+      if (win) {
+        const n = Number(await readKey(env, BOX_COUNTER_KEY, 1)) || 1;
+        if (n <= 1500) {
+          code = "BOX" + n;
+          const otc = ((await readKey(env, OTC_KEY, {})) || {}) as Record<string, { pct: number; used: boolean; ts: number; nodisc?: boolean; exp?: number }>;
+          otc[code] = { pct: 15, used: false, ts: Date.now(), nodisc: true, exp: Date.now() + 12 * 3600 * 1000 };
+          await writeKey(env, OTC_KEY, otc);
+          await writeKey(env, BOX_COUNTER_KEY, n + 1);
+        }
+      }
+      return json({ win: !!code, code, prize: 15, cooldownMs: COOL });
+    }
+
+    if (type === "birthday_check") {
+      const acc = String(body.acc || "").replace(/[^0-9]/g, "");
+      if (!acc) return json({ error: "bad_request" }, { status: 400 });
+      const accounts = ((await readKey(env, ACCOUNTS_KEY, {})) || {}) as Record<string, { name?: string; bday?: string }>;
+      const a = accounts[acc];
+      if (!a || !a.bday) return json({ ok: false });
+      const today = new Date();
+      const b = new Date(a.bday + "T00:00:00");
+      if (b.getMonth() !== today.getMonth() || b.getDate() !== today.getDate()) return json({ ok: false });
+      const year = String(today.getFullYear());
+      const claims = ((await readKey(env, BDAY_CLAIMS_KEY, {})) || {}) as Record<string, string>;
+      if (claims[acc] === year) return json({ ok: false, already: true });
+      const n = Number(await readKey(env, BDAY_COUNTER_KEY, 1)) || 1;
+      if (n > 1500) return json({ ok: false });
+      const code = "HAPPYBIRTHDAY" + n;
+      const otc = ((await readKey(env, OTC_KEY, {})) || {}) as Record<string, { pct: number; used: boolean; ts: number; nodisc?: boolean; exp?: number }>;
+      otc[code] = { pct: 50, used: false, ts: Date.now(), nodisc: true, exp: Date.now() + 48 * 3600 * 1000 };
+      await writeKey(env, OTC_KEY, otc);
+      await writeKey(env, BDAY_COUNTER_KEY, n + 1);
+      claims[acc] = year;
+      await writeKey(env, BDAY_CLAIMS_KEY, claims);
+      return json({ ok: true, code, name: a.name || "", hours: 48 });
+    }
+
+    if (type === "my_referrals") {
+      const acc = String(body.acc || "").replace(/[^0-9]/g, "");
+      if (!acc) return json({ error: "bad_request" }, { status: 400 });
+      const refs = ((await readKey(env, REFERRALS_KEY, {})) || {}) as Record<string, string[]>;
+      const accs = ((await readKey(env, ACCOUNTS_KEY, {})) || {}) as Record<string, { thanks?: string[] }>;
+      return json({ count: (refs[acc] || []).length, thanks: (accs[acc] || {}).thanks || [] });
+    }
+
+    if (type === "my_orders") {
+      const ids = (Array.isArray(body.ids) ? body.ids : []).map((x) => String(x)).slice(0, 20);
+      const acc = String(body.acc || "").replace(/[^0-9]/g, "");
+      const orders = ((await readKey(env, ORDERS_KEY, {})) || {}) as Record<string, { acc?: string }>;
+      const mine: Record<string, unknown> = {};
+      ids.forEach((id) => {
+        if (orders[id]) mine[id] = orders[id];
+      });
+      if (acc) Object.keys(orders).forEach((id) => { if (orders[id].acc === acc) mine[id] = orders[id]; });
+      return json({ orders: mine });
+    }
+
+    /* أوامر المدير والمستخدمين */
+    const role = await checkPin(env, req);
+
+// ===== نظام الموظفين =====
     if (type === "emp_add") {
       if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
       const emps = ((await readKey(env, EMP_KEY, {})) || {}) as Record<string, { name: string; pass: string; target: number; pct: number; ts: number }>;
@@ -803,84 +895,6 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       const profit = Math.round(sold * (e.pct || 0) / 100);
       return json({ ok: true, id, name: e.name, target: e.target, pct: e.pct, sold, cnt, profit, paid, month });
     }
-
-    if (type === "boxes") {
-      const dev = String(body.dev || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 60);
-      const acc = String(body.acc || "").replace(/[^0-9]/g, "");
-      const idk = acc || dev;
-      if (!idk) return json({ error: "bad_request" }, { status: 400 });
-      const ip = clientIP(req);
-      const now = Date.now();
-      const w = ((await readKey(env, BOXES_KEY, {})) || {}) as Record<string, number>;
-      const last = Math.max(w[idk] || 0, w[dev] || 0, w["ip:" + ip] || 0);
-      const COOL = 15 * 3600 * 1000;
-      if (now - last < COOL) return json({ error: "cooldown", waitMs: COOL - (now - last) }, { status: 429 });
-      w[idk] = now; if (dev) w[dev] = now; w["ip:" + ip] = now;
-      const wk = Object.keys(w).sort((a, b) => w[a] - w[b]);
-      while (wk.length > 3000) delete w[wk.shift() as string];
-      await writeKey(env, BOXES_KEY, w);
-      // فرصة الربح 30%
-      const win = Math.random() < 0.30;
-      let code = "";
-      if (win) {
-        const n = Number(await readKey(env, BOX_COUNTER_KEY, 1)) || 1;
-        if (n <= 1500) {
-          code = "BOX" + n;
-          const otc = ((await readKey(env, OTC_KEY, {})) || {}) as Record<string, { pct: number; used: boolean; ts: number; nodisc?: boolean; exp?: number }>;
-          otc[code] = { pct: 15, used: false, ts: Date.now(), nodisc: true, exp: Date.now() + 12 * 3600 * 1000 };
-          await writeKey(env, OTC_KEY, otc);
-          await writeKey(env, BOX_COUNTER_KEY, n + 1);
-        }
-      }
-      return json({ win: !!code, code, prize: 15, cooldownMs: COOL });
-    }
-
-    if (type === "birthday_check") {
-      const acc = String(body.acc || "").replace(/[^0-9]/g, "");
-      if (!acc) return json({ error: "bad_request" }, { status: 400 });
-      const accounts = ((await readKey(env, ACCOUNTS_KEY, {})) || {}) as Record<string, { name?: string; bday?: string }>;
-      const a = accounts[acc];
-      if (!a || !a.bday) return json({ ok: false });
-      const today = new Date();
-      const b = new Date(a.bday + "T00:00:00");
-      if (b.getMonth() !== today.getMonth() || b.getDate() !== today.getDate()) return json({ ok: false });
-      const year = String(today.getFullYear());
-      const claims = ((await readKey(env, BDAY_CLAIMS_KEY, {})) || {}) as Record<string, string>;
-      if (claims[acc] === year) return json({ ok: false, already: true });
-      const n = Number(await readKey(env, BDAY_COUNTER_KEY, 1)) || 1;
-      if (n > 1500) return json({ ok: false });
-      const code = "HAPPYBIRTHDAY" + n;
-      const otc = ((await readKey(env, OTC_KEY, {})) || {}) as Record<string, { pct: number; used: boolean; ts: number; nodisc?: boolean; exp?: number }>;
-      otc[code] = { pct: 50, used: false, ts: Date.now(), nodisc: true, exp: Date.now() + 48 * 3600 * 1000 };
-      await writeKey(env, OTC_KEY, otc);
-      await writeKey(env, BDAY_COUNTER_KEY, n + 1);
-      claims[acc] = year;
-      await writeKey(env, BDAY_CLAIMS_KEY, claims);
-      return json({ ok: true, code, name: a.name || "", hours: 48 });
-    }
-
-    if (type === "my_referrals") {
-      const acc = String(body.acc || "").replace(/[^0-9]/g, "");
-      if (!acc) return json({ error: "bad_request" }, { status: 400 });
-      const refs = ((await readKey(env, REFERRALS_KEY, {})) || {}) as Record<string, string[]>;
-      const accs = ((await readKey(env, ACCOUNTS_KEY, {})) || {}) as Record<string, { thanks?: string[] }>;
-      return json({ count: (refs[acc] || []).length, thanks: (accs[acc] || {}).thanks || [] });
-    }
-
-    if (type === "my_orders") {
-      const ids = (Array.isArray(body.ids) ? body.ids : []).map((x) => String(x)).slice(0, 20);
-      const acc = String(body.acc || "").replace(/[^0-9]/g, "");
-      const orders = ((await readKey(env, ORDERS_KEY, {})) || {}) as Record<string, { acc?: string }>;
-      const mine: Record<string, unknown> = {};
-      ids.forEach((id) => {
-        if (orders[id]) mine[id] = orders[id];
-      });
-      if (acc) Object.keys(orders).forEach((id) => { if (orders[id].acc === acc) mine[id] = orders[id]; });
-      return json({ orders: mine });
-    }
-
-    /* أوامر المدير والمستخدمين */
-    const role = await checkPin(env, req);
     if (role === "locked") return json({ error: "locked" }, { status: 429 });
 
     if (type === "import_data") {
