@@ -763,6 +763,16 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       await writeKey(env, ORDERS_KEY, orders);
       return json({ ok: true });
     }
+    if (type === "emp_price") {
+      // حاسبة تسعير للموظفين: بترجع السعر النهائي فقط بلا كشف المعادلة
+      const aed = Math.max(0, Number(body.aed) || 0);
+      const s = ((await readKey(env, SETTINGS_KEY, {})) || {}) as { pricing?: { rate: number; profit: number; weight: number; perKg: number; uae: number; syr: number } };
+      const p = s.pricing || { rate: 3400, profit: 40, weight: 0.2, perKg: 27, uae: 2, syr: 3 };
+      const w = Number(body.weight) > 0 ? Number(body.weight) : p.weight;
+      const total = aed + aed * p.profit / 100 + w * p.perKg + p.uae + p.syr;
+      return json({ syp: Math.round(total * p.rate) });
+    }
+
     if (type === "emp_login" || type === "emp_stats") {
       const emps = ((await readKey(env, EMP_KEY, {})) || {}) as Record<string, { name: string; pass: string; target: number; pct: number }>;
       let id = String(body.id || "");
@@ -965,8 +975,11 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
       const s = ((await readKey(env, SETTINGS_KEY, { team: true, mix: true })) || {}) as Record<string, unknown>;
       const key = String(body.key || "");
-      if (!["team", "mix"].includes(key)) return json({ error: "bad_key" }, { status: 400 });
-      s[key] = !!body.value;
+      if (!["team", "mix", "pricing"].includes(key)) return json({ error: "bad_key" }, { status: 400 });
+      if (key === "pricing") {
+        const v = (body.value || {}) as Record<string, unknown>;
+        s.pricing = { rate: Number(v.rate) || 3400, profit: Number(v.profit) || 0, weight: Number(v.weight) || 0.2, perKg: Number(v.perKg) || 0, uae: Number(v.uae) || 0, syr: Number(v.syr) || 0 };
+      } else s[key] = !!body.value;
       await writeKey(env, SETTINGS_KEY, s);
       return json({ ok: true, settings: s });
     }
