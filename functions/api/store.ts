@@ -902,6 +902,46 @@ const handleAll: PagesFunction<Env> = async (context) => {
       return json({ syp: Math.round(total * p.rate) });
     }
 
+    if (type === "emp_sale") {
+      // الموظف بيسجل مبيعة باسمه وكلمة سره — بتنحسب بتارجته فوراً
+      const nm = String(body.name || "").trim().toLowerCase();
+      const ps = String(body.pass || "");
+      const emps = ((await readKey(env, EMP_KEY, {})) || {}) as Record<string, { name: string; pass: string }>;
+      const empId = Object.keys(emps).find((k) => emps[k].name.trim().toLowerCase() === nm && emps[k].pass === ps) || "";
+      if (!empId) return json({ error: "unauthorized" }, { status: 401 });
+      const item = String(body.item || "").slice(0, 80);
+      const total = Math.max(0, Number(body.total) || 0);
+      if (!item || !total) return json({ error: "bad_request" }, { status: 400 });
+      const orders = ((await readKey(env, ORDERS_KEY, {})) || {}) as Record<string, unknown>;
+      const oid = "EMPS-" + Date.now().toString(36);
+      orders[oid] = {
+        ts: Date.now(),
+        name: "مبيعة موظف: " + emps[empId].name,
+        phone: "-",
+        addr: "-",
+        pay: "مباشر",
+        total,
+        items: [{ name: item, qty: 1, price: total }],
+        status: "تم التأكيد",
+        emp: empId,
+        counted: true,
+        history: [{ status: "تم التأكيد", ts: Date.now() }],
+      };
+      const ks = Object.keys(orders);
+      while (ks.length > 500) delete orders[ks.shift() as string];
+      await writeKey(env, ORDERS_KEY, orders);
+      // بتنحسب بالمبيعات العامة كمان
+      const a = ((await readKey(env, ANALYTICS_KEY, emptyAnalytics())) || emptyAnalytics()) as Analytics;
+      a.orders = a.orders || { total: 0, amount: 0, byMonth: {}, amountByMonth: {}, ids: [] };
+      const month = new Date().toISOString().slice(0, 7);
+      a.orders.total += 1;
+      a.orders.amount += total;
+      a.orders.byMonth[month] = (a.orders.byMonth[month] || 0) + 1;
+      a.orders.amountByMonth[month] = (a.orders.amountByMonth[month] || 0) + total;
+      await writeKey(env, ANALYTICS_KEY, a);
+      return json({ ok: true, id: oid });
+    }
+
     if (type === "emp_login" || type === "emp_stats") {
       const emps = ((await readKey(env, EMP_KEY, {})) || {}) as Record<string, { name: string; pass: string; target: number; pct: number }>;
       let id = String(body.id || "");
