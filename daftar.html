@@ -957,11 +957,15 @@ load();
       <div id="es-out" style="margin-top:8px;text-align:center;font-weight:800;color:#4ADE80"></div>
     </div>
     <div style="margin:12px 0;padding:13px;background:#2a2416;border-radius:12px">
-      <b>🧮 حاسبة تسعير البضاعة</b><br><small style="color:#9aa">اختار العملة وحط سعر القطعة + وزنها → سعر البيع النهائي بالسوري</small>
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <select id="pc-cur" style="padding:10px;border:1px solid #345;border-radius:9px;background:#10151d;color:#eee"><option value="USD">$ دولار</option><option value="EUR">€ يورو</option><option value="SAR">﷼ ريال</option></select><input id="pc-aed" type="number" placeholder="السعر" style="flex:1;min-width:90px;padding:10px;border:1px solid #345;border-radius:9px;background:#10151d;color:#eee">
-        <input id="pc-w" type="number" step="0.05" placeholder="الوزن كغ" style="flex:1;padding:10px;border:1px solid #345;border-radius:9px;background:#10151d;color:#eee">
-        <button onclick="empCalc()" style="padding:10px 16px;border:none;border-radius:9px;background:#0B7A3E;color:#fff;font-weight:800;cursor:pointer">احسب</button>
+      <b>🧮 حاسبة تسعير البضاعة</b><br><small style="color:#9aa">اختار العملة، حط سعر القطعة ووزنها → بيطلعلك سعر البيع النهائي بالسوري</small>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
+        <div><label style="font-size:.72rem;color:#9aa;display:block;margin-bottom:4px">💱 العملة</label>
+        <select id="pc-cur" style="width:100%;padding:11px;border:1px solid #345;border-radius:9px;background:#10151d;color:#eee"><option value="USD">$ دولار أمريكي</option><option value="EUR">€ يورو</option><option value="SAR">﷼ ريال سعودي</option></select></div>
+        <div><label style="font-size:.72rem;color:#9aa;display:block;margin-bottom:4px">💵 سعر القطعة</label>
+        <input id="pc-aed" type="number" placeholder="مثال: 15" style="width:100%;padding:11px;border:1px solid #345;border-radius:9px;background:#10151d;color:#eee;box-sizing:border-box"></div>
+        <div><label style="font-size:.72rem;color:#9aa;display:block;margin-bottom:4px">⚖️ الوزن (كغ)</label>
+        <input id="pc-w" type="number" step="0.05" placeholder="مثال: 0.4" style="width:100%;padding:11px;border:1px solid #345;border-radius:9px;background:#10151d;color:#eee;box-sizing:border-box"></div>
+        <div style="display:flex;align-items:flex-end"><button onclick="empCalc()" style="width:100%;padding:11px;border:none;border-radius:9px;background:#0B7A3E;color:#fff;font-family:Cairo;font-weight:800;font-size:.95rem;cursor:pointer">🧮 احسب</button></div>
       </div>
       <div id="pc-out" style="margin-top:9px;font-weight:900;font-size:1.15rem;color:#4ADE80;text-align:center"></div>
     </div></div>`);
