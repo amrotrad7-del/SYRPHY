@@ -300,7 +300,18 @@ const handleAll: PagesFunction<Env> = async (context) => {
       const siteRevAvg = srAll.length ? Math.round((srAll.reduce((a, r) => a + (r.s || 0), 0) / srAll.length) * 10) / 10 : 0;
       const settings = await readKey(env, SETTINGS_KEY, { team: true, mix: true });
       const L = ((await readKey(env, SITE_LIKES_KEY, { n: 0 })) || { n: 0 }) as { n: number };
-      const res = json({ sv: 17, likes: L.n || 0, settings, ...catalog, reviews, sold, siteRev, siteRevAvg, siteRevCount: srAll.length }, { headers: { "Cache-Control": "public, s-maxage=30" } });
+      // 🚀 تخفيف: الصور بتتحول لروابط — الكتالوج بينزل بأجزاء من الثانية
+      type Img = { color?: string; src?: string };
+      const lightProducts = (catalog.products as { id: string; imgs?: Img[]; img?: string }[]).map((p) => {
+        const conv = (src: string | undefined, i: number) =>
+          src && src.startsWith("data:") ? "/api/img?id=" + encodeURIComponent(p.id) + "&i=" + i : src;
+        return {
+          ...p,
+          imgs: (p.imgs || []).map((im, i) => ({ ...im, src: conv(im.src, i) })),
+          img: conv(p.img, 0),
+        };
+      });
+      const res = json({ sv: 19, likes: L.n || 0, settings, ...catalog, products: lightProducts, reviews, sold, siteRev, siteRevAvg, siteRevCount: srAll.length }, { headers: { "Cache-Control": "public, s-maxage=120" } });
       context.waitUntil(cache.put(cacheKey, res.clone()));
       return res;
     }
@@ -896,7 +907,12 @@ const handleAll: PagesFunction<Env> = async (context) => {
     }
     if (type === "emp_price") {
       // حاسبة تسعير للموظفين: بترجع السعر النهائي فقط بلا كشف المعادلة
-      const aed = Math.max(0, Number(body.aed) || 0);
+      // العملة: دولار / يورو / ريال سعودي — بتنحول للدرهم داخلياً
+      const AED_RATES: Record<string, number> = { USD: 3.6725, EUR: 4.3, SAR: 0.98, AED: 1 };
+      const cur = String(body.cur || "USD").toUpperCase();
+      const rate = AED_RATES[cur] || AED_RATES.USD;
+      const amount = Math.max(0, Number(body.aed) || 0);
+      const aed = amount * rate;
       const s = ((await readKey(env, SETTINGS_KEY, {})) || {}) as { pricing?: { rate: number; profit: number; weight: number; perKg: number; uae: number; syr: number } };
       const p = s.pricing || { rate: 3400, profit: 40, weight: 0.2, perKg: 27, uae: 2, syr: 3 };
       const w = Number(body.weight) > 0 ? Number(body.weight) : p.weight;
