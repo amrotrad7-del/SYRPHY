@@ -957,9 +957,9 @@ load();
       <div id="es-out" style="margin-top:8px;text-align:center;font-weight:800;color:#4ADE80"></div>
     </div>
     <div style="margin:12px 0;padding:13px;background:#2a2416;border-radius:12px">
-      <b>🧮 حاسبة تسعير البضاعة</b><br><small style="color:#9aa">سعر القطعة بالدرهم + وزنها → سعر البيع النهائي</small>
+      <b>🧮 حاسبة تسعير البضاعة</b><br><small style="color:#9aa">اختار العملة وحط سعر القطعة + وزنها → سعر البيع النهائي بالسوري</small>
       <div style="display:flex;gap:8px;margin-top:8px">
-        <input id="pc-aed" type="number" placeholder="بالدرهم" style="flex:1;padding:10px;border:1px solid #345;border-radius:9px;background:#10151d;color:#eee">
+        <select id="pc-cur" style="padding:10px;border:1px solid #345;border-radius:9px;background:#10151d;color:#eee"><option value="USD">$ دولار</option><option value="EUR">€ يورو</option><option value="SAR">﷼ ريال</option></select><input id="pc-aed" type="number" placeholder="السعر" style="flex:1;min-width:90px;padding:10px;border:1px solid #345;border-radius:9px;background:#10151d;color:#eee">
         <input id="pc-w" type="number" step="0.05" placeholder="الوزن كغ" style="flex:1;padding:10px;border:1px solid #345;border-radius:9px;background:#10151d;color:#eee">
         <button onclick="empCalc()" style="padding:10px 16px;border:none;border-radius:9px;background:#0B7A3E;color:#fff;font-weight:800;cursor:pointer">احسب</button>
       </div>
@@ -983,7 +983,7 @@ load();
   window.empCalc=async function(){
     const aed=document.getElementById("pc-aed").value,w=document.getElementById("pc-w").value;
     if(!aed)return alert("حط السعر بالدرهم");
-    const r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"emp_price",aed,weight:w})});
+    const r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"emp_price",aed,weight:w,cur:document.getElementById("pc-cur").value})});
     const x=await r.json();
     document.getElementById("pc-out").textContent="سعر البيع: "+fmt(x.syp)+" ل.س";
   };
