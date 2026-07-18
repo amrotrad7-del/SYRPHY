@@ -1168,6 +1168,29 @@ const handleAll: PagesFunction<Env> = async (context) => {
       }
     } catch (_) { /* النسخة الاحتياطية ما بتوقف الحفظ */ }
 
+    // 🛡️ حماية الصور: إذا وصلت روابط /api/img بدل الصور الفعلية (نسخة خفيفة انحفظت بالغلط)
+    // منستبدلها بالصور الحقيقية الموجودة بالقاعدة قبل الكتابة — الصور ما بتنمحي أبداً
+    try {
+      const currentCat = normalizeStore(await readBig(env, STORE_KEY, {})) as { products?: { id: string; imgs?: { src?: string }[]; img?: string }[] };
+      const curMap: Record<string, { imgs?: { src?: string }[]; img?: string }> = {};
+      (currentCat.products || []).forEach((p) => { curMap[p.id] = p; });
+      const dp = data as { products?: { id: string; imgs?: { src?: string; color?: string }[]; img?: string }[] };
+      (dp.products || []).forEach((p) => {
+        const cur = curMap[p.id];
+        if (!cur) return;
+        (p.imgs || []).forEach((im, i) => {
+          if (im.src && im.src.startsWith("/api/img")) {
+            const real = cur.imgs && cur.imgs[i] ? cur.imgs[i].src : cur.img;
+            if (real && real.startsWith("data:")) im.src = real;
+          }
+        });
+        if (p.img && p.img.startsWith("/api/img")) {
+          const real = (cur.imgs && cur.imgs[0] ? cur.imgs[0].src : cur.img) || "";
+          if (real.startsWith("data:")) p.img = real;
+        }
+      });
+    } catch (_) { /* الحماية ما بتوقف الحفظ */ }
+
     try {
       await writeBig(env, STORE_KEY, data);
     } catch (e) {
