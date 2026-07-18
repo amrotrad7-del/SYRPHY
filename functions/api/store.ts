@@ -665,7 +665,7 @@ const handleAll: PagesFunction<Env> = async (context) => {
       let code = "";
       if (prize) code = await issueCode(WINNER_COUNTER_KEY, "WINNER", prize, 24 * 3600 * 1000);
       if (!code) prize = null;
-      return json({ prize, code, cooldownMs: cooldown });
+      return json({ prize, code, cooldownMs: SPIN_COOLDOWN });
     }
 
     if (type === "register") {
