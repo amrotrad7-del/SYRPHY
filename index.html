@@ -1484,6 +1484,7 @@ function closeDrawer(){document.getElementById("drawer").classList.remove("on");
 (function(){const b=document.getElementById("cur-btn");if(b)b.textContent="💱 "+CURR[curCode()].short})();
 window.__visitStart=Date.now();
 window.addEventListener("pagehide",()=>{try{const sec=Math.round((Date.now()-window.__visitStart)/1000);const p=getProfile();navigator.sendBeacon(API(),new Blob([JSON.stringify({type:"visit_end",sec,phone:p?("+"+p.cc+p.phone):""})],{type:"application/json"}))}catch(_){}});
+if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js").then(r=>{navigator.serviceWorker.addEventListener("message",(ev)=>{if(ev.data&&ev.data.type==="sw-cleaned"&&!sessionStorage.getItem("sw-reloaded")){sessionStorage.setItem("sw-reloaded","1");location.reload()}})}).catch(()=>{})}
 setInterval(tickClocks,15000);tickClocks();
 setTimeout(()=>{
   if(IS_LOCAL_FILE)return;
@@ -1503,6 +1504,7 @@ async function enablePush(){
     const perm=await Notification.requestPermission();
     if(perm!=="granted")return toast("لازم تسمح بالإشعارات من المتصفح");
     const reg=await navigator.serviceWorker.register("/sw.js");
+    navigator.serviceWorker.addEventListener("message",(ev)=>{if(ev.data&&ev.data.type==="sw-cleaned"&&!sessionStorage.getItem("sw-reloaded")){sessionStorage.setItem("sw-reloaded","1");location.reload()}});
     await navigator.serviceWorker.ready;
     const kr=await fetch("/api/push");const kd=await kr.json();
     const sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64ToU8(kd.publicKey)});
