@@ -1141,6 +1141,39 @@ const handleAll: PagesFunction<Env> = async (context) => {
       return json({ current: cur.products.length, list });
     }
 
+    if (type === "prod_save") {
+      // حفظ/تعديل منتج واحد بدل رفع الكتالوج كله
+      if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
+      const p = body.product as { id?: string; name?: string };
+      if (!p || !p.name) return json({ error: "bad_request" }, { status: 400 });
+      const cat = normalizeStore(await readBig(env, STORE_KEY, {})) as { products: { id: string }[]; coupons: unknown[] };
+      const idx = p.id ? cat.products.findIndex((x) => x.id === p.id) : -1;
+      if (idx >= 0) cat.products[idx] = { ...cat.products[idx], ...p } as { id: string };
+      else cat.products.unshift(p as { id: string });
+      await writeBig(env, STORE_KEY, cat);
+      try {
+        const cacheKey = new Request(new URL(req.url).origin + "/api/store#public", { method: "GET" });
+        await caches.default.delete(cacheKey);
+      } catch (_) {}
+      return json({ ok: true, id: (p as { id: string }).id, count: cat.products.length });
+    }
+    if (type === "prod_del") {
+      // حذف منتج واحد جراحياً
+      if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
+      const pid = String(body.id || "");
+      if (!pid) return json({ error: "bad_request" }, { status: 400 });
+      const cat = normalizeStore(await readBig(env, STORE_KEY, {})) as { products: { id: string }[] };
+      const before = cat.products.length;
+      cat.products = cat.products.filter((x) => x.id !== pid);
+      if (cat.products.length === before) return json({ error: "not_found" }, { status: 404 });
+      await writeBig(env, STORE_KEY, cat);
+      try {
+        const cacheKey = new Request(new URL(req.url).origin + "/api/store#public", { method: "GET" });
+        await caches.default.delete(cacheKey);
+      } catch (_) {}
+      return json({ ok: true, count: cat.products.length });
+    }
+
     if (type === "restore_backup") {
       if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
       const raw = String(body.which || "catalog_bk1");
