@@ -250,6 +250,65 @@ const handleAll: PagesFunction<Env> = async (context) => {
           const back = ((await readKey(env, EMP_KEY, {})) || {}) as Record<string, unknown>;
           return new Response(JSON.stringify({ ok: true, added: id, count_after_readback: Object.keys(back).length, names: Object.values(back).map((e) => (e as { name: string }).name) }), { headers: { "Content-Type": "application/json; charset=utf-8" } });
         }
+        if (diag === "purge") {
+          try {
+            const cacheKey = new Request(new URL(req.url).origin + "/api/store#public", { method: "GET" });
+            await caches.default.delete(cacheKey);
+          } catch (_) {}
+          return new Response(JSON.stringify({ ok: true, purged: true }), { headers: { "Content-Type": "application/json" } });
+        }
+        if (diag === "imgstatus") {
+          const cat = normalizeStore(await readBig(env, STORE_KEY, {})) as { products?: { id: string; name?: string; imgs?: { src?: string }[] }[] };
+          const rows = (cat.products || []).map((p) => {
+            const t = (p.imgs || []).map((im) => (im.src || "").startsWith("data:") ? "صورة✓" : (im.src || "").startsWith("/api/img") ? "رابط✗" : "فاضي");
+            return { id: p.id, name: p.name, imgs: t };
+          });
+          const bkInfo: Record<string, number> = {};
+          for (const bk of ["catalog_bk1", "catalog_bk2", "catalog_day0", "catalog_day1", "catalog_day2", "catalog_day3", "catalog_day4", "catalog_day5", "catalog_day6"]) {
+            try {
+              const b = normalizeStore(await readBig(env, bk, {})) as { products?: { imgs?: { src?: string }[] }[] };
+              bkInfo[bk] = (b.products || []).filter((p) => (p.imgs || []).some((im) => (im.src || "").startsWith("data:"))).length;
+            } catch (_) { bkInfo[bk] = -1; }
+          }
+          return new Response(JSON.stringify({ current: rows, backups_with_real_images: bkInfo }, null, 1), { headers: { "Content-Type": "application/json; charset=utf-8" } });
+        }
+        if (diag === "fiximgs") {
+          // 🚑 مصلح ذاتي: بيرجّع الصور الحقيقية من أي نسخة احتياطية فيها
+          const cat = normalizeStore(await readBig(env, STORE_KEY, {})) as { products?: { id: string; imgs?: { src?: string }[]; img?: string }[] };
+          const sources: Record<string, { id: string; imgs?: { src?: string }[]; img?: string }>[] = [];
+          for (const bk of ["catalog_bk1", "catalog_bk2", "catalog_day0", "catalog_day1", "catalog_day2", "catalog_day3", "catalog_day4", "catalog_day5", "catalog_day6"]) {
+            try {
+              const b = normalizeStore(await readBig(env, bk, {})) as { products?: { id: string; imgs?: { src?: string }[]; img?: string }[] };
+              const m: Record<string, { id: string; imgs?: { src?: string }[]; img?: string }> = {};
+              (b.products || []).forEach((p) => { m[p.id] = p; });
+              sources.push(m);
+            } catch (_) {}
+          }
+          let fixed = 0, still = 0;
+          (cat.products || []).forEach((p) => {
+            (p.imgs || []).forEach((im, i) => {
+              if (im.src && !im.src.startsWith("data:")) {
+                let real = "";
+                for (const src of sources) {
+                  const bp = src[p.id];
+                  const cand = bp ? (bp.imgs && bp.imgs[i] && bp.imgs[i].src) || bp.img : "";
+                  if (cand && cand.startsWith("data:")) { real = cand; break; }
+                }
+                if (real) { im.src = real; fixed++; } else still++;
+              }
+            });
+            if (p.img && !p.img.startsWith("data:")) {
+              const firstReal = (p.imgs || []).find((im) => (im.src || "").startsWith("data:"));
+              if (firstReal) p.img = firstReal.src as string;
+            }
+          });
+          await writeBig(env, STORE_KEY, cat);
+          try {
+            const cacheKey = new Request(new URL(req.url).origin + "/api/store#public", { method: "GET" });
+            await caches.default.delete(cacheKey);
+          } catch (_) {}
+          return new Response(JSON.stringify({ ok: true, fixed_images: fixed, unrecoverable: still }), { headers: { "Content-Type": "application/json; charset=utf-8" } });
+        }
         if (diag === "emps") {
           const emps = ((await readKey(env, EMP_KEY, {})) || {}) as Record<string, unknown>;
           return new Response(JSON.stringify({ count: Object.keys(emps).length, employees: emps }), { headers: { "Content-Type": "application/json; charset=utf-8" } });
