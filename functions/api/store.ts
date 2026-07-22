@@ -253,7 +253,7 @@ const handleAll: PagesFunction<Env> = async (context) => {
         if (diag === "purge") {
           try {
             const cacheKey = new Request(new URL(req.url).origin + "/api/store#public", { method: "GET" });
-            await caches.default.delete(cacheKey);
+            if (typeof caches !== "undefined") await caches.default.delete(cacheKey);
           } catch (_) {}
           return new Response(JSON.stringify({ ok: true, purged: true }), { headers: { "Content-Type": "application/json" } });
         }
@@ -305,7 +305,7 @@ const handleAll: PagesFunction<Env> = async (context) => {
           await writeBig(env, STORE_KEY, cat);
           try {
             const cacheKey = new Request(new URL(req.url).origin + "/api/store#public", { method: "GET" });
-            await caches.default.delete(cacheKey);
+            if (typeof caches !== "undefined") await caches.default.delete(cacheKey);
           } catch (_) {}
           return new Response(JSON.stringify({ ok: true, fixed_images: fixed, unrecoverable: still }), { headers: { "Content-Type": "application/json; charset=utf-8" } });
         }
@@ -323,7 +323,7 @@ const handleAll: PagesFunction<Env> = async (context) => {
   const purgePublicCache = async () => {
     try {
       const cacheKey = new Request(new URL(req.url).origin + "/api/store#public", { method: "GET" });
-      await caches.default.delete(cacheKey);
+      if (typeof caches !== "undefined") await caches.default.delete(cacheKey);
     } catch (_) {}
   };
 
@@ -339,7 +339,8 @@ const handleAll: PagesFunction<Env> = async (context) => {
 
     // كاش الحافة للزوار العاديين — توفير هائل بالطلبات
     if (role !== "admin") {
-      const cache = caches.default;
+      if (typeof caches === "undefined") { /* بيئة بلا كاش */ }
+      const cache = (typeof caches !== "undefined") ? caches.default : { match: async () => null, put: async () => {} };
       const cacheKey = new Request(new URL(req.url).origin + "/api/store#public", { method: "GET" });
       const hit = await cache.match(cacheKey);
       if (hit) return hit;
@@ -370,7 +371,7 @@ const handleAll: PagesFunction<Env> = async (context) => {
           img: conv(p.img, 0),
         };
       });
-      const res = json({ sv: 19, likes: L.n || 0, settings, ...catalog, products: lightProducts, reviews, sold, siteRev, siteRevAvg, siteRevCount: srAll.length }, { headers: { "Cache-Control": "public, s-maxage=120" } });
+      const res = json({ sv: 19, build: "surg2", likes: L.n || 0, settings, ...catalog, products: lightProducts, reviews, sold, siteRev, siteRevAvg, siteRevCount: srAll.length }, { headers: { "Cache-Control": "public, s-maxage=120" } });
       context.waitUntil(cache.put(cacheKey, res.clone()));
       return res;
     }
@@ -1153,7 +1154,7 @@ const handleAll: PagesFunction<Env> = async (context) => {
       await writeBig(env, STORE_KEY, cat);
       try {
         const cacheKey = new Request(new URL(req.url).origin + "/api/store#public", { method: "GET" });
-        await caches.default.delete(cacheKey);
+        if (typeof caches !== "undefined") await caches.default.delete(cacheKey);
       } catch (_) {}
       return json({ ok: true, id: (p as { id: string }).id, count: cat.products.length });
     }
@@ -1169,7 +1170,7 @@ const handleAll: PagesFunction<Env> = async (context) => {
       await writeBig(env, STORE_KEY, cat);
       try {
         const cacheKey = new Request(new URL(req.url).origin + "/api/store#public", { method: "GET" });
-        await caches.default.delete(cacheKey);
+        if (typeof caches !== "undefined") await caches.default.delete(cacheKey);
       } catch (_) {}
       return json({ ok: true, count: cat.products.length });
     }
