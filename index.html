@@ -68,7 +68,7 @@
     .hbtn{background:var(--bg);border:1px solid var(--line);border-radius:12px;width:40px;height:40px;font-size:1.1rem;color:var(--text);position:relative;flex:none}.hbtn .dot{position:absolute;top:-5px;left:-5px;background:var(--red);color:#fff;border-radius:20px;font-size:.62rem;min-width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-weight:700;padding:0 4px}
     main{max-width:860px;margin:0 auto}.social-bar{max-width:1060px;margin:8px auto 6px;padding:0 14px;display:flex;gap:7px}
 .sb-item{flex:1;text-align:center;color:#fff;text-decoration:none;font-family:Cairo;font-weight:800;font-size:.78rem;padding:9px 6px;border-radius:11px;box-shadow:var(--shadow)}
-.hero{margin:14px;padding:20px 18px;border-radius:20px;position:relative;overflow:hidden;background:linear-gradient(135deg,var(--green),var(--green2));color:#fff}.hero h2{font-size:1.35rem;font-weight:900;position:relative;z-index:2}.hero p{font-size:.9rem;opacity:.92;margin-top:4px;position:relative;z-index:2}.hslides{position:relative;min-height:132px;z-index:2}
+.hero{margin:14px;padding:20px 18px;border-radius:20px;position:relative;overflow:hidden;background:linear-gradient(135deg,var(--green),var(--green2));color:#fff}.hero h2{font-size:1.35rem;font-weight:900;position:relative;z-index:2}.hero p{font-size:.9rem;opacity:.92;margin-top:4px;position:relative;z-index:2}.hslides{position:relative;min-height:172px;z-index:2}
 .hslide{position:absolute;inset:0;opacity:0;transform:translateY(10px);transition:opacity .55s,transform .55s;pointer-events:none}
 .hslide.on{opacity:1;transform:none;pointer-events:auto}
 .offer-tag{background:#FFD873;color:#4A3200;font-size:.72rem;padding:4px 12px;border-radius:16px;vertical-align:middle;margin-left:6px;display:inline-block;animation:pulse 1.6s infinite}
@@ -79,7 +79,7 @@
 .hero .clocks{display:flex;gap:9px;margin-top:13px;position:relative;z-index:2;flex-wrap:wrap}
 .hero .clocks span{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.4);border-radius:20px;padding:6px 14px;font-size:.84rem;display:flex;gap:8px;align-items:center;font-weight:600}
 .hero .arrow{font-size:1.5rem;vertical-align:middle;display:inline-block;animation:go 1.6s infinite}@keyframes go{0%,100%{transform:translateX(0)}50%{transform:translateX(-7px)}}.hero svg.map{position:absolute;left:4px;bottom:-6px;width:235px;opacity:.32;z-index:1}
-    .pills{display:flex;gap:7px;overflow-x:auto;padding:4px 14px 10px;-webkit-overflow-scrolling:touch}.pills button{background:var(--card);border:1px solid var(--line);color:var(--muted);border-radius:22px;padding:9px 18px;font-family:"Cairo";font-weight:700;font-size:.9rem;white-space:nowrap}.pills button.on{background:var(--green);border-color:var(--green);color:#fff}
+    .pills{display:none!important;display:flex;gap:7px;overflow-x:auto;padding:4px 14px 10px;-webkit-overflow-scrolling:touch}.pills button{background:var(--card);border:1px solid var(--line);color:var(--muted);border-radius:22px;padding:9px 18px;font-family:"Cairo";font-weight:700;font-size:.9rem;white-space:nowrap}.pills button.on{background:var(--green);border-color:var(--green);color:#fff}
     .sec-title{padding:6px 16px;font-size:1rem;font-weight:800;display:flex;align-items:center;gap:8px}.sec-title:before{content:"";width:4px;height:17px;background:var(--green);border-radius:3px}.sec-title.hot:before{background:var(--red)}
     .cat-sec{margin:18px 0 6px}
 .cat-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
@@ -114,7 +114,7 @@
   </div>
   <div class="hrow" style="margin-top:8px">
     <div class="hsearch">
-      <input id="hsearch-in" placeholder="🔍 دوّر على منتج..." oninput="doSearch(this.value)">
+      <input id="hsearch-in" placeholder="دوّر على منتج..." oninput="doSearch(this.value)">
     </div>
   </div>
   <div class="cat-strip" id="cat-strip"></div>
@@ -234,7 +234,7 @@
   <a href="https://wa.me/971566135365" target="_blank" rel="noopener" style="background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 16px;text-decoration:none;color:var(--text);font-family:Cairo;font-weight:800;font-size:.82rem;box-shadow:var(--shadow)">💬 تواصل معنا</a>
   <a href="https://wa.me/971566135365?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%20%F0%9F%91%8B%20%D8%A8%D8%AF%D9%8A%20%D8%A7%D8%B7%D9%84%D8%A8%20%D9%85%D9%86%D8%AA%D8%AC%20%D9%85%D9%86%20%D9%85%D9%88%D9%82%D8%B9%20%D8%AE%D8%A7%D8%B1%D8%AC%D9%8A%20%F0%9F%8C%8D%20%D9%87%D8%A7%D8%AF%20%D8%A7%D9%84%D8%B1%D8%A7%D8%A8%D8%B7%3A%20" target="_blank" rel="noopener" style="background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 16px;text-decoration:none;color:var(--text);font-family:Cairo;font-weight:800;font-size:.82rem;box-shadow:var(--shadow)">🌍 لطلب منتج من موقع خارجي</a>
 </div>
-<footer>SYRPHY © <span id="yr"></span> - توصيل لكل المحافظات السورية<br>للطلب والاستفسار واتساب: <span class="num">+971 56 613 5365</span><br><a id="team-sec" href="javascript:void(0)" onclick="teamSheet()" style="display:inline-flex;align-items:center;gap:8px;background:var(--green);color:#fff;padding:11px 22px;border-radius:24px;text-decoration:none;font-family:Cairo;font-weight:800;font-size:.9rem;margin:4px 0 14px">🤝 انضم إلى فريقنا</a><div style="opacity:.45;font-size:.65rem;margin-top:6px">v26.07.24.1-cf</div></footer>
+<footer>SYRPHY © <span id="yr"></span> - توصيل لكل المحافظات السورية<br>للطلب والاستفسار واتساب: <span class="num">+971 56 613 5365</span><br><a id="team-sec" href="javascript:void(0)" onclick="teamSheet()" style="display:inline-flex;align-items:center;gap:8px;background:var(--green);color:#fff;padding:11px 22px;border-radius:24px;text-decoration:none;font-family:Cairo;font-weight:800;font-size:.9rem;margin:4px 0 14px">🤝 انضم إلى فريقنا</a><div style="opacity:.45;font-size:.65rem;margin-top:6px">v26.07.24.2-cf</div></footer>
 <div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
 <script id="seed" type="application/json">{"products":[],"coupons":[]}</script>
 <script>
@@ -335,7 +335,7 @@ function renderGrid(){
     grid.style.display="";
     const q=searchQ.toLowerCase();
     const list=S.products.filter(p=>(p.name||"").toLowerCase().includes(q)||(p.cat||"").includes(searchQ));
-    document.getElementById("all-title").textContent="🔍 نتائج البحث ("+list.length+")";
+    document.getElementById("all-title").textContent="نتائج البحث ("+list.length+")";
     grid.innerHTML=list.map(prodCard).join("");
     empty.innerHTML=list.length?"":'<div class="empty"><span class="ic">🔍</span>ما لقينا شي بهالاسم</div>';
     return;
@@ -361,7 +361,7 @@ function renderGrid(){
   let list;
   if(curCat==="الخصومات"){list=S.products.filter(p=>p.disc>0)}
   else{list=S.products.filter(p=>p.cat===curCat)}
-  document.getElementById("all-title").textContent=curCat==="الخصومات"?"🔥 قسم الخصومات":curCat;
+  document.getElementById("all-title").textContent=curCat==="الخصومات"?"قسم الخصومات":curCat;
   grid.innerHTML=list.map(prodCard).join("");
   empty.innerHTML=list.length?"":'<div class="empty"><span class="ic">🛍️</span>ما في منتجات بهالقسم بعد - قريباً!</div>';
 }
@@ -394,14 +394,14 @@ function updateHeroDisc(){
   const discs=S.products.filter(p=>p.disc>0&&pimg(p)).slice(0,3);
   if(!discs.length){sl.innerHTML="";return}
   const maxD=Math.max(...S.products.filter(p=>p.disc>0).map(p=>p.disc));
-  sl.innerHTML=`<h2>🔥 خصومات لفترة محدودة</h2>
+  sl.innerHTML=`<h2>خصومات لفترة محدودة</h2>
   <div style="display:flex;gap:10px;align-items:center;margin:8px 0">
-    ${discs.map(p=>`<img src="${esc(pimg(p))}" onclick="prodView('${p.id}')" style="width:74px;height:74px;object-fit:cover;border-radius:12px;border:2px solid rgba(255,255,255,.55);cursor:pointer">`).join("")}
-    <div style="font-family:Cairo;font-weight:900;font-size:1.5rem;color:#FFD873">حتى ${maxD}%-</div>
+    ${discs.map(p=>`<img src="${esc(pimg(p))}" onclick="prodView('${p.id}')" style="width:58px;height:58px;object-fit:cover;border-radius:10px;border:2px solid rgba(255,255,255,.5);cursor:pointer">`).join("")}
+    <div style="font-family:Cairo;font-weight:900;font-size:1.25rem;color:#FFD873">حتى ${maxD}%-</div>
   </div>
   <p>أسعار مخفضة على قطع مختارة — <b style="color:#FFD873;cursor:pointer" onclick="pickCat('الخصومات')">تسوق الخصومات ←</b></p>`;
 }
-function pickCat(cat){searchQ="";const si=document.getElementById("hsearch-in");if(si)si.value="";curCat=cat;renderPills();renderGrid();window.scrollTo({top:document.getElementById("cat-pills").offsetTop-70,behavior:"smooth"})}
+function pickCat(cat){searchQ="";const si=document.getElementById("hsearch-in");if(si)si.value="";curCat=cat;renderPills();renderGrid();window.scrollTo({top:(document.getElementById("cat-tiles")||{offsetTop:300}).offsetTop-80,behavior:"smooth"})}
 function prodView(id){const p=S.products.find(x=>x.id===id);if(!p)return;const imgs=p.imgs?.length?p.imgs:(p.img?[{src:p.img,color:""}]:[]);window.__viewSel=0;window.__viewId=id;const thumbs=imgs.length>1?`<div style="display:flex;gap:8px;overflow-x:auto;padding:4px 0">${imgs.map((im,i)=>`<div onclick="pvSel(${i})" style="flex:none;text-align:center"><img src="${esc(im.src)}" id="pv-t${i}" style="width:58px;height:58px;object-fit:cover;border-radius:10px;border:2px solid ${i===0?"var(--green)":"var(--line)"}">${im.color?`<div style="font-size:.72rem;color:var(--muted);margin-top:2px">${esc(im.color)}</div>`:""}</div>`).join("")}</div>`:"";sheet(`<button class="close" onclick="closeModal()">✕</button><div style="border-radius:14px;overflow:hidden;margin-bottom:10px;max-height:340px">${imgs.length?`<img id="pv-main" src="${esc(imgs[0].src)}" style="width:100%;display:block;object-fit:cover">`:'<div style="height:180px;display:flex;align-items:center;justify-content:center;font-size:3rem;background:var(--bg)">🛍️</div>'}</div>${thumbs}<h3>${esc(p.name)}</h3><div style="margin:6px 0"><span class="badge g">${esc(p.cat)}</span> ${p.disc>0?`<span class="badge r">خصم ${p.disc}%</span>`:""}</div>${(window.__sold||{})[p.id]?`<div style="color:var(--red);font-size:.82rem;font-weight:700;margin:4px 0">🔥 انباع منها ${(window.__sold)[p.id]} قطعة</div>`:""}${p.disc>0&&p.discEnd&&discLeft(p.discEnd)?`<div style="color:#B91C1C;font-size:.85rem;font-weight:800;margin:4px 0">⏳ عرض الخصم ${discLeft(p.discEnd)}</div>`:""}<div id="pv-sizes" style="display:flex;gap:7px;flex-wrap:wrap;margin:8px 0"></div><div id="pv-color" style="font-size:.88rem;margin:4px 0 2px">${imgs[0]?.color?"اللون المختار: <b>"+esc(imgs[0].color)+"</b>":""}</div><div class="pr" style="display:flex;align-items:baseline;gap:10px;margin:8px 0"><b class="num" style="font-family:Cairo;font-size:1.35rem;color:var(--green)">${syp(price(p))}</b>${p.disc>0?`<s class="num" style="color:var(--muted)">${syp(p.price)}</s>`:""}</div><button class="btn" onclick="pvAdd()">🛒 ضيف للسلة</button>
     <div id="pv-similar"></div><div id="pv-reviews" style="margin-top:14px"></div>`);pvSizes();pvReviews(p.id);pvSimilar(p)}
 function pvSimilar(p){
