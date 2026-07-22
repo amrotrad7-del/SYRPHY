@@ -108,17 +108,22 @@ async function writeBig(env: Env, key: string, value: unknown) {
   const parts: string[] = [];
   for (let i = 0; i < s.length; i += CHUNK) parts.push(s.slice(i, i + CHUNK));
   if (!parts.length) parts.push("");
-  const stmts = [
-    env.DB.prepare(
-      "INSERT INTO store_items (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at"
-    ).bind(key, JSON.stringify({ __chunked: parts.length }), Date.now()),
-    ...parts.map((p, i) =>
-      env.DB.prepare(
-        "INSERT INTO store_items (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at"
-      ).bind(key + "__p" + i, p, Date.now())
-    ),
-  ];
-  await env.DB.batch(stmts);
+  // ✂️ الكتابة بدفعات صغيرة (حد D1 = 32 ميغا للدفعة) — القطع أولاً والرأس آخر شي
+  const SQL = "INSERT INTO store_items (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at";
+  const BUDGET = 6 * 1024 * 1024; // ≈6 ميغا لكل دفعة
+  let batch: D1PreparedStatement[] = [];
+  let size = 0;
+  const flush = async () => {
+    if (batch.length) { await env.DB.batch(batch); batch = []; size = 0; }
+  };
+  for (let i = 0; i < parts.length; i++) {
+    batch.push(env.DB.prepare(SQL).bind(key + "__p" + i, parts[i], Date.now()));
+    size += parts[i].length;
+    if (size >= BUDGET || batch.length >= 12) await flush();
+  }
+  await flush();
+  // الرأس بالآخر: القراء ما بيشوفو النسخة الجديدة إلا بعد اكتمال كل القطع
+  await env.DB.prepare(SQL).bind(key, JSON.stringify({ __chunked: parts.length }), Date.now()).run();
   // تنظيف قطع قديمة زائدة (بأمان: بس اللي رقمها >= عدد القطع الجديد)
   try {
     const old = await env.DB.prepare("SELECT key FROM store_items WHERE key GLOB ?1").bind(key + "__p*").all<{ key: string }>();
