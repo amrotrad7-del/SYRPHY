@@ -35,6 +35,17 @@
 .hrow{display:flex;align-items:center;gap:10px}
 .hrow .brand{flex:1;min-width:0}
 .menu-btn{font-size:1.35rem}
+.hsearch{flex:1}
+.hsearch input{width:100%;padding:12px 16px;border-radius:14px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-family:Tajawal;font-size:.9rem;box-sizing:border-box}
+.cat-strip{display:flex;gap:4px;overflow-x:auto;padding:8px 2px 2px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.cat-strip::-webkit-scrollbar{display:none}
+.cat-strip button{flex:none;background:none;border:none;color:var(--text);font-family:Cairo;font-weight:800;font-size:.82rem;padding:7px 12px;cursor:pointer;border-radius:10px;white-space:nowrap}
+.cat-strip button.on{background:var(--green);color:#fff}
+.cat-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;max-width:1060px;margin:6px auto 0;padding:0 14px}
+@media(min-width:700px){.cat-tiles{grid-template-columns:repeat(6,1fr)}}
+.cat-tile{background:none;border:none;cursor:pointer;text-align:center;font-family:Cairo;color:var(--text);padding:0}
+.cat-tile img,.cat-tile .ph{width:100%;aspect-ratio:1;object-fit:cover;border-radius:14px;border:1px solid var(--line);background:var(--card);display:flex;align-items:center;justify-content:center;font-size:1.8rem}
+.cat-tile span{display:block;margin-top:6px;font-size:.75rem;font-weight:800;line-height:1.4}
 .ctrl-row{gap:7px;justify-content:flex-start;flex-wrap:wrap}
 .ctrl-row .hbtn{width:auto;height:36px;padding:0 12px;font-size:.78rem;font-family:Cairo;font-weight:800;display:inline-flex;align-items:center;gap:5px}
 .ctrl-row .online{padding:7px 12px}
@@ -101,6 +112,12 @@
       <div><div class="name">SYR<i>PHY</i></div><small>من دبي لقلب سوريا</small></div>
     </div>
   </div>
+  <div class="hrow" style="margin-top:8px">
+    <div class="hsearch">
+      <input id="hsearch-in" placeholder="🔍 دوّر على منتج..." oninput="doSearch(this.value)">
+    </div>
+  </div>
+  <div class="cat-strip" id="cat-strip"></div>
   <div class="hrow ctrl-row">
     <div class="online" id="online-badge" title="الأشخاص الموجودين الآن"><span class="num" id="online-n">1</span><span>أونلاين</span></div>
     <button class="hbtn" id="theme-btn" onclick="toggleTheme()" title="الوضع الليلي">🌙</button>
@@ -205,6 +222,8 @@
   <span style="font-size:1.3rem">📢</span>
   <span style="flex:1"><b style="font-family:Cairo">للإعلان على موقعنا</b> — يرجى التواصل معنا على رقم الواتساب الموجود أسفل الصفحة</span>
 </div>
+<div class="sec-title" style="margin-top:16px">تسوق حسب القسم</div>
+<div class="cat-tiles" id="cat-tiles"></div>
 <div class="pills" id="cat-pills"></div>
   <div class="sec-title" id="all-title">المنتجات</div>
   <div class="grid" id="grid"></div>
@@ -215,7 +234,7 @@
   <a href="https://wa.me/971566135365" target="_blank" rel="noopener" style="background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 16px;text-decoration:none;color:var(--text);font-family:Cairo;font-weight:800;font-size:.82rem;box-shadow:var(--shadow)">💬 تواصل معنا</a>
   <a href="https://wa.me/971566135365?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%20%F0%9F%91%8B%20%D8%A8%D8%AF%D9%8A%20%D8%A7%D8%B7%D9%84%D8%A8%20%D9%85%D9%86%D8%AA%D8%AC%20%D9%85%D9%86%20%D9%85%D9%88%D9%82%D8%B9%20%D8%AE%D8%A7%D8%B1%D8%AC%D9%8A%20%F0%9F%8C%8D%20%D9%87%D8%A7%D8%AF%20%D8%A7%D9%84%D8%B1%D8%A7%D8%A8%D8%B7%3A%20" target="_blank" rel="noopener" style="background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 16px;text-decoration:none;color:var(--text);font-family:Cairo;font-weight:800;font-size:.82rem;box-shadow:var(--shadow)">🌍 لطلب منتج من موقع خارجي</a>
 </div>
-<footer>SYRPHY © <span id="yr"></span> - توصيل لكل المحافظات السورية<br>للطلب والاستفسار واتساب: <span class="num">+971 56 613 5365</span><br><a id="team-sec" href="javascript:void(0)" onclick="teamSheet()" style="display:inline-flex;align-items:center;gap:8px;background:var(--green);color:#fff;padding:11px 22px;border-radius:24px;text-decoration:none;font-family:Cairo;font-weight:800;font-size:.9rem;margin:4px 0 14px">🤝 انضم إلى فريقنا</a><div style="opacity:.45;font-size:.65rem;margin-top:6px">v26.07.23.1-cf</div></footer>
+<footer>SYRPHY © <span id="yr"></span> - توصيل لكل المحافظات السورية<br>للطلب والاستفسار واتساب: <span class="num">+971 56 613 5365</span><br><a id="team-sec" href="javascript:void(0)" onclick="teamSheet()" style="display:inline-flex;align-items:center;gap:8px;background:var(--green);color:#fff;padding:11px 22px;border-radius:24px;text-decoration:none;font-family:Cairo;font-weight:800;font-size:.9rem;margin:4px 0 14px">🤝 انضم إلى فريقنا</a><div style="opacity:.45;font-size:.65rem;margin-top:6px">v26.07.24.1-cf</div></footer>
 <div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
 <script id="seed" type="application/json">{"products":[],"coupons":[]}</script>
 <script>
@@ -311,6 +330,16 @@ function discLeft(end){
 function prodCard(p){const src=pimg(p),multi=(p.imgs||[]).length>1,img=src?`<img data-cyc="${multi?p.id:""}" src="${esc(src)}" loading="lazy" style="transition:opacity .4s" onerror="this.outerHTML='<div class=noimg>🛍️</div>'">`:`<div class="noimg">🛍️</div>`;const cols=colorList(p);return `<div class="prod"><div class="im" onclick="prodView('${p.id}')">${img}${p.disc>0?`<span class="off">-${p.disc}%</span>`:""}${p.disc>0&&p.discEnd&&discLeft(p.discEnd)?`<span class="disc-timer">⏳ ${discLeft(p.discEnd)}</span>`:""}${(p.createdAt||"").slice(0,10)===new Date().toISOString().slice(0,10)?`<span class="newb">✨ جديد اليوم</span>`:""}${(window.__sold||{})[p.id]?`<span class="soldb" title="القطع المباعة">🔥 ${(window.__sold)[p.id]} انباعت</span>`:""}</div><div class="bd"><div class="nm" onclick="prodView('${p.id}')">${esc(p.name)}</div><div class="cat-tag">${esc(p.cat)}${cols.length>1?" · "+cols.length+" ألوان":""}${(window.__reviews||{})[p.id]?` · ⭐ ${(window.__reviews)[p.id].avg}`:""}</div><div class="pr"><b class="num">${syp(price(p))}</b>${p.disc>0?`<s class="num">${fmt(p.price)}</s>`:""}</div><button class="add" onclick="addCart('${p.id}')">＋ ضيف للسلة</button></div></div>`}
 function renderGrid(){
   const grid=document.getElementById("grid"),empty=document.getElementById("grid-empty");
+  renderCatStrip();
+  if(searchQ){
+    grid.style.display="";
+    const q=searchQ.toLowerCase();
+    const list=S.products.filter(p=>(p.name||"").toLowerCase().includes(q)||(p.cat||"").includes(searchQ));
+    document.getElementById("all-title").textContent="🔍 نتائج البحث ("+list.length+")";
+    grid.innerHTML=list.map(prodCard).join("");
+    empty.innerHTML=list.length?"":'<div class="empty"><span class="ic">🔍</span>ما لقينا شي بهالاسم</div>';
+    return;
+  }
   if(curCat==="الكل"){
     // الرئيسية: كل قسم بعنوانه + 4 منتجات + عرض المزيد
     const pool=S.products.filter(p=>!(p.disc>0));
@@ -336,7 +365,43 @@ function renderGrid(){
   grid.innerHTML=list.map(prodCard).join("");
   empty.innerHTML=list.length?"":'<div class="empty"><span class="ic">🛍️</span>ما في منتجات بهالقسم بعد - قريباً!</div>';
 }
-function pickCat(cat){curCat=cat;renderPills();renderGrid();window.scrollTo({top:document.getElementById("cat-pills").offsetTop-70,behavior:"smooth"})}
+let searchQ="";
+function doSearch(v){searchQ=(v||"").trim();if(searchQ){curCat="__search";}else if(curCat==="__search"){curCat="الكل"}renderGrid()}
+function renderCatStrip(){
+  const el=document.getElementById("cat-strip");if(!el)return;
+  const cats=["الكل",...CATS.filter(cat=>cat!=="الكل"&&S.products.some(p=>p.cat===cat)),"الخصومات"];
+  el.innerHTML=[...new Set(cats)].map(cat=>`<button class="${curCat===cat?"on":""}" onclick="pickCat('${esc(cat)}')">${cat==="الخصومات"?"🔥 خصومات":esc(cat)}</button>`).join("");
+}
+function renderCatTiles(){
+  const el=document.getElementById("cat-tiles");if(!el)return;
+  const cats=CATS.filter(cat=>cat!=="الكل"&&S.products.some(p=>p.cat===cat));
+  el.innerHTML=cats.map(cat=>{
+    const p=S.products.find(x=>x.cat===cat&&pimg(x));
+    return `<button class="cat-tile" onclick="pickCat('${esc(cat)}')">${p?`<img src="${esc(pimg(p))}" loading="lazy" alt="">`:`<div class="ph">🛍️</div>`}<span>${esc(cat)}</span></button>`;
+  }).join("");
+}
+function renderHeroDisc(){
+  if(document.getElementById("hslide-disc"))return updateHeroDisc();
+  const wrap=document.querySelector(".hslides");const dots=document.querySelector(".hdots");
+  if(!wrap||!dots)return;
+  const sl=document.createElement("div");sl.className="hslide";sl.id="hslide-disc";
+  wrap.appendChild(sl);
+  const d=document.createElement("span");dots.appendChild(d);
+  updateHeroDisc();
+}
+function updateHeroDisc(){
+  const sl=document.getElementById("hslide-disc");if(!sl)return;
+  const discs=S.products.filter(p=>p.disc>0&&pimg(p)).slice(0,3);
+  if(!discs.length){sl.innerHTML="";return}
+  const maxD=Math.max(...S.products.filter(p=>p.disc>0).map(p=>p.disc));
+  sl.innerHTML=`<h2>🔥 خصومات لفترة محدودة</h2>
+  <div style="display:flex;gap:10px;align-items:center;margin:8px 0">
+    ${discs.map(p=>`<img src="${esc(pimg(p))}" onclick="prodView('${p.id}')" style="width:74px;height:74px;object-fit:cover;border-radius:12px;border:2px solid rgba(255,255,255,.55);cursor:pointer">`).join("")}
+    <div style="font-family:Cairo;font-weight:900;font-size:1.5rem;color:#FFD873">حتى ${maxD}%-</div>
+  </div>
+  <p>أسعار مخفضة على قطع مختارة — <b style="color:#FFD873;cursor:pointer" onclick="pickCat('الخصومات')">تسوق الخصومات ←</b></p>`;
+}
+function pickCat(cat){searchQ="";const si=document.getElementById("hsearch-in");if(si)si.value="";curCat=cat;renderPills();renderGrid();window.scrollTo({top:document.getElementById("cat-pills").offsetTop-70,behavior:"smooth"})}
 function prodView(id){const p=S.products.find(x=>x.id===id);if(!p)return;const imgs=p.imgs?.length?p.imgs:(p.img?[{src:p.img,color:""}]:[]);window.__viewSel=0;window.__viewId=id;const thumbs=imgs.length>1?`<div style="display:flex;gap:8px;overflow-x:auto;padding:4px 0">${imgs.map((im,i)=>`<div onclick="pvSel(${i})" style="flex:none;text-align:center"><img src="${esc(im.src)}" id="pv-t${i}" style="width:58px;height:58px;object-fit:cover;border-radius:10px;border:2px solid ${i===0?"var(--green)":"var(--line)"}">${im.color?`<div style="font-size:.72rem;color:var(--muted);margin-top:2px">${esc(im.color)}</div>`:""}</div>`).join("")}</div>`:"";sheet(`<button class="close" onclick="closeModal()">✕</button><div style="border-radius:14px;overflow:hidden;margin-bottom:10px;max-height:340px">${imgs.length?`<img id="pv-main" src="${esc(imgs[0].src)}" style="width:100%;display:block;object-fit:cover">`:'<div style="height:180px;display:flex;align-items:center;justify-content:center;font-size:3rem;background:var(--bg)">🛍️</div>'}</div>${thumbs}<h3>${esc(p.name)}</h3><div style="margin:6px 0"><span class="badge g">${esc(p.cat)}</span> ${p.disc>0?`<span class="badge r">خصم ${p.disc}%</span>`:""}</div>${(window.__sold||{})[p.id]?`<div style="color:var(--red);font-size:.82rem;font-weight:700;margin:4px 0">🔥 انباع منها ${(window.__sold)[p.id]} قطعة</div>`:""}${p.disc>0&&p.discEnd&&discLeft(p.discEnd)?`<div style="color:#B91C1C;font-size:.85rem;font-weight:800;margin:4px 0">⏳ عرض الخصم ${discLeft(p.discEnd)}</div>`:""}<div id="pv-sizes" style="display:flex;gap:7px;flex-wrap:wrap;margin:8px 0"></div><div id="pv-color" style="font-size:.88rem;margin:4px 0 2px">${imgs[0]?.color?"اللون المختار: <b>"+esc(imgs[0].color)+"</b>":""}</div><div class="pr" style="display:flex;align-items:baseline;gap:10px;margin:8px 0"><b class="num" style="font-family:Cairo;font-size:1.35rem;color:var(--green)">${syp(price(p))}</b>${p.disc>0?`<s class="num" style="color:var(--muted)">${syp(p.price)}</s>`:""}</div><button class="btn" onclick="pvAdd()">🛒 ضيف للسلة</button>
     <div id="pv-similar"></div><div id="pv-reviews" style="margin-top:14px"></div>`);pvSizes();pvReviews(p.id);pvSimilar(p)}
 function pvSimilar(p){
@@ -408,7 +473,8 @@ function renderSiteReviews(){
   };
   show();window.__rsTimer=setInterval(show,3000);
 }
-function renderAll(){const ts=document.getElementById("team-sec");if(ts)ts.style.display=(window.__settings&&window.__settings.team===false)?"none":"inline-flex";renderSiteReviews();renderPills();renderGrid();renderCartN();document.getElementById("yr").textContent=new Date().getFullYear()}function sheet(html){document.getElementById("sheet").innerHTML=html;document.getElementById("modal").classList.add("on")}function closeModal(){document.getElementById("modal").classList.remove("on")}document.getElementById("modal").addEventListener("click",e=>{if(e.target.id==="modal")closeModal()});
+function renderAll(){try{renderCatTiles();renderHeroDisc()}catch(_){}
+const ts=document.getElementById("team-sec");if(ts)ts.style.display=(window.__settings&&window.__settings.team===false)?"none":"inline-flex";renderSiteReviews();renderPills();renderGrid();renderCartN();document.getElementById("yr").textContent=new Date().getFullYear()}function sheet(html){document.getElementById("sheet").innerHTML=html;document.getElementById("modal").classList.add("on")}function closeModal(){document.getElementById("modal").classList.remove("on")}document.getElementById("modal").addEventListener("click",e=>{if(e.target.id==="modal")closeModal()});
 function addCart(id,color="",fromView=false,size=""){const p=S.products.find(x=>x.id===id);if(!p)return;if(!fromView&&(colorList(p).length>1||hasSizes(p))){prodView(id);toast(hasSizes(p)?"اختار اللون والقياس 🎨📏":"اختار اللون يلي بيناسبك");return}if(!fromView&&!color&&colorList(p).length===1)color=colorList(p)[0].color;const ex=CART.find(c=>c.id===id&&c.color===color&&(c.size||"")===size);ex?ex.qty++:CART.push({id,color,size,qty:1});renderCartN();toast("انضاف للسلة ✓")}
 function renderCartN(){const n=CART.reduce((a,cc)=>a+cc.qty,0);[["cart-n",n],["d-cart-n",n]].forEach(([id,v])=>{const el=document.getElementById(id);if(el){el.style.display=v?"inline-flex":"none";el.textContent=v}})}function chQty(i,d){if(!CART[i])return;CART[i].qty+=d;if(CART[i].qty<=0)CART.splice(i,1);renderCartN();openCart()}
 function cartTotals(){let sub=0;CART.forEach(c=>{const p=S.products.find(x=>x.id===c.id);if(p)sub+=price(p)*c.qty});const autoPct=sub>750000?5:0;const auto=Math.round(sub*autoPct/100);let disc=0;
