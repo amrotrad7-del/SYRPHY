@@ -517,7 +517,7 @@
   </div>
   <div class="ft-bottom">
     <p>SYRPHY © <span id="yr"></span> — جميع الحقوق محفوظة · توصيل لكل المحافظات السورية</p>
-    <p><button class="adm" onclick="adminGate()">دخول المدير</button> · <a class="adm" href="/daftar#emp">دخول الموظفين</a> · <span style="opacity:.6;font-size:.68rem">v26.07.25.6-bd</span></p>
+    <p><button class="adm" onclick="adminGate()">دخول المدير</button> · <a class="adm" href="/daftar#emp">دخول الموظفين</a> · <span style="opacity:.6;font-size:.68rem">v26.07.26.1-app</span></p>
   </div>
 </footer>
 
@@ -2069,6 +2069,31 @@ if(localStorage.getItem("syrphy-push")==="1"){const db=document.getElementById("
   h.addEventListener("mouseup",e=>{if(mx===null)return;const dx=e.clientX-mx;mx=null;if(Math.abs(dx)>40)heroVidLoad(__vidPtr+(dx>0?-1:1))});
 })();
 load();
+/* ===== سلوك التطبيق (أندرويد): اختصارات الأيقونة + زر الرجوع ===== */
+(function(){
+  // اختصارات التطبيق: /#cart /#orders /#points /#wheel /#boxes
+  const routes={cart:()=>openCart(),orders:()=>myOrders(),points:()=>myPoints(),wheel:()=>wheelSheet(),boxes:()=>boxesSheet()};
+  function runHash(){
+    const k=(location.hash||"").replace(/^#/,"").toLowerCase();
+    if(routes[k]){try{history.replaceState(null,"",location.pathname+location.search)}catch(_){}setTimeout(()=>{try{routes[k]()}catch(_){}} ,900)}
+  }
+  runHash();window.addEventListener("hashchange",runHash);
+  // زر الرجوع بالأندرويد: يسكّر النافذة/القائمة المفتوحة بدل ما يطلع من التطبيق
+  function anyOpen(){
+    const m=document.getElementById("modal"),d=document.getElementById("drawer");
+    return (m&&m.classList.contains("on"))||(d&&d.classList.contains("on"));
+  }
+  function pushGuard(){try{history.pushState({syrphyLayer:1},"")}catch(_){}}
+  const _sheet=window.sheet,_openDrawer=window.openDrawer;
+  window.sheet=function(html){_sheet(html);if(!window.__guard){window.__guard=true;pushGuard()}};
+  window.openDrawer=function(){_openDrawer();if(!window.__guard){window.__guard=true;pushGuard()}};
+  window.addEventListener("popstate",()=>{
+    if(anyOpen()){closeModal();closeDrawer();window.__guard=false}
+  });
+  const _closeModal=window.closeModal,_closeDrawer=window.closeDrawer;
+  window.closeModal=function(){_closeModal();if(!anyOpen())window.__guard=false};
+  window.closeDrawer=function(){_closeDrawer();if(!anyOpen())window.__guard=false};
+})();
 
 /* ===== الزيارات وبلد الزائر والسلات المتروكة ===== */
 let visitorCountry="";

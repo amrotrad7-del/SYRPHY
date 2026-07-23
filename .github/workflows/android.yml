@@ -1,0 +1,145 @@
+name: بناء تطبيق الأندرويد
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "android/**"
+      - ".github/workflows/android.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: تجهيز Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: تجهيز Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: تجهيز مفتاح التوقيع
+        id: keystore
+        env:
+          KS_B64: ${{ secrets.KEYSTORE_B64 }}
+        run: |
+          set -e
+          mkdir -p "$RUNNER_TEMP/ks"
+          KS="$RUNNER_TEMP/ks/syrphy.jks"
+          if [ -n "$KS_B64" ]; then
+            echo "$KS_B64" | base64 -d > "$KS"
+            echo "mode=secret" >> $GITHUB_OUTPUT
+            echo "✅ استعملنا المفتاح المحفوظ بالأسرار"
+          else
+            keytool -genkeypair -v -keystore "$KS" \
+              -alias syrphy -keyalg RSA -keysize 2048 -validity 10000 \
+              -storepass syrphy2026 -keypass syrphy2026 \
+              -dname "CN=SYRPHY, OU=Store, O=SYRPHY, L=Damascus, C=SY"
+            echo "mode=generated" >> $GITHUB_OUTPUT
+            echo "⚠️ ولّدنا مفتاح جديد — نزّله من المرفقات وخزّنه بالأسرار"
+          fi
+          echo "ks=$KS" >> $GITHUB_OUTPUT
+
+      - name: استخراج بصمة SHA-256
+        id: fp
+        env:
+          KSPASS: ${{ secrets.KEYSTORE_PASSWORD || 'syrphy2026' }}
+          ALIAS: ${{ secrets.KEY_ALIAS || 'syrphy' }}
+        run: |
+          set -e
+          FP=$(keytool -list -v -keystore "${{ steps.keystore.outputs.ks }}" \
+                -alias "$ALIAS" -storepass "$KSPASS" \
+                | grep -i "SHA256:" | head -1 | sed 's/.*SHA256: *//' | tr -d ' \r')
+          echo "sha256=$FP" >> $GITHUB_OUTPUT
+          echo "البصمة: $FP"
+
+      - name: توليد assetlinks.json
+        env:
+          FP: ${{ steps.fp.outputs.sha256 }}
+        run: |
+          set -e
+          mkdir -p .well-known
+          cat > .well-known/assetlinks.json <<EOF
+          [{
+            "relation": ["delegate_permission/common.handle_all_urls"],
+            "target": {
+              "namespace": "android_app",
+              "package_name": "dev.pages.syrphy",
+              "sha256_cert_fingerprints": ["$FP"]
+            }
+          }]
+          EOF
+          cat .well-known/assetlinks.json
+
+      - name: بناء التطبيق
+        working-directory: android
+        env:
+          KEYSTORE_PATH: ${{ steps.keystore.outputs.ks }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD || 'syrphy2026' }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS || 'syrphy' }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || 'syrphy2026' }}
+        run: |
+          chmod +x ./gradlew || true
+          gradle wrapper --gradle-version 8.7 --no-daemon || true
+          chmod +x ./gradlew
+          ./gradlew assembleRelease --no-daemon --stacktrace
+
+      - name: تسمية الملف
+        run: |
+          set -e
+          APK=$(find android/app/build/outputs/apk/release -name "*.apk" | head -1)
+          cp "$APK" ./SYRPHY.apk
+          ls -lh ./SYRPHY.apk
+
+      - name: رفع التطبيق كمرفق
+        uses: actions/upload-artifact@v4
+        with:
+          name: SYRPHY-apk
+          path: SYRPHY.apk
+          retention-days: 90
+
+      - name: رفع المفتاح (أول مرة بس)
+        if: steps.keystore.outputs.mode == 'generated'
+        uses: actions/upload-artifact@v4
+        with:
+          name: keystore-احفظه-بمكان-امن
+          path: ${{ steps.keystore.outputs.ks }}
+          retention-days: 7
+
+      - name: حفظ assetlinks.json بالمستودع
+        run: |
+          set -e
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          if ! git diff --quiet .well-known/assetlinks.json 2>/dev/null || [ -n "$(git status --porcelain .well-known)" ]; then
+            git add .well-known/assetlinks.json
+            git commit -m "ربط التطبيق بالموقع (assetlinks)"
+            git push
+            echo "✅ انحفظ assetlinks.json"
+          else
+            echo "ما في تغيير على assetlinks.json"
+          fi
+
+      - name: الملخّص
+        run: |
+          {
+            echo "## تطبيق SYRPHY جاهز ✅"
+            echo ""
+            echo "**بصمة التوقيع:** \`${{ steps.fp.outputs.sha256 }}\`"
+            echo ""
+            if [ "${{ steps.keystore.outputs.mode }}" = "generated" ]; then
+              echo "⚠️ **هاد أول بناء** — نزّل مرفق \`keystore-احفظه-بمكان-امن\` وخزّنه، وبعدين"
+              echo "حطّه بأسرار المستودع باسم \`KEYSTORE_B64\` (بصيغة base64) ليضل نفس المفتاح بكل بناء."
+            else
+              echo "✅ عم نستعمل المفتاح المحفوظ — تحديثات التطبيق رح تتركّب فوق القديم."
+            fi
+            echo ""
+            echo "نزّل \`SYRPHY-apk\` من قسم Artifacts تحت."
+          } >> $GITHUB_STEP_SUMMARY

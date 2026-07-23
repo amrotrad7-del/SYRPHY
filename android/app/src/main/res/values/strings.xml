@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SYRPHY</string>
+    <string name="launch_url" translatable="false">https://syrphy.pages.dev/</string>
+    <string name="sc_cart">السلة</string>
+    <string name="sc_orders">طلباتي</string>
+    <string name="sc_points">نقاطي</string>
+</resources>

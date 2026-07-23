@@ -1,14 +1,48 @@
 {
+  "id": "/",
   "name": "SYRPHY — توصيل لباب بيتك",
   "short_name": "SYRPHY",
+  "description": "منتجات مختارة من SHEIN و Trendyol بنوصلها لباب بيتك بكل المحافظات السورية، أو اهدي حدا بتحبه.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#0B7A3E",
-  "theme_color": "#0B7A3E",
+  "display_override": ["standalone", "minimal-ui"],
+  "background_color": "#1a1a2e",
+  "theme_color": "#1a1a2e",
   "dir": "rtl",
   "lang": "ar",
+  "categories": ["shopping", "lifestyle"],
+  "prefer_related_applications": false,
   "icons": [
-    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "السلة",
+      "short_name": "السلة",
+      "url": "/#cart",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "طلباتي وتتبع التوصيل",
+      "short_name": "طلباتي",
+      "url": "/#orders",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "نقاطي",
+      "short_name": "نقاطي",
+      "url": "/#points",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "دولاب الحظ",
+      "short_name": "الدولاب",
+      "url": "/#wheel",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
   ]
 }
