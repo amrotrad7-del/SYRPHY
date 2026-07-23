@@ -94,7 +94,6 @@
     .hdots{display:flex;gap:8px;justify-content:center;margin-top:12px}
     .hdots span{width:11px;height:11px;border-radius:50%;background:rgba(255,255,255,.3);cursor:pointer;transition:all .3s}
     .hdots span.on{background:#fff;width:30px;border-radius:6px}
-    .hero svg.map{position:absolute;left:30px;bottom:14px;width:330px;opacity:.22;z-index:1}
     /* صف المميزات */
     .features{max-width:1400px;margin:-28px auto 0;padding:0 20px;display:grid;grid-template-columns:repeat(4,1fr);gap:16px;position:relative;z-index:10}
     .feature{background:var(--card);border-radius:18px;padding:20px;display:flex;align-items:center;gap:13px;box-shadow:0 6px 25px rgba(0,0,0,.07);transition:all .3s;border:1px solid rgba(0,0,0,.03)}
@@ -139,8 +138,9 @@
     .prod .im video.pv-card{width:100%;height:100%;object-fit:cover;display:block;background:#000}
     .prod .im img.pv-after{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity .3s}
     .prod .im .vtag{position:absolute;bottom:10px;left:10px;background:rgba(26,26,46,.82);color:#fff;font-size:11px;font-weight:800;padding:4px 9px;border-radius:14px;display:flex;align-items:center;gap:4px;z-index:2;backdrop-filter:blur(3px)}
-    .hero-vid-wrap{border-radius:22px;overflow:hidden;width:100%;background:#000;cursor:pointer;box-shadow:0 18px 50px rgba(0,0,0,.45);position:relative;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.12)}
-    .hero-vid-wrap video{width:100%;max-height:400px;object-fit:contain;display:block;background:#000}
+    .hero-vid-wrap{border-radius:22px;overflow:hidden;width:100%;aspect-ratio:4/5;max-height:440px;margin:0 auto;cursor:pointer;box-shadow:0 18px 50px rgba(0,0,0,.45);position:relative;border:1px solid rgba(255,255,255,.12)}
+    .hero-vid-wrap video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;opacity:0}
+    .hero-vid-wrap video.on{opacity:1}
     .hero-vid-wrap .vplay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:44px;height:44px;border-radius:50%;background:rgba(233,69,96,.9);display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;pointer-events:none;opacity:0;transition:opacity .3s}
     .hero-vid-cap{font-size:14.5px;color:rgba(255,255,255,.92);line-height:1.8;margin-top:12px;text-align:center}
     .hero-vid-cap b{font-size:16px}
@@ -294,8 +294,8 @@
     @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
     /* استجابة */
     @media(max-width:1200px){.features{grid-template-columns:repeat(2,1fr)}#cat-cards{grid-template-columns:repeat(3,1fr)}}
-    @media(max-width:900px){.hero-content h2{font-size:28px}.hero svg.map{display:none}.hero-inner{gap:26px}.hero-stage{flex:1 1 100%}.ft-grid{grid-template-columns:repeat(2,1fr)}.mystery-content{flex-direction:column;text-align:center;padding:36px 24px}.sec-title{font-size:24px}}
-    @media(max-width:600px){.hd-inner{gap:8px;padding:10px 14px}.search-bar{order:3;max-width:100%;min-width:100%}.hd-actions{margin-right:0}.features{grid-template-columns:1fr 1fr;gap:10px}.feature{padding:13px}.feature .fi{font-size:24px}#cat-cards{grid-template-columns:repeat(3,1fr);gap:10px}.cat-card{padding:16px 8px}.cat-card .ci{font-size:32px}.grid,.cat-row{grid-template-columns:repeat(2,1fr);gap:12px}.ft-grid{grid-template-columns:1fr;gap:28px}.hero-content h2{font-size:23px}.hero-content>p{font-size:14px}.hero-vid-wrap video{max-height:320px}.loyalty-cards{flex-direction:column;gap:14px}.loyalty-arrow{transform:rotate(90deg)}.prod .nm{font-size:13.5px}.prod .pr b{font-size:15.5px}.prod .add{padding:10px;font-size:12.5px}.hero{padding:36px 0 54px}.sec-title{font-size:22px}}
+    @media(max-width:900px){.hero-content h2{font-size:28px}.hero-inner{gap:26px}.hero-stage{flex:1 1 100%}.ft-grid{grid-template-columns:repeat(2,1fr)}.mystery-content{flex-direction:column;text-align:center;padding:36px 24px}.sec-title{font-size:24px}}
+    @media(max-width:600px){.hd-inner{gap:8px;padding:10px 14px}.search-bar{order:3;max-width:100%;min-width:100%}.hd-actions{margin-right:0}.features{grid-template-columns:1fr 1fr;gap:10px}.feature{padding:13px}.feature .fi{font-size:24px}#cat-cards{grid-template-columns:repeat(3,1fr);gap:10px}.cat-card{padding:16px 8px}.cat-card .ci{font-size:32px}.grid,.cat-row{grid-template-columns:repeat(2,1fr);gap:12px}.ft-grid{grid-template-columns:1fr;gap:28px}.hero-content h2{font-size:23px}.hero-content>p{font-size:14px}.hero-vid-wrap{max-height:360px}.loyalty-cards{flex-direction:column;gap:14px}.loyalty-arrow{transform:rotate(90deg)}.prod .nm{font-size:13.5px}.prod .pr b{font-size:15.5px}.prod .add{padding:10px;font-size:12.5px}.hero{padding:36px 0 54px}.sec-title{font-size:22px}}
 
   </style>
 </head>
@@ -374,27 +374,12 @@
         <div class="clocks"><span>🇦🇪 دبي <b class="num" id="clk-ae">--:--</b></span><span>🇸🇾 دمشق <b class="num" id="clk-sy">--:--</b></span></div>
       </div>
       <div class="hero-stage" id="hero-stage" style="display:none">
-        <div class="hero-vid-wrap" onclick="heroVidOpen()"><video id="hero-vid" muted playsinline preload="metadata"></video></div>
+        <div class="hero-vid-wrap" onclick="heroVidOpen()"><video id="hero-vid" class="on" muted playsinline preload="auto"></video><video id="hero-vid-b" muted playsinline preload="auto"></video></div>
         <div id="hero-vid-cap" class="hero-vid-cap"></div>
         <div class="hdots" id="vid-dots"></div>
       </div>
     </div>
-    <svg class="map" viewBox="0 0 250 130" fill="none">
-    <g transform="translate(2,0) scale(0.92)" fill="#FFFFFF">
-      <path d="M6,28 L7,22 Q9,16 14,15 L20,16 Q24,13 28,14 L34,10 Q40,7 46,9 L54,7 Q62,5 70,8 L78,6 Q86,4 92,8 L98,6 L104,10 L99,15 L96,22 L90,30 L84,40 L76,48 L66,54 L54,58 L40,62 L26,64 L14,64 L10,60 L8,54 Q12,50 13,46 L9,42 Q6,40 7,36 Z"/>
-    </g>
-    <g transform="translate(172,74) scale(1.0)" fill="#FFFFFF">
-      <path d="M0,26 L6,24 L12,25 L18,24 L24,25 L30,24 L34,21 L38,17 Q42,13 45,10 L50,5 L54,1 L57,4 L56,10 L58,15 L55,20 L53,27 L50,34 L44,38 L14,39 L4,34 Z"/>
-    </g>
-    <path d="M188,82 Q145,98 98,72 Q68,54 55,40" stroke="#FFFFFF" stroke-width="2.6" stroke-dasharray="7 6" stroke-linecap="round"/>
-    <polygon points="55,40 66,42 60,50" fill="#FFFFFF"/>
-    <g transform="translate(106,60)" stroke="#FFFFFF" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">
-      <rect x="8" y="0" width="24" height="14" rx="2"/>
-      <path d="M8,4 L0,4 L-4,10 L-4,14 L8,14"/>
-      <circle cx="2" cy="16.5" r="3.4"/>
-      <circle cx="24" cy="16.5" r="3.4"/>
-    </g>
-    </svg>
+    
   </section>
 
   <section class="features">
@@ -488,8 +473,8 @@
 </main>
 <div class="wa" onclick="waMenu()" title="تواصل واتساب"><svg viewBox="0 0 24 24" width="30" height="30" fill="#fff" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg></div>
 <div id="wa-menu" style="position:fixed;bottom:94px;left:20px;z-index:60;display:none;flex-direction:column;gap:8px">
-  <a href="https://wa.me/971566135365" target="_blank" rel="noopener" style="background:var(--card);border:1px solid var(--line);border-radius:14px;padding:11px 16px;text-decoration:none;color:var(--text);font-weight:800;font-size:.82rem;box-shadow:var(--shadow)">💬 تواصل معنا</a>
-  <a href="https://wa.me/971566135365?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%20%F0%9F%91%8B%20%D8%A8%D8%AF%D9%8A%20%D8%A7%D8%B7%D9%84%D8%A8%20%D9%85%D9%86%D8%AA%D8%AC%20%D9%85%D9%86%20%D9%85%D9%88%D9%82%D8%B9%20%D8%AE%D8%A7%D8%B1%D8%AC%D9%8A%20%F0%9F%8C%8D%20%D9%87%D8%A7%D8%AF%20%D8%A7%D9%84%D8%B1%D8%A7%D8%A8%D8%B7%3A%20" target="_blank" rel="noopener" style="background:var(--card);border:1px solid var(--line);border-radius:14px;padding:11px 16px;text-decoration:none;color:var(--text);font-weight:800;font-size:.82rem;box-shadow:var(--shadow)">🌍 لطلب منتج من موقع خارجي</a>
+  <a href="https://wa.me/963992624019" target="_blank" rel="noopener" style="background:var(--card);border:1px solid var(--line);border-radius:14px;padding:11px 16px;text-decoration:none;color:var(--text);font-weight:800;font-size:.82rem;box-shadow:var(--shadow)">💬 تواصل معنا</a>
+  <a href="https://wa.me/963992624019?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%20%F0%9F%91%8B%20%D8%A8%D8%AF%D9%8A%20%D8%A7%D8%B7%D9%84%D8%A8%20%D9%85%D9%86%D8%AA%D8%AC%20%D9%85%D9%86%20%D9%85%D9%88%D9%82%D8%B9%20%D8%AE%D8%A7%D8%B1%D8%AC%D9%8A%20%F0%9F%8C%8D%20%D9%87%D8%A7%D8%AF%20%D8%A7%D9%84%D8%B1%D8%A7%D8%A8%D8%B7%3A%20" target="_blank" rel="noopener" style="background:var(--card);border:1px solid var(--line);border-radius:14px;padding:11px 16px;text-decoration:none;color:var(--text);font-weight:800;font-size:.82rem;box-shadow:var(--shadow)">🌍 لطلب منتج من موقع خارجي</a>
 </div>
 <footer>
   <div class="ft-grid">
@@ -525,14 +510,14 @@
     </div>
     <div class="ft-col">
       <h4>تواصل معنا</h4>
-      <p>واتساب: <span class="num" dir="ltr">+971 56 613 5365</span></p>
+      <p>واتساب: <span class="num" dir="ltr">+963 992 624 019</span></p>
       <p>من دبي لكل المحافظات السورية</p>
       <a id="team-sec" href="javascript:void(0)" onclick="teamSheet()">🤝 انضم إلى فريقنا</a>
     </div>
   </div>
   <div class="ft-bottom">
     <p>SYRPHY © <span id="yr"></span> — جميع الحقوق محفوظة · توصيل لكل المحافظات السورية</p>
-    <p><button class="adm" onclick="adminGate()">دخول المدير</button> · <a class="adm" href="/daftar#emp">دخول الموظفين</a> · <span style="opacity:.6;font-size:.68rem">v26.07.25.5-bd</span></p>
+    <p><button class="adm" onclick="adminGate()">دخول المدير</button> · <a class="adm" href="/daftar#emp">دخول الموظفين</a> · <span style="opacity:.6;font-size:.68rem">v26.07.25.6-bd</span></p>
   </div>
 </footer>
 
@@ -679,10 +664,27 @@ function wireCardVideos(){
   }
   vids.forEach(v=>{try{__vidObs.observe(v)}catch(_){}});
 }
-/* ===== مشغّل فيديو الهيرو: بيعرض فيديوهات المنتجات وحدة وحدة، كل واحد بمدته ===== */
-let __vidPtr=0,__heroTimer=null;
+/* ===== مشغّل فيديو الهيرو: عنصرين فيديو مع تحميل مسبق = انتقال فوري بلا شاشة سودا ===== */
+let __vidPtr=0,__heroTimer=null,__curV="a";
+function heroA(){return document.getElementById("hero-vid")}
+function heroB(){return document.getElementById("hero-vid-b")}
+function heroCur(){return __curV==="a"?heroA():heroB()}
+function heroOther(){return __curV==="a"?heroB():heroA()}
 function heroVidOpen(){const l=window.__prodVids||[];const p=l[__vidPtr%(l.length||1)];if(p)prodView(p.id)}
 function heroCap(p){return `<b style="cursor:pointer" onclick="heroVidOpen()">${esc(p.name)}</b><br><span class="num" style="color:var(--gold);font-weight:800">${syp(price(p))}</span> — <span style="cursor:pointer;text-decoration:underline" onclick="heroVidOpen()">شوف المنتج والقياسات ←</span>`}
+/* بيضبط أبعاد الإطار على أبعاد الفيديو نفسه: بلا خطوط سودا وبلا قص */
+function fitHeroWrap(v){
+  if(!v||!v.videoWidth||!v.videoHeight)return;
+  const wrap=document.querySelector(".hero-vid-wrap");if(!wrap||!wrap.parentElement)return;
+  const ratio=v.videoWidth/v.videoHeight;
+  const maxH=window.innerWidth<=600?360:440;
+  const stageW=wrap.parentElement.clientWidth||420;
+  let w=stageW,h=stageW/ratio;
+  if(h>maxH){h=maxH;w=maxH*ratio}
+  wrap.style.width=Math.round(w)+"px";
+  wrap.style.aspectRatio=String(ratio);
+  wrap.style.margin="0 auto";
+}
 function renderHeroVid(){
   const list=(S.products||[]).filter(hasVid);
   window.__prodVids=list;
@@ -695,32 +697,56 @@ function renderHeroVid(){
     dots.innerHTML=list.map((_,i)=>`<span${i===__vidPtr?' class="on"':''}></span>`).join("");
     [...dots.children].forEach((d,i)=>{d.onclick=()=>heroVidGo(i)});
   }
-  heroVidLoad(__vidPtr);
+  const cur=heroCur();
+  if(!cur||cur.getAttribute("data-for")!==list[__vidPtr].id)heroVidLoad(__vidPtr);
+  else preloadNextVid();
 }
 function heroVidLoad(i){
   const list=window.__prodVids||[];if(!list.length)return;
   __vidPtr=((i%list.length)+list.length)%list.length;
   const p=list[__vidPtr];
-  const hv=document.getElementById("hero-vid"),cap=document.getElementById("hero-vid-cap"),dots=document.getElementById("vid-dots");
+  let show=heroCur();
+  const oth=heroOther();
+  // إذا الفيديو المطلوب محمّل مسبقاً بالعنصر التاني → بدّل فوراً (بلا انتظار تحميل)
+  if(oth&&oth.getAttribute("data-for")===p.id){show=oth;__curV=(__curV==="a")?"b":"a"}
+  else if(!show||show.getAttribute("data-for")!==p.id){
+    if(!show)return;
+    show.setAttribute("data-for",p.id);show.src=vidURL(p);
+  }
+  const hide=(show===heroA())?heroB():heroA();
+  if(hide){try{hide.pause()}catch(_){}hide.classList.remove("on")}
+  show.classList.add("on");
+  show.muted=true;show.loop=(list.length===1);
+  try{show.currentTime=0}catch(_){}
+  show.onended=()=>heroVidNext();
+  show.onerror=()=>heroVidNext();
+  show.onloadedmetadata=()=>fitHeroWrap(show);
+  fitHeroWrap(show);
+  const pr=show.play&&show.play();if(pr&&pr.catch)pr.catch(()=>{});
+  const cap=document.getElementById("hero-vid-cap"),dots=document.getElementById("vid-dots");
   if(cap)cap.innerHTML=heroCap(p);
   if(dots)[...dots.children].forEach((d,k)=>d.classList.toggle("on",k===__vidPtr));
-  if(hv){
-    if(hv.getAttribute("data-for")!==p.id){hv.setAttribute("data-for",p.id);hv.src=vidURL(p)}
-    try{hv.currentTime=0}catch(_){}
-    hv.muted=true;hv.loop=(list.length===1);
-    hv.onended=()=>heroVidNext();hv.onerror=()=>heroVidNext();
-    const pr=hv.play&&hv.play();if(pr&&pr.catch)pr.catch(()=>{});
-  }
+  preloadNextVid();
   scheduleHeroVid();
+}
+/* بيحمّل الفيديو التالي بالعنصر المخفي ليصير الانتقال بلا أي تأخير */
+function preloadNextVid(){
+  const list=window.__prodVids||[];if(list.length<2)return;
+  const nxt=list[(__vidPtr+1)%list.length];
+  const oth=heroOther();
+  if(oth&&oth.getAttribute("data-for")!==nxt.id){
+    oth.setAttribute("data-for",nxt.id);oth.src=vidURL(nxt);
+    try{oth.load()}catch(_){}
+  }
 }
 function scheduleHeroVid(){
   clearTimeout(__heroTimer);
   const list=window.__prodVids||[];if(list.length<2)return;
   const p=list[__vidPtr];const d=(p&&p.video&&p.video.dur)||0;
-  // مؤقت احتياطي: لو ما وصل حدث انتهاء الفيديو، ننتقل للتالي حسب مدته
-  __heroTimer=setTimeout(()=>heroVidNext(),Math.min(40000,Math.max(5000,(d||8)*1000+900)));
+  // مؤقت احتياطي بس: الانتقال الأساسي بيصير لحظة ما يخلص الفيديو
+  __heroTimer=setTimeout(()=>heroVidNext(),Math.min(40000,Math.max(4000,(d||8)*1000+1500)));
 }
-function heroVidNext(){const l=window.__prodVids||[];if(!l.length)return;if(l.length===1){const hv=document.getElementById("hero-vid");if(hv){try{hv.currentTime=0}catch(_){}const pr=hv.play&&hv.play();if(pr&&pr.catch)pr.catch(()=>{})}return}heroVidLoad(__vidPtr+1)}
+function heroVidNext(){const l=window.__prodVids||[];if(!l.length)return;if(l.length===1){const hv=heroCur();if(hv){try{hv.currentTime=0}catch(_){}const pr=hv.play&&hv.play();if(pr&&pr.catch)pr.catch(()=>{})}return}heroVidLoad(__vidPtr+1)}
 function heroVidGo(i){heroVidLoad(i)}
 function scrollToProducts(){const el=document.getElementById("cats-sec"),g=document.getElementById("all-title");const t=(el&&el.style.display!=="none")?el:g;if(t)window.scrollTo({top:t.offsetTop-90,behavior:"smooth"})}
 function toggleFaq(el){const it=el.parentElement;const open=it.classList.contains("open");document.querySelectorAll(".faq-item").forEach(i=>i.classList.remove("open"));if(!open)it.classList.add("open")}
@@ -902,7 +928,7 @@ if(!phone)return toast("اكتب رقم الهاتف");
 const _gov=document.getElementById("o-gov").value;
 if(!_gov)return toast("اختار المحافظة من القائمة 📍");
 if(addr.length<5)return toast("اكتب المنطقة والشارع أو أقرب دليل 📍");
-addr=document.getElementById("o-country").value+" - "+_gov+" - "+addr;const t=cartTotals(),payNames={sham:"شام كاش (0997753191)",cod:"تسليم باليد عند الاستلام",bank:"تحويل بنكي على IBAN"};let msg="🛍️ *طلب جديد من SYRPHY*\\n\\n";CART.forEach(c=>{const p=S.products.find(x=>x.id===c.id);if(p)msg+=`▪️ ${p.name}${c.color?" - لون: "+c.color:""}${c.size?" - قياس: "+c.size:""} × ${c.qty} = ${fmt(price(p)*c.qty)} ل.س\\n`});if(coupon)msg+=`\\n🏷️ كود الخصم: ${coupon.code} (-${coupon.pct}%)\\n`;if(t.auto)msg+=`🎉 خصم تلقائي ${t.autoPct}% لأن الطلب فوق 750 ألف (-${fmt(t.auto)} ل.س)\\n`;msg+=`💰 *الإجمالي: ${fmt(t.total)} ل.س*\\n\\n👤 الاسم: ${name}\\n📞 الهاتف: ${phone}\\n📍 العنوان: ${addr}\\n`;if(giftOn){msg+=`\\n🎁 *طلبية إهداء*\\nالمستلم: ${document.getElementById("g-name").value.trim()||"-"}\\n${document.getElementById("g-msg").value.trim()?("الرسالة: "+document.getElementById("g-msg").value.trim()+"\\n"):""}`}msg+=`\\n💳 الدفع: ${payNames[payMethod]}`;window.open("https://wa.me/971566135365?text="+encodeURIComponent(msg),"_blank");CART=[];coupon=null;giftOn=false;payMethod="sham";const _oid=draftId||ensureDraft();const _items=CART.map(cc=>{const p=S.products.find(x=>x.id===cc.id);return{id:cc.id,name:p?p.name:"?",qty:cc.qty,color:cc.color||"",size:cc.size||""}});eventPost({type:"order_done",id:_oid,total:t.total,name,phone,addr,pay:payNames[payMethod]||payMethod,items:_items,coupon:coupon?coupon.code:"",acc:(getProfile()||{}).cc?(getProfile().cc+getProfile().phone):""});try{const mo=JSON.parse(localStorage.getItem("syrphy-my-orders")||"[]");mo.unshift(_oid);localStorage.setItem("syrphy-my-orders",JSON.stringify(mo.slice(0,20)))}catch(_){}draftId="";sessionStorage.removeItem("syrphy-draft");renderCartN();thanksSheet()}
+addr=document.getElementById("o-country").value+" - "+_gov+" - "+addr;const t=cartTotals(),payNames={sham:"شام كاش (0997753191)",cod:"تسليم باليد عند الاستلام",bank:"تحويل بنكي على IBAN"};let msg="🛍️ *طلب جديد من SYRPHY*\\n\\n";CART.forEach(c=>{const p=S.products.find(x=>x.id===c.id);if(p)msg+=`▪️ ${p.name}${c.color?" - لون: "+c.color:""}${c.size?" - قياس: "+c.size:""} × ${c.qty} = ${fmt(price(p)*c.qty)} ل.س\\n`});if(coupon)msg+=`\\n🏷️ كود الخصم: ${coupon.code} (-${coupon.pct}%)\\n`;if(t.auto)msg+=`🎉 خصم تلقائي ${t.autoPct}% لأن الطلب فوق 750 ألف (-${fmt(t.auto)} ل.س)\\n`;msg+=`💰 *الإجمالي: ${fmt(t.total)} ل.س*\\n\\n👤 الاسم: ${name}\\n📞 الهاتف: ${phone}\\n📍 العنوان: ${addr}\\n`;if(giftOn){msg+=`\\n🎁 *طلبية إهداء*\\nالمستلم: ${document.getElementById("g-name").value.trim()||"-"}\\n${document.getElementById("g-msg").value.trim()?("الرسالة: "+document.getElementById("g-msg").value.trim()+"\\n"):""}`}msg+=`\\n💳 الدفع: ${payNames[payMethod]}`;window.open("https://wa.me/963992624019?text="+encodeURIComponent(msg),"_blank");CART=[];coupon=null;giftOn=false;payMethod="sham";const _oid=draftId||ensureDraft();const _items=CART.map(cc=>{const p=S.products.find(x=>x.id===cc.id);return{id:cc.id,name:p?p.name:"?",qty:cc.qty,color:cc.color||"",size:cc.size||""}});eventPost({type:"order_done",id:_oid,total:t.total,name,phone,addr,pay:payNames[payMethod]||payMethod,items:_items,coupon:coupon?coupon.code:"",acc:(getProfile()||{}).cc?(getProfile().cc+getProfile().phone):""});try{const mo=JSON.parse(localStorage.getItem("syrphy-my-orders")||"[]");mo.unshift(_oid);localStorage.setItem("syrphy-my-orders",JSON.stringify(mo.slice(0,20)))}catch(_){}draftId="";sessionStorage.removeItem("syrphy-draft");renderCartN();thanksSheet()}
 function buildPromo(p){
   const cols=(p.imgs||[]).map(x=>x.color).filter(Boolean);
   const sizes=[...new Set((p.imgs||[]).flatMap(x=>String(x.sizes||"").split(/[,،\s]+/).filter(Boolean)))];
@@ -1076,7 +1102,7 @@ td{padding:8px;border-bottom:1px solid #EFEDE6;text-align:right}
   🌐 المتجر: <b>syrphy.pages.dev</b><br>
   📘 فيسبوك: <b>facebook.com/share/1G1Ratw1eP</b><br>
   👥 كروب الواتساب: <b>chat.whatsapp.com/K6iPbsG65492qbsX5AZd21</b><br>
-  💬 للتواصل: <bdo dir="ltr"><b>+971 56 613 5365</b></bdo>
+  💬 للتواصل: <bdo dir="ltr"><b>+963 992 624 019</b></bdo>
 </div>
 <div class="thanks"><h2>شكراً لثقتكن فينا ❤️🇸🇾</h2><p>سعدنا بخدمتكن — وبانتظاركن دايماً بـ SYRPHY</p></div>
 <div class="noprint"><button onclick="window.print()">🖨 طباعة / حفظ PDF</button></div>
@@ -1439,7 +1465,7 @@ const pin=_n.toUpperCase()+":"+_p;
 try{adminPin=pin;const resp=await apiStore("POST",{});isAdmin=true;sessionStorage.setItem(ADMIN_KEY,pin);sessionStorage.setItem("syrphy-role",(resp&&resp.role)==="user"?"user":"admin");if(isUserMode()){userPanel()}else{adminPanel()}refreshStore(true)}
 catch(e){adminPin="";sessionStorage.removeItem(ADMIN_KEY);toast(e.message==="locked"?"⛔ انقفل الدخول ١٥ دقيقة — محاولات غلط كتيرة":e.message==="unauthorized"?"الرمز غلط":e.message==="DATABASE_URL_missing"?"⚠️ قاعدة البيانات مو مربوطة — ضيف DATABASE_URL بإعدادات Vercel":"⚠️ خطأ: "+(e.message||"ما في اتصال")+" — ابعت هالرسالة للدعم")}}
 function userPanel(){sheet(`<button class="close" onclick="closeModal()">✕</button><h3>👥 لوحة المستخدمين</h3><small class="hint">${S.products.length} منتج</small><button class="btn" onclick="addProdForm()">＋ إضافة منتج</button><button class="btn ghost" onclick="manageProds()">🗂 إدارة المنتجات</button><button class="btn ghost" onclick="logoutAdmin()">تسجيل خروج</button>`)}
-function adminPanel(){setTimeout(()=>{const b=document.getElementById("team-toggle");if(b)b.textContent=(window.__settings&&window.__settings.team===false)?"👔 انضم لفريقنا: مطفية — شغّلها":"👔 انضم لفريقنا: شغالة — طفّيها";const m=document.getElementById("mix-toggle");if(m)m.textContent=(window.__settings&&window.__settings.mix===false)?"🧥 نسّق إطلالتك: مطفية — شغّلها":"🧥 نسّق إطلالتك: شغالة — طفّيها"},50);if(isUserMode())return userPanel();sheet(`<button class="close" onclick="closeModal()">✕</button><h3>⚙️ لوحة المدير</h3><small class="hint">${S.products.length} منتج · ${S.coupons.length} كود خصم</small><button class="btn" onclick="addProdForm()">＋ إضافة منتج</button><button class="btn ghost" onclick="quickImport()">⚡ استيراد سريع برابط</button><button class="btn ghost" onclick="manageProds()">🗂 إدارة المنتجات والخصومات</button><button class="btn ghost" onclick="manageCoupons()">🏷 أكواد الخصم</button><button class="btn" onclick="ordersPanel()">📦 الطلبات وتتبع التوصيل</button><button class="btn ghost" onclick="statsPanel()">📈 الإحصائيات والزيارات</button><button class="btn ghost" onclick="notifyForm()">📣 إرسال إشعار للجميع</button><button class="btn ghost" onclick="customersPanel()">👥 داتا العملاء</button><button class="btn ghost" onclick="complaintsPanel()">📨 الشكاوي</button><button class="btn ghost" onclick="visitorsPanel()">👁️ الزوار المباشر</button><button class="btn ghost" id="team-toggle" onclick="toggleTeam()">👔 ميزة انضم لفريقنا</button><button class="btn ghost" onclick="backupsPanel()">🛟 استرجاع نسخة احتياطية</button><button class="btn ghost" onclick="openDaftar()">📒 دفتر التاجر</button><button class="btn ghost" onclick="logoutAdmin()">تسجيل خروج المدير</button>`)}
+function adminPanel(){setTimeout(()=>{const b=document.getElementById("team-toggle");if(b)b.textContent=(window.__settings&&window.__settings.team===false)?"👔 انضم لفريقنا: مطفية — شغّلها":"👔 انضم لفريقنا: شغالة — طفّيها";const m=document.getElementById("mix-toggle");if(m)m.textContent=(window.__settings&&window.__settings.mix===false)?"🧥 نسّق إطلالتك: مطفية — شغّلها":"🧥 نسّق إطلالتك: شغالة — طفّيها"},50);if(isUserMode())return userPanel();sheet(`<button class="close" onclick="closeModal()">✕</button><h3>⚙️ لوحة المدير</h3><small class="hint">${S.products.length} منتج · ${S.coupons.length} كود خصم</small><button class="btn" onclick="addProdForm()">＋ إضافة منتج</button><button class="btn ghost" onclick="manageProds()">🗂 إدارة المنتجات والخصومات</button><button class="btn ghost" onclick="manageCoupons()">🏷 أكواد الخصم</button><button class="btn" onclick="ordersPanel()">📦 الطلبات وتتبع التوصيل</button><button class="btn ghost" onclick="statsPanel()">📈 الإحصائيات والزيارات</button><button class="btn ghost" onclick="notifyForm()">📣 إرسال إشعار للجميع</button><button class="btn ghost" onclick="customersPanel()">👥 داتا العملاء</button><button class="btn ghost" onclick="complaintsPanel()">📨 الشكاوي</button><button class="btn ghost" onclick="visitorsPanel()">👁️ الزوار المباشر</button><button class="btn ghost" id="team-toggle" onclick="toggleTeam()">👔 ميزة انضم لفريقنا</button><button class="btn ghost" onclick="backupsPanel()">🛟 استرجاع نسخة احتياطية</button><button class="btn ghost" onclick="openDaftar()">📒 دفتر التاجر</button><button class="btn ghost" onclick="logoutAdmin()">تسجيل خروج المدير</button>`)}
 function logoutAdmin(){isAdmin=false;adminPin="";sessionStorage.removeItem(ADMIN_KEY);sessionStorage.removeItem("syrphy-role");closeModal();toast("تم تسجيل الخروج")}
 function addProdForm(p){const e=p||{};window.__defSizes="";window.__prodVid=(e.video&&e.video.has)?{keep:true,dur:e.video.dur||0}:null;tempImgs=e.imgs?e.imgs.map(x=>({src:x.src,color:x.color||"",sizes:x.sizes||""})):(e.img?[{src:e.img,color:""}]:[]);sheet(`<button class="close" onclick="${isUserMode()?"userPanel":"adminPanel"}()">→ رجوع</button><h3>${e.id?"تعديل منتج":"＋ منتج جديد"}</h3><label>رابط المنتج من شي إن أو تيمو</label><input id="ap-link" value="${esc(e.link||"")}" oninput="linkHint()"><small class="hint" id="ap-src"></small><label>اسم المنتج</label><input id="ap-name" value="${esc(e.name||"")}" oninput="catHint()"><label>صور المنتج</label><input type="file" id="ap-file" accept="image/*" multiple onchange="readImg(this)"><small class="hint">ارفع صورة أو أكثر واكتب اسم اللون تحت كل صورة.</small><div class="row" style="margin-top:6px"><button class="mini" style="flex:1" onclick="applySizeTpl('cloth')">📏 قياسات ملابس S–XXL</button><button class="mini" style="flex:1" onclick="applySizeTpl('shoe')">👟 قياسات أحذية 36–45</button></div><div id="ap-imgs" style="margin-top:8px"></div><label style="margin-top:12px">🎥 فيديو المنتج (اختياري)</label><input type="file" id="ap-vid-file" accept="video/*" onchange="readVid(this)"><small class="hint">فيديو قصير (يفضّل أقل من 15 ثانية). أول فيديو بتضيفه بيشتغل تلقائياً عالبطاقة بالموقع وبينزل بخانة الفيديو بالبانر ليشوّق الزبون.</small><div id="ap-vid-prev" class="ap-vid-prev" style="margin-top:8px"></div><div class="row"><div><label>السعر الأساسي (د.إ)</label><input type="number" id="ap-base" inputmode="decimal" value="${e.basePrice||""}" oninput="autoPrice()"></div><div><label>الوزن (كغ)</label><input type="number" id="ap-weight" inputmode="decimal" step="0.05" value="${e.weight||PR.weight}" oninput="autoPrice()"></div></div>
 <div id="ap-calc" style="background:var(--bg);border:1px dashed var(--green);border-radius:10px;padding:9px 12px;font-size:.76rem;line-height:1.9;margin:6px 0;display:none"></div>
@@ -1463,93 +1489,8 @@ function renderVidPrev(){
   else box.innerHTML="";
 }
 function linkHint(){const el=document.getElementById("ap-src");if(el)el.textContent=detectSource(document.getElementById("ap-link").value)?"✓ المصدر: "+detectSource(document.getElementById("ap-link").value):""}function catHint(){const name=document.getElementById("ap-name")?.value;if(!name)return;const c=autoCat(name);document.getElementById("ap-cat-auto").textContent="(اقتراح: "+c+")";document.getElementById("ap-cat").value=c}
-/* ==== استيراد سريع: قراءة الرابط محلياً فقط — بلا أي سحب صور أو بيانات من المواقع ==== */
+/* ==== قوالب القياسات الجاهزة ==== */
 function applySizeTpl(kind){const v=kind==="shoe"?"36,37,38,39,40,41,42,43,44,45":"S,M,L,XL,XXL";window.__defSizes=v;if(tempImgs.length){tempImgs.forEach(im=>im.sizes=v);renderImgList();toast("📏 انطبقت القياسات على كل الصور ✓")}else toast("📏 انحفظ القالب — أي صورة بتضيفها بتاخد هالقياسات ✓")}
-function parseProductLink(link){
-  link=(link||"").trim();const src=detectSource(link);let name="";
-  try{
-    const u=new URL(/^https?:\/\//i.test(link)?link:"https://"+link);
-    const path=decodeURIComponent(u.pathname);let slug="";
-    const m=path.match(/\/([^\/]*?)-p-\d+/i);          // SHEIN و Trendyol: ...-p-12345
-    if(m)slug=m[1];
-    else{const g=path.match(/\/([^\/]*?)-g-\d+/i);      // Temu: ...-g-12345
-      if(g)slug=g[1];
-      else{const segs=path.split("/").filter(Boolean);slug=segs[segs.length-1]||""}}
-    slug=slug.replace(/\.html?$/i,"");
-    name=slug.split(/[-_]+/).filter(w=>w&&!/^\d+$/.test(w)&&!["p","g","cat","goods","html","detail","product"].includes(w.toLowerCase())).map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(" ").trim();
-    if(name.length<3)name="";
-  }catch(_){}
-  return{src,name,cat:name?autoCat(name):""};
-}
-function quickImport(){
-  sheet(`<button class="close" onclick="${isUserMode()?"userPanel":"adminPanel"}()">→ رجوع</button>
-  <h3>⚡ استيراد سريع</h3>
-  <small class="hint">الصق رابط المنتج من شي إن أو ترينديول واضغط "اسحب البيانات" — منجيب الاسم والسعر والصور تلقائياً ومنعبيلك نموذج الإضافة. إذا الموقع حجب السحب، بينفتح النموذج معبّى بالاسم من الرابط وبتكمّل يدوي.</small>
-  <label>رابط المنتج</label>
-  <input id="qi-link" placeholder="https://www.shein.com/..." style="direction:ltr;text-align:left" oninput="qiPreview()">
-  <div id="qi-prev" style="background:var(--bg);border:1px dashed var(--green);border-radius:10px;padding:9px 12px;font-size:.78rem;line-height:1.9;margin:6px 0;display:none"></div>
-  <button class="btn" id="qi-go" onclick="qiFetch()">🔽 اسحب البيانات (اسم + سعر + صور)</button>
-  <button class="btn ghost" onclick="qiOpen()">📝 افتح النموذج بلا سحب</button>`);
-  setTimeout(()=>{const i=document.getElementById("qi-link");if(i)i.focus()},80);
-}
-function qiPreview(){
-  const box=document.getElementById("qi-prev"),link=document.getElementById("qi-link").value.trim();
-  if(!box)return;
-  if(!link){box.style.display="none";return}
-  const r=parseProductLink(link);
-  box.style.display="block";
-  box.innerHTML=`المصدر: <b>${esc(r.src||"غير معروف")}</b><br>الاسم من الرابط: <b>${esc(r.name||"— ما بيّن بالرابط")}</b><br>القسم المقترح: <b>${esc(r.cat||"أخرى")}</b>`;
-}
-/* سحب الاسم والسعر والصور من صفحة المنتج (عبر السيرفر لأن المتصفح بيمنعه) */
-async function qiFetch(){
-  const link=(document.getElementById("qi-link")||{}).value?document.getElementById("qi-link").value.trim():"";
-  if(!link)return toast("الصق رابط المنتج أول");
-  const btn=document.getElementById("qi-go"),box=document.getElementById("qi-prev");
-  if(btn){btn.disabled=true;btn.textContent="⏳ عم نسحب البيانات..."}
-  if(box){box.style.display="block";box.innerHTML="⏳ عم نفتح صفحة المنتج ونقرا الاسم والسعر والصور..."}
-  let d=null;
-  try{
-    const base=IS_LOCAL_FILE?REMOTE_URL.replace(/\/+$/,""):"";
-    const r=await fetch(base+"/api/fetchprod?url="+encodeURIComponent(link),{headers:{"x-admin-pin":adminPin}});
-    d=await r.json();
-  }catch(e){d={error:"no_conn"}}
-  if(btn){btn.disabled=false;btn.textContent="🔽 اسحب البيانات (اسم + سعر + صور)"}
-  if(!d||!d.ok){
-    const why=d&&d.error==="host_not_allowed"?"هالموقع مو مدعوم للسحب":d&&d.error==="blocked"?"الموقع حجب السحب (بيصير مع شي إن أحياناً)":d&&d.error==="no_conn"?"ما في اتصال بالسيرفر":d&&d.error==="bad_url"?"الرابط مو صحيح":"ما قدرنا نسحب البيانات";
-    if(box)box.innerHTML=`⚠️ <b>${esc(why)}</b><br><small>افتح النموذج يدوي وكمّل الصور والسعر — أو جرّب رابط تاني.</small>`;
-    return;
-  }
-  window.__qiData=d;
-  if(box)box.innerHTML=`✅ <b>انسحبت البيانات</b><br>الاسم: <b>${esc(d.name||"—")}</b><br>السعر: <b class="num">${d.price?d.price+" "+esc(d.currency||""):"ما لقيناه"}</b><br>الصور: <b class="num">${d.images.length}</b>${d.images.length?`<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">${d.images.map(s=>`<img src="${s}" style="width:52px;height:52px;object-fit:cover;border-radius:8px">`).join("")}</div>`:""}<br><small>اضغط تحت لفتح النموذج معبّى.</small>`;
-  const go=document.createElement("button");go.className="btn";go.textContent="📝 افتح النموذج معبّى بالبيانات";go.onclick=()=>qiOpen(true);
-  if(box)box.appendChild(go);
-}
-function qiOpen(useFetched){
-  const link=document.getElementById("qi-link").value.trim();
-  if(!link)return toast("الصق رابط المنتج أول");
-  const r=parseProductLink(link);
-  const d=useFetched?window.__qiData:null;
-  const name=(d&&d.name)||r.name;
-  addProdForm({link,name,cat:(name?autoCat(name):r.cat)||"أخرى"});
-  if(d){
-    // السعر: منحطه بخانة السعر الأساسي (د.إ) وبينحسب سعر البيع تلقائياً
-    if(d.price>0){const b=document.getElementById("ap-base");if(b){b.value=d.price;autoPrice()}}
-    // الصور: منصغّرهن متل الصور المرفوعة لتبقى القاعدة خفيفة
-    (d.images||[]).forEach(src=>{
-      const im=new Image();
-      im.onload=()=>{const MAX=900;let w=im.width,h=im.height;if(w>h&&w>MAX){h=h*MAX/w;w=MAX}else if(h>=w&&h>MAX){w=w*MAX/h;h=MAX}
-        const cv=document.createElement("canvas");cv.width=w;cv.height=h;cv.getContext("2d").drawImage(im,0,0,w,h);
-        tempImgs.push({src:cv.toDataURL("image/jpeg",0.88),color:"",sizes:window.__defSizes||""});renderImgList()};
-      im.onerror=()=>{tempImgs.push({src,color:"",sizes:window.__defSizes||""});renderImgList()};
-      im.src=src;
-    });
-    const cur=d.currency&&d.currency!=="AED"?` — انتبه: السعر بعملة ${d.currency}، حوّله لدرهم إذا لزم`:"";
-    toast(`⚡ انعبى النموذج: ${d.images.length} صورة${d.price?" وسعر "+d.price:""}${cur}`);
-    window.__qiData=null;
-  }else{
-    toast(name?"⚡ انعبى الاسم من الرابط — كمّل الصور والسعر":"⚡ انفتح النموذج — كمّل الاسم والصور والسعر");
-  }
-}
 function readImg(inp){[...(inp.files||[])].forEach(f=>{const rd=new FileReader();rd.onload=()=>{const im=new Image();im.onload=()=>{const MAX=900;let w=im.width,h=im.height;if(w>h&&w>MAX){h=h*MAX/w;w=MAX}else if(h>=w&&h>MAX){w=w*MAX/h;h=MAX}const cv=document.createElement("canvas");cv.width=w;cv.height=h;cv.getContext("2d").drawImage(im,0,0,w,h);tempImgs.push({src:cv.toDataURL("image/jpeg",0.88),color:"",sizes:window.__defSizes||""});renderImgList()};im.src=rd.result};rd.readAsDataURL(f)});inp.value=""}
 const COLORS=[["Black","⚫"],["White","⚪"],["Beige","🟤"],["Burgundy","🍷"],["Red","🔴"],["Yellow","🟡"],["Grey","🩶"],["Light Grey","🤍"],["Dark Grey","🖤"],["Navy","🔵"],["Olive","🫒"]];
 function pickColor(i,sel){
@@ -2075,7 +2016,7 @@ function sendTeam(){
   const name=g("tm-name"),age=g("tm-age"),gov=g("tm-gov"),phone=g("tm-phone");
   if(name.length<3||!phone)return toast("اكتب اسمك ورقمك عالأقل");
   const txt=`🤝 طلب انضمام لفريق SYRPHY\n👤 الاسم: ${name}\n🌍 الدولة: ${g("tm-country")}\n📍 المحافظة: ${gov||"-"}\n📞 الرقم: ${phone}\n🎂 العمر: ${age||"-"}\n📝 معلومات: ${g("tm-info")||"-"}`;
-  window.open("https://wa.me/971566135365?text="+encodeURIComponent(txt),"_blank");
+  window.open("https://wa.me/963992624019?text="+encodeURIComponent(txt),"_blank");
   closeModal();toast("📩 كمّل الإرسال بالواتساب");
 }
 function waMenu(){const m=document.getElementById("wa-menu");m.style.display=m.style.display==="flex"?"none":"flex"}
