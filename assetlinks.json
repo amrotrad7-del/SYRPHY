@@ -3,6 +3,6 @@
   "target": {
     "namespace": "android_app",
     "package_name": "dev.pages.syrphy",
-    "sha256_cert_fingerprints": ["3A:26:FA:1E:E5:68:8C:6B:57:94:0E:3D:B6:85:D8:6D:9B:72:86:85:87:87:53:48:3D:4B:0E:04:03:06:8F:9B"]
+    "sha256_cert_fingerprints": ["32:E8:39:98:DF:29:3E:BC:56:E4:EB:AB:E6:08:86:D0:46:15:1C:10:2E:03:89:AF:0B:62:ED:09:6B:FE:09:05"]
   }
 }]
