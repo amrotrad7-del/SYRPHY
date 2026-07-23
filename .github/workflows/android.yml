@@ -25,6 +25,11 @@ jobs:
       - name: تجهيز Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: تجهيز Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.7"
+
       - name: تجهيز مفتاح التوقيع
         id: keystore
         env:
@@ -76,9 +81,13 @@ jobs:
             }
           }]
           EOF
-          cat .well-known/assetlinks.json
+          # نسخة بالجذر كمان — بعض الاستضافات ما بتخدم مجلدات بتبلّش بنقطة
+          cp .well-known/assetlinks.json assetlinks.json
+          cat assetlinks.json
 
       - name: بناء التطبيق
+        id: build
+        continue-on-error: true
         working-directory: android
         env:
           KEYSTORE_PATH: ${{ steps.keystore.outputs.ks }}
@@ -86,10 +95,19 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS || 'syrphy' }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || 'syrphy2026' }}
         run: |
-          chmod +x ./gradlew || true
-          gradle wrapper --gradle-version 8.7 --no-daemon || true
-          chmod +x ./gradlew
-          ./gradlew assembleRelease --no-daemon --stacktrace
+          set -o pipefail
+          gradle assembleRelease --no-daemon --stacktrace 2>&1 | tee build.log
+
+      - name: عرض سبب الفشل
+        if: steps.build.outcome == 'failure'
+        run: |
+          {
+            echo "## ❌ فشل البناء"
+            echo '```'
+            tail -150 android/build.log 2>/dev/null || echo "ما في سجل"
+            echo '```'
+          } >> $GITHUB_STEP_SUMMARY
+          exit 1
 
       - name: تسمية الملف
         run: |
@@ -118,13 +136,14 @@ jobs:
           set -e
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          if ! git diff --quiet .well-known/assetlinks.json 2>/dev/null || [ -n "$(git status --porcelain .well-known)" ]; then
-            git add .well-known/assetlinks.json
-            git commit -m "ربط التطبيق بالموقع (assetlinks)"
-            git push
-            echo "✅ انحفظ assetlinks.json"
-          else
+          git add -f .well-known/assetlinks.json assetlinks.json
+          if git diff --cached --quiet; then
             echo "ما في تغيير على assetlinks.json"
+          else
+            git commit -m "ربط التطبيق بالموقع (assetlinks)"
+            git pull --rebase --autostash origin main || true
+            git push origin HEAD:main
+            echo "✅ انحفظ assetlinks.json"
           fi
 
       - name: الملخّص
