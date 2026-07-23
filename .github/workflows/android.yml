@@ -119,6 +119,7 @@ jobs:
           exit 1
 
       - name: تسمية الملف
+        if: steps.build.outcome == 'success'
         run: |
           set -e
           APK=$(find android/app/build/outputs/apk/release -name "*.apk" | head -1)

@@ -5,4 +5,5 @@
     <string name="sc_cart">السلة</string>
     <string name="sc_orders">طلباتي</string>
     <string name="sc_points">نقاطي</string>
+    <string name="assetStatements" translatable="false">[{ \"relation\": [\"delegate_permission/common.handle_all_urls\"], \"target\": {\"namespace\": \"web\", \"site\": \"https://syrphy.pages.dev\"}}]</string>
 </resources>

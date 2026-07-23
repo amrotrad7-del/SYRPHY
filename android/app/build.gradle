@@ -12,11 +12,6 @@ android {
         targetSdk 34
         versionCode 1
         versionName "1.0.0"
-
-        // إعدادات الـTWA — بتنقرا من strings.xml
-        resValue "string", "assetStatements",
-            '[{ "relation": ["delegate_permission/common.handle_all_urls"], ' +
-            '"target": {"namespace": "web", "site": "https://syrphy.pages.dev"}}]'
     }
 
     signingConfigs {
@@ -49,8 +44,18 @@ android {
     }
 }
 
+configurations.configureEach {
+    // مكتبة TWA بتجرّ نسخ Kotlin قديمة بتتضارب مع الجديدة — منوحّدهن
+    resolutionStrategy {
+        force 'org.jetbrains.kotlin:kotlin-stdlib:1.9.24'
+        force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.24'
+        force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.24'
+    }
+}
+
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'androidx.browser:browser:1.8.0'
     implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.5.0'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.9.24'
 }
