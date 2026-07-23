@@ -108,17 +108,22 @@ async function writeBig(env: Env, key: string, value: unknown) {
   const parts: string[] = [];
   for (let i = 0; i < s.length; i += CHUNK) parts.push(s.slice(i, i + CHUNK));
   if (!parts.length) parts.push("");
-  const stmts = [
-    env.DB.prepare(
-      "INSERT INTO store_items (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at"
-    ).bind(key, JSON.stringify({ __chunked: parts.length }), Date.now()),
-    ...parts.map((p, i) =>
-      env.DB.prepare(
-        "INSERT INTO store_items (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at"
-      ).bind(key + "__p" + i, p, Date.now())
-    ),
-  ];
-  await env.DB.batch(stmts);
+  // ✂️ الكتابة بدفعات صغيرة (حد D1 = 32 ميغا للدفعة) — القطع أولاً والرأس آخر شي
+  const SQL = "INSERT INTO store_items (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at";
+  const BUDGET = 6 * 1024 * 1024; // ≈6 ميغا لكل دفعة
+  let batch: D1PreparedStatement[] = [];
+  let size = 0;
+  const flush = async () => {
+    if (batch.length) { await env.DB.batch(batch); batch = []; size = 0; }
+  };
+  for (let i = 0; i < parts.length; i++) {
+    batch.push(env.DB.prepare(SQL).bind(key + "__p" + i, parts[i], Date.now()));
+    size += parts[i].length;
+    if (size >= BUDGET || batch.length >= 12) await flush();
+  }
+  await flush();
+  // الرأس بالآخر: القراء ما بيشوفو النسخة الجديدة إلا بعد اكتمال كل القطع
+  await env.DB.prepare(SQL).bind(key, JSON.stringify({ __chunked: parts.length }), Date.now()).run();
   // تنظيف قطع قديمة زائدة (بأمان: بس اللي رقمها >= عدد القطع الجديد)
   try {
     const old = await env.DB.prepare("SELECT key FROM store_items WHERE key GLOB ?1").bind(key + "__p*").all<{ key: string }>();
@@ -250,6 +255,65 @@ const handleAll: PagesFunction<Env> = async (context) => {
           const back = ((await readKey(env, EMP_KEY, {})) || {}) as Record<string, unknown>;
           return new Response(JSON.stringify({ ok: true, added: id, count_after_readback: Object.keys(back).length, names: Object.values(back).map((e) => (e as { name: string }).name) }), { headers: { "Content-Type": "application/json; charset=utf-8" } });
         }
+        if (diag === "purge") {
+          try {
+            const cacheKey = new Request(new URL(req.url).origin + "/api/store#public", { method: "GET" });
+            if (typeof caches !== "undefined") await caches.default.delete(cacheKey);
+          } catch (_) {}
+          return new Response(JSON.stringify({ ok: true, purged: true }), { headers: { "Content-Type": "application/json" } });
+        }
+        if (diag === "imgstatus") {
+          const cat = normalizeStore(await readBig(env, STORE_KEY, {})) as { products?: { id: string; name?: string; imgs?: { src?: string }[] }[] };
+          const rows = (cat.products || []).map((p) => {
+            const t = (p.imgs || []).map((im) => (im.src || "").startsWith("data:") ? "صورة✓" : (im.src || "").startsWith("/api/img") ? "رابط✗" : "فاضي");
+            return { id: p.id, name: p.name, imgs: t };
+          });
+          const bkInfo: Record<string, number> = {};
+          for (const bk of ["catalog_bk1", "catalog_bk2", "catalog_day0", "catalog_day1", "catalog_day2", "catalog_day3", "catalog_day4", "catalog_day5", "catalog_day6"]) {
+            try {
+              const b = normalizeStore(await readBig(env, bk, {})) as { products?: { imgs?: { src?: string }[] }[] };
+              bkInfo[bk] = (b.products || []).filter((p) => (p.imgs || []).some((im) => (im.src || "").startsWith("data:"))).length;
+            } catch (_) { bkInfo[bk] = -1; }
+          }
+          return new Response(JSON.stringify({ current: rows, backups_with_real_images: bkInfo }, null, 1), { headers: { "Content-Type": "application/json; charset=utf-8" } });
+        }
+        if (diag === "fiximgs") {
+          // 🚑 مصلح ذاتي: بيرجّع الصور الحقيقية من أي نسخة احتياطية فيها
+          const cat = normalizeStore(await readBig(env, STORE_KEY, {})) as { products?: { id: string; imgs?: { src?: string }[]; img?: string }[] };
+          const sources: Record<string, { id: string; imgs?: { src?: string }[]; img?: string }>[] = [];
+          for (const bk of ["catalog_bk1", "catalog_bk2", "catalog_day0", "catalog_day1", "catalog_day2", "catalog_day3", "catalog_day4", "catalog_day5", "catalog_day6"]) {
+            try {
+              const b = normalizeStore(await readBig(env, bk, {})) as { products?: { id: string; imgs?: { src?: string }[]; img?: string }[] };
+              const m: Record<string, { id: string; imgs?: { src?: string }[]; img?: string }> = {};
+              (b.products || []).forEach((p) => { m[p.id] = p; });
+              sources.push(m);
+            } catch (_) {}
+          }
+          let fixed = 0, still = 0;
+          (cat.products || []).forEach((p) => {
+            (p.imgs || []).forEach((im, i) => {
+              if (im.src && !im.src.startsWith("data:")) {
+                let real = "";
+                for (const src of sources) {
+                  const bp = src[p.id];
+                  const cand = bp ? (bp.imgs && bp.imgs[i] && bp.imgs[i].src) || bp.img : "";
+                  if (cand && cand.startsWith("data:")) { real = cand; break; }
+                }
+                if (real) { im.src = real; fixed++; } else still++;
+              }
+            });
+            if (p.img && !p.img.startsWith("data:")) {
+              const firstReal = (p.imgs || []).find((im) => (im.src || "").startsWith("data:"));
+              if (firstReal) p.img = firstReal.src as string;
+            }
+          });
+          await writeBig(env, STORE_KEY, cat);
+          try {
+            const cacheKey = new Request(new URL(req.url).origin + "/api/store#public", { method: "GET" });
+            if (typeof caches !== "undefined") await caches.default.delete(cacheKey);
+          } catch (_) {}
+          return new Response(JSON.stringify({ ok: true, fixed_images: fixed, unrecoverable: still }), { headers: { "Content-Type": "application/json; charset=utf-8" } });
+        }
         if (diag === "emps") {
           const emps = ((await readKey(env, EMP_KEY, {})) || {}) as Record<string, unknown>;
           return new Response(JSON.stringify({ count: Object.keys(emps).length, employees: emps }), { headers: { "Content-Type": "application/json; charset=utf-8" } });
@@ -264,7 +328,7 @@ const handleAll: PagesFunction<Env> = async (context) => {
   const purgePublicCache = async () => {
     try {
       const cacheKey = new Request(new URL(req.url).origin + "/api/store#public", { method: "GET" });
-      await caches.default.delete(cacheKey);
+      if (typeof caches !== "undefined") await caches.default.delete(cacheKey);
     } catch (_) {}
   };
 
@@ -280,7 +344,8 @@ const handleAll: PagesFunction<Env> = async (context) => {
 
     // كاش الحافة للزوار العاديين — توفير هائل بالطلبات
     if (role !== "admin") {
-      const cache = caches.default;
+      if (typeof caches === "undefined") { /* بيئة بلا كاش */ }
+      const cache = (typeof caches !== "undefined") ? caches.default : { match: async () => null, put: async () => {} };
       const cacheKey = new Request(new URL(req.url).origin + "/api/store#public", { method: "GET" });
       const hit = await cache.match(cacheKey);
       if (hit) return hit;
@@ -300,7 +365,18 @@ const handleAll: PagesFunction<Env> = async (context) => {
       const siteRevAvg = srAll.length ? Math.round((srAll.reduce((a, r) => a + (r.s || 0), 0) / srAll.length) * 10) / 10 : 0;
       const settings = await readKey(env, SETTINGS_KEY, { team: true, mix: true });
       const L = ((await readKey(env, SITE_LIKES_KEY, { n: 0 })) || { n: 0 }) as { n: number };
-      const res = json({ sv: 17, likes: L.n || 0, settings, ...catalog, reviews, sold, siteRev, siteRevAvg, siteRevCount: srAll.length }, { headers: { "Cache-Control": "public, s-maxage=30" } });
+      // 🚀 تخفيف: الصور بتتحول لروابط — الكتالوج بينزل بأجزاء من الثانية
+      type Img = { color?: string; src?: string };
+      const lightProducts = (catalog.products as { id: string; imgs?: Img[]; img?: string }[]).map((p) => {
+        const conv = (src: string | undefined, i: number) =>
+          src && src.startsWith("data:") ? "/api/img?id=" + encodeURIComponent(p.id) + "&i=" + i : src;
+        return {
+          ...p,
+          imgs: (p.imgs || []).map((im, i) => ({ ...im, src: conv(im.src, i) })),
+          img: conv(p.img, 0),
+        };
+      });
+      const res = json({ sv: 19, build: "surg2", likes: L.n || 0, settings, ...catalog, products: lightProducts, reviews, sold, siteRev, siteRevAvg, siteRevCount: srAll.length }, { headers: { "Cache-Control": "public, s-maxage=120" } });
       context.waitUntil(cache.put(cacheKey, res.clone()));
       return res;
     }
@@ -654,7 +730,7 @@ const handleAll: PagesFunction<Env> = async (context) => {
       let code = "";
       if (prize) code = await issueCode(WINNER_COUNTER_KEY, "WINNER", prize, 24 * 3600 * 1000);
       if (!code) prize = null;
-      return json({ prize, code, cooldownMs: cooldown });
+      return json({ prize, code, cooldownMs: SPIN_COOLDOWN });
     }
 
     if (type === "register") {
@@ -896,7 +972,12 @@ const handleAll: PagesFunction<Env> = async (context) => {
     }
     if (type === "emp_price") {
       // حاسبة تسعير للموظفين: بترجع السعر النهائي فقط بلا كشف المعادلة
-      const aed = Math.max(0, Number(body.aed) || 0);
+      // العملة: دولار / يورو / ريال سعودي — بتنحول للدرهم داخلياً
+      const AED_RATES: Record<string, number> = { USD: 3.6725, EUR: 4.3, SAR: 0.98, AED: 1 };
+      const cur = String(body.cur || "USD").toUpperCase();
+      const rate = AED_RATES[cur] || AED_RATES.USD;
+      const amount = Math.max(0, Number(body.aed) || 0);
+      const aed = amount * rate;
       const s = ((await readKey(env, SETTINGS_KEY, {})) || {}) as { pricing?: { rate: number; profit: number; weight: number; perKg: number; uae: number; syr: number } };
       const p = s.pricing || { rate: 3400, profit: 40, weight: 0.2, perKg: 27, uae: 2, syr: 3 };
       const w = Number(body.weight) > 0 ? Number(body.weight) : p.weight;
@@ -1066,6 +1147,39 @@ const handleAll: PagesFunction<Env> = async (context) => {
       return json({ current: cur.products.length, list });
     }
 
+    if (type === "prod_save") {
+      // حفظ/تعديل منتج واحد بدل رفع الكتالوج كله
+      if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
+      const p = body.product as { id?: string; name?: string };
+      if (!p || !p.name) return json({ error: "bad_request" }, { status: 400 });
+      const cat = normalizeStore(await readBig(env, STORE_KEY, {})) as { products: { id: string }[]; coupons: unknown[] };
+      const idx = p.id ? cat.products.findIndex((x) => x.id === p.id) : -1;
+      if (idx >= 0) cat.products[idx] = { ...cat.products[idx], ...p } as { id: string };
+      else cat.products.unshift(p as { id: string });
+      await writeBig(env, STORE_KEY, cat);
+      try {
+        const cacheKey = new Request(new URL(req.url).origin + "/api/store#public", { method: "GET" });
+        if (typeof caches !== "undefined") await caches.default.delete(cacheKey);
+      } catch (_) {}
+      return json({ ok: true, id: (p as { id: string }).id, count: cat.products.length });
+    }
+    if (type === "prod_del") {
+      // حذف منتج واحد جراحياً
+      if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
+      const pid = String(body.id || "");
+      if (!pid) return json({ error: "bad_request" }, { status: 400 });
+      const cat = normalizeStore(await readBig(env, STORE_KEY, {})) as { products: { id: string }[] };
+      const before = cat.products.length;
+      cat.products = cat.products.filter((x) => x.id !== pid);
+      if (cat.products.length === before) return json({ error: "not_found" }, { status: 404 });
+      await writeBig(env, STORE_KEY, cat);
+      try {
+        const cacheKey = new Request(new URL(req.url).origin + "/api/store#public", { method: "GET" });
+        if (typeof caches !== "undefined") await caches.default.delete(cacheKey);
+      } catch (_) {}
+      return json({ ok: true, count: cat.products.length });
+    }
+
     if (type === "restore_backup") {
       if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
       const raw = String(body.which || "catalog_bk1");
@@ -1151,6 +1265,29 @@ const handleAll: PagesFunction<Env> = async (context) => {
         }
       }
     } catch (_) { /* النسخة الاحتياطية ما بتوقف الحفظ */ }
+
+    // 🛡️ حماية الصور: إذا وصلت روابط /api/img بدل الصور الفعلية (نسخة خفيفة انحفظت بالغلط)
+    // منستبدلها بالصور الحقيقية الموجودة بالقاعدة قبل الكتابة — الصور ما بتنمحي أبداً
+    try {
+      const currentCat = normalizeStore(await readBig(env, STORE_KEY, {})) as { products?: { id: string; imgs?: { src?: string }[]; img?: string }[] };
+      const curMap: Record<string, { imgs?: { src?: string }[]; img?: string }> = {};
+      (currentCat.products || []).forEach((p) => { curMap[p.id] = p; });
+      const dp = data as { products?: { id: string; imgs?: { src?: string; color?: string }[]; img?: string }[] };
+      (dp.products || []).forEach((p) => {
+        const cur = curMap[p.id];
+        if (!cur) return;
+        (p.imgs || []).forEach((im, i) => {
+          if (im.src && im.src.startsWith("/api/img")) {
+            const real = cur.imgs && cur.imgs[i] ? cur.imgs[i].src : cur.img;
+            if (real && real.startsWith("data:")) im.src = real;
+          }
+        });
+        if (p.img && p.img.startsWith("/api/img")) {
+          const real = (cur.imgs && cur.imgs[0] ? cur.imgs[0].src : cur.img) || "";
+          if (real.startsWith("data:")) p.img = real;
+        }
+      });
+    } catch (_) { /* الحماية ما بتوقف الحفظ */ }
 
     try {
       await writeBig(env, STORE_KEY, data);
