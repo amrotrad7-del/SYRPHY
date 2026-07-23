@@ -89,6 +89,20 @@
     .btn-primary:hover{transform:translateY(-3px);box-shadow:0 10px 35px rgba(233,69,96,.45)}
     .btn-secondary{background:rgba(255,255,255,.08);color:#fff;border:2px solid rgba(255,255,255,.25);padding:14px 32px;border-radius:50px;font-family:inherit;font-size:15.5px;font-weight:700;cursor:pointer;transition:all .3s}
     .btn-secondary:hover{background:rgba(255,255,255,.18)}
+    /* زر تحميل التطبيق + زر السوشال: بسطر مستقل مع مسافة واضحة */
+    .btn-app,.btn-social{flex:none;margin-top:6px;padding:13px 26px;border-radius:50px;font-family:inherit;font-size:14.5px;font-weight:800;cursor:pointer;transition:all .3s;display:inline-flex;align-items:center;gap:7px;text-decoration:none;white-space:nowrap}
+    .btn-app{background:#25d366;color:#fff;border:none;box-shadow:0 6px 22px rgba(37,211,102,.32)}
+    .btn-app:hover{transform:translateY(-3px);box-shadow:0 10px 30px rgba(37,211,102,.45)}
+    .btn-social{background:rgba(255,255,255,.06);color:#fff;border:2px dashed rgba(255,255,255,.3)}
+    .btn-social:hover{background:rgba(255,255,255,.14);border-style:solid}
+    .hero-btns2{margin-top:14px;gap:14px}
+    @media(max-width:700px){.hero-btns2{flex-direction:column;align-items:stretch}.hero-btns2 .btn-app,.hero-btns2 .btn-social{justify-content:center;width:100%}}
+    /* روابط السوشال داخل النافذة */
+    .soc-row{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+    .soc-btn{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:16px;text-decoration:none;color:#fff;font-weight:800;font-size:15px;transition:transform .2s;box-shadow:var(--shadow)}
+    .soc-btn:hover{transform:translateY(-2px)}
+    .soc-btn .ic{font-size:22px;width:30px;text-align:center}
+    .soc-btn small{display:block;font-weight:500;font-size:12.5px;opacity:.85;margin-top:2px}
     .clocks{display:flex;gap:9px;margin-top:20px;position:relative;z-index:2;flex-wrap:wrap}
     .clocks span{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:6px 14px;font-size:13px;display:flex;gap:8px;align-items:center;font-weight:600}
     .hdots{display:flex;gap:8px;justify-content:center;margin-top:12px}
@@ -373,6 +387,10 @@
           <button class="btn-primary" onclick="scrollToProducts()">تسوق الآن</button>
           <button class="btn-secondary" onclick="waMenu()">تواصل معنا</button>
         </div>
+        <div class="hero-btns hero-btns2">
+          <a class="btn-app" id="hero-app" href="/SYRPHY.apk" download>⬇️ حمّل تطبيق SYRPHY</a>
+          <button class="btn-social" onclick="socialMenu()">🌐 تابعنا</button>
+        </div>
         <div class="clocks"><span>🇦🇪 دبي <b class="num" id="clk-ae">--:--</b></span><span>🇸🇾 دمشق <b class="num" id="clk-sy">--:--</b></span></div>
       </div>
       <div class="hero-stage" id="hero-stage" style="display:none">
@@ -519,7 +537,7 @@
   </div>
   <div class="ft-bottom">
     <p>SYRPHY © <span id="yr"></span> — جميع الحقوق محفوظة · توصيل لكل المحافظات السورية</p>
-    <p><button class="adm" onclick="adminGate()">دخول المدير</button> · <a class="adm" href="/daftar#emp">دخول الموظفين</a> · <span style="opacity:.6;font-size:.68rem">v26.07.26.1-app</span></p>
+    <p><button class="adm" onclick="adminGate()">دخول المدير</button> · <a class="adm" href="/daftar#emp">دخول الموظفين</a> · <span style="opacity:.6;font-size:.68rem">v26.07.26.2-app</span></p>
   </div>
 </footer>
 
@@ -2022,6 +2040,19 @@ function sendTeam(){
   closeModal();toast("📩 كمّل الإرسال بالواتساب");
 }
 function waMenu(){const m=document.getElementById("wa-menu");m.style.display=m.style.display==="flex"?"none":"flex"}
+/* كل مواقعنا بزر واحد */
+const SOCIAL=[
+  {n:"قناة الواتساب",d:"كل جديد وخصومات أول بأول",ic:"📢",bg:"#25D366",u:"https://whatsapp.com/channel/0029Vb8afZPIiRoyfAXGjt2I"},
+  {n:"كروب الواتساب",d:"احكي معنا ومع باقي الزبائن",ic:"👥",bg:"#128C7E",u:"https://chat.whatsapp.com/K6iPbsG65492qbsX5AZd21?s=cl&p=a&ilr=4&amv=3"},
+  {n:"صفحتنا عالفيسبوك",d:"صور ومنتجات وعروض",ic:"📘",bg:"#1877F2",u:"https://www.facebook.com/share/1G1Ratw1eP/"},
+  {n:"واتساب مباشر",d:"للطلب والاستفسار",ic:"💬",bg:"#0B7A3E",u:"https://wa.me/963992624019"}
+];
+function socialMenu(){
+  sheet(`<button class="close" onclick="closeModal()">✕</button>
+  <h3>🌐 تابعنا وتواصل معنا</h3>
+  <small class="hint">كل مواقعنا بمكان واحد — اختار يلي بيناسبك.</small>
+  <div class="soc-row">${SOCIAL.map(s=>`<a class="soc-btn" style="background:${s.bg}" href="${s.u}" target="_blank" rel="noopener"><span class="ic">${s.ic}</span><span>${s.n}<small>${s.d}</small></span></a>`).join("")}</div>`);
+}
 function openDrawer(){document.getElementById("drawer").classList.add("on");document.getElementById("drawer-ov").classList.add("on")}
 function closeDrawer(){document.getElementById("drawer").classList.remove("on");document.getElementById("drawer-ov").classList.remove("on")}
 (function(){const u=new URLSearchParams(location.search);const rf=u.get("ref");if(rf)localStorage.setItem("syrphy-ref",rf.replace(/[^0-9]/g,""));const pid=u.get("p");if(pid)window.__openPid=pid})();
@@ -2074,7 +2105,7 @@ load();
 /* داخل التطبيق نفسه ما في داعي نعرض زر تنزيل التطبيق */
 (function(){
   const inApp=window.matchMedia("(display-mode: standalone)").matches||document.referrer.startsWith("android-app://");
-  if(inApp){const a=document.getElementById("d-app");if(a)a.style.display="none"}
+  if(inApp){["d-app","hero-app"].forEach(id=>{const a=document.getElementById(id);if(a)a.style.display="none"})}
 })();
 /* ===== سلوك التطبيق (أندرويد): اختصارات الأيقونة + زر الرجوع ===== */
 (function(){
