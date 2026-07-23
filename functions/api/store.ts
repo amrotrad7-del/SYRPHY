@@ -139,6 +139,13 @@ async function writeBig(env: Env, key: string, value: unknown) {
   } catch (_) { /* ما بيوقف الحفظ */ }
 }
 
+// حذف قيمة مجزأة بالكامل (الرأس + كل القطع) — بأمان
+async function delBig(env: Env, key: string) {
+  try {
+    await env.DB.prepare("DELETE FROM store_items WHERE key = ?1 OR key GLOB ?2").bind(key, key + "__p*").run();
+  } catch (_) { /* best effort */ }
+}
+
 async function readBig(env: Env, key: string, fallback: unknown) {
   const head = await readKey(env, key, null);
   if (!head) return fallback;
@@ -1173,11 +1180,33 @@ const handleAll: PagesFunction<Env> = async (context) => {
       cat.products = cat.products.filter((x) => x.id !== pid);
       if (cat.products.length === before) return json({ error: "not_found" }, { status: 404 });
       await writeBig(env, STORE_KEY, cat);
+      await delBig(env, "vid_" + pid); // امسح فيديو المنتج المخزّن منفصل
       try {
         const cacheKey = new Request(new URL(req.url).origin + "/api/store#public", { method: "GET" });
         if (typeof caches !== "undefined") await caches.default.delete(cacheKey);
       } catch (_) {}
       return json({ ok: true, count: cat.products.length });
+    }
+    if (type === "vid_save") {
+      // حفظ فيديو منتج منفصل عن الكتالوج (عشان القراءة العامة تبقى خفيفة)
+      if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
+      const vid = String(body.id || "");
+      const src = String(body.src || "");
+      const dur = Math.max(0, Math.min(600, Number(body.dur) || 0));
+      if (!vid || !src.startsWith("data:")) return json({ error: "bad_request" }, { status: 400 });
+      try {
+        await writeBig(env, "vid_" + vid, { src, dur });
+      } catch (e) {
+        return json({ error: "save_failed", detail: String((e as Error)?.message || e) }, { status: 500 });
+      }
+      return json({ ok: true, v: Date.now() });
+    }
+    if (type === "vid_del") {
+      if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
+      const vid = String(body.id || "");
+      if (!vid) return json({ error: "bad_request" }, { status: 400 });
+      await delBig(env, "vid_" + vid);
+      return json({ ok: true });
     }
 
     if (type === "restore_backup") {
