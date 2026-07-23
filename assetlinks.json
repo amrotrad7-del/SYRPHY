@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "dev.pages.syrphy",
+    "sha256_cert_fingerprints": ["3A:26:FA:1E:E5:68:8C:6B:57:94:0E:3D:B6:85:D8:6D:9B:72:86:85:87:87:53:48:3D:4B:0E:04:03:06:8F:9B"]
+  }
+}]
