@@ -141,16 +141,17 @@ jobs:
           path: ${{ steps.keystore.outputs.ks }}
           retention-days: 7
 
-      - name: حفظ assetlinks.json بالمستودع
+      - name: حفظ التطبيق وassetlinks بالمستودع
+        if: steps.build.outcome == 'success'
         run: |
           set -e
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add -f .well-known/assetlinks.json assetlinks.json
+          git add -f .well-known/assetlinks.json assetlinks.json SYRPHY.apk
           if git diff --cached --quiet; then
             echo "ما في تغيير على assetlinks.json"
           else
-            git commit -m "ربط التطبيق بالموقع (assetlinks)"
+            git commit -m "نشر تطبيق الأندرويد + ربطه بالموقع"
             git pull --rebase --autostash origin main || true
             git push origin HEAD:main
             echo "✅ انحفظ assetlinks.json"
