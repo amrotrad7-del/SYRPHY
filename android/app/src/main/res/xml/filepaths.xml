@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
-    <files-path name="images" path="images/" />
-    <cache-path name="cache" path="/" />
-    <external-path name="external" path="/" />
+    <!-- المكتبة بتحفظ صورة شاشة البداية بمجلد twa_splash جوا files -->
+    <files-path name="twa_splash" path="twa_splash/" />
+    <files-path name="files" path="." />
+    <cache-path name="cache" path="." />
 </paths>
