@@ -107,6 +107,15 @@ jobs:
             tail -150 android/build.log 2>/dev/null || echo "ما في سجل"
             echo '```'
           } >> $GITHUB_STEP_SUMMARY
+          # نحفظ السجل بالمستودع ليكون مقروء بلا تسجيل دخول
+          mkdir -p .build-logs
+          tail -200 android/build.log > .build-logs/android-error.log 2>/dev/null || echo "لا سجل" > .build-logs/android-error.log
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add -f .build-logs/android-error.log
+          git commit -m "سجل خطأ بناء التطبيق" || true
+          git pull --rebase --autostash origin main || true
+          git push origin HEAD:main || true
           exit 1
 
       - name: تسمية الملف
