@@ -80,7 +80,7 @@
     .hero{position:relative;overflow:hidden;background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 50%,var(--navy3) 100%);color:#fff;padding:46px 0 58px}
     .hero-inner{max-width:1400px;margin:0 auto;padding:0 24px;position:relative;z-index:2}
     .hero-content{max-width:600px}
-    .hslides{position:relative;min-height:190px;z-index:2}
+    .hslides{position:relative;min-height:262px;z-index:2}
     .hslide{position:absolute;inset:0;opacity:0;transform:translateY(10px);transition:opacity .55s,transform .55s;pointer-events:none}
     .hslide.on{opacity:1;transform:none;pointer-events:auto}
     .hslide h2{font-size:38px;font-weight:900;line-height:1.25;margin:10px 0 12px;color:#fff}
@@ -139,9 +139,10 @@
     .prod .disc-timer{position:absolute;top:46px;right:12px;background:#ff9800;color:#fff;font-size:11px;font-weight:800;padding:3px 9px;border-radius:14px;z-index:2}
     .prod .soldb{position:absolute;bottom:10px;right:10px;background:rgba(26,26,46,.8);color:#fff;font-size:11px;font-weight:800;padding:4px 10px;border-radius:14px;backdrop-filter:blur(3px)}
     .prod .im video.pv-card{width:100%;height:100%;object-fit:cover;display:block;background:#000}
+    .prod .im img.pv-after{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity .3s}
     .prod .im .vtag{position:absolute;bottom:10px;left:10px;background:rgba(26,26,46,.82);color:#fff;font-size:11px;font-weight:800;padding:4px 9px;border-radius:14px;display:flex;align-items:center;gap:4px;z-index:2;backdrop-filter:blur(3px)}
-    .hero-vid-wrap{margin:8px 0;border-radius:16px;overflow:hidden;max-width:330px;background:#000;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,.35);position:relative}
-    .hero-vid-wrap video{width:100%;max-height:120px;object-fit:cover;display:block}
+    .hero-vid-wrap{margin:8px 0;border-radius:16px;overflow:hidden;max-width:340px;background:#000;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,.35);position:relative;display:flex;align-items:center;justify-content:center}
+    .hero-vid-wrap video{width:100%;max-height:200px;object-fit:contain;display:block;background:#000}
     .hero-vid-wrap .vplay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:44px;height:44px;border-radius:50%;background:rgba(233,69,96,.9);display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;pointer-events:none;opacity:0;transition:opacity .3s}
     .hero-vid-cap{font-size:13.5px;color:rgba(255,255,255,.9);line-height:1.7}
     .ap-vid-prev video{width:100%;max-width:260px;border-radius:14px;display:block;margin-top:6px;background:#000}
@@ -269,8 +270,8 @@
     @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
     /* استجابة */
     @media(max-width:1200px){.features{grid-template-columns:repeat(2,1fr)}#cat-cards{grid-template-columns:repeat(3,1fr)}}
-    @media(max-width:900px){.hslide h2{font-size:28px}.hero svg.map{width:220px;opacity:.15}.ft-grid{grid-template-columns:repeat(2,1fr)}.mystery-content{flex-direction:column;text-align:center;padding:36px 24px}.sec-title{font-size:24px}.hslides{min-height:200px}}
-    @media(max-width:600px){.hd-inner{gap:8px;padding:10px 14px}.search-bar{order:3;max-width:100%;min-width:100%}.hd-actions{margin-right:0}.features{grid-template-columns:1fr 1fr;gap:10px}.feature{padding:13px}.feature .fi{font-size:24px}#cat-cards{grid-template-columns:repeat(3,1fr);gap:10px}.cat-card{padding:16px 8px}.cat-card .ci{font-size:32px}.grid,.cat-row{grid-template-columns:repeat(2,1fr);gap:12px}.ft-grid{grid-template-columns:1fr;gap:28px}.hslide h2{font-size:23px}.hslide p{font-size:14px}.hslides{min-height:215px}.loyalty-cards{flex-direction:column;gap:14px}.loyalty-arrow{transform:rotate(90deg)}.prod .nm{font-size:13.5px}.prod .pr b{font-size:15.5px}.prod .add{padding:10px;font-size:12.5px}.hero{padding:36px 0 54px}.sec-title{font-size:22px}}
+    @media(max-width:900px){.hslide h2{font-size:28px}.hero svg.map{width:220px;opacity:.15}.ft-grid{grid-template-columns:repeat(2,1fr)}.mystery-content{flex-direction:column;text-align:center;padding:36px 24px}.sec-title{font-size:24px}.hslides{min-height:262px}}
+    @media(max-width:600px){.hd-inner{gap:8px;padding:10px 14px}.search-bar{order:3;max-width:100%;min-width:100%}.hd-actions{margin-right:0}.features{grid-template-columns:1fr 1fr;gap:10px}.feature{padding:13px}.feature .fi{font-size:24px}#cat-cards{grid-template-columns:repeat(3,1fr);gap:10px}.cat-card{padding:16px 8px}.cat-card .ci{font-size:32px}.grid,.cat-row{grid-template-columns:repeat(2,1fr);gap:12px}.ft-grid{grid-template-columns:1fr;gap:28px}.hslide h2{font-size:23px}.hslide p{font-size:14px}.hslides{min-height:250px}.hero-vid-wrap video{max-height:180px}.loyalty-cards{flex-direction:column;gap:14px}.loyalty-arrow{transform:rotate(90deg)}.prod .nm{font-size:13.5px}.prod .pr b{font-size:15.5px}.prod .add{padding:10px;font-size:12.5px}.hero{padding:36px 0 54px}.sec-title{font-size:22px}}
 
   </style>
 </head>
@@ -522,7 +523,7 @@
   </div>
   <div class="ft-bottom">
     <p>SYRPHY © <span id="yr"></span> — جميع الحقوق محفوظة · توصيل لكل المحافظات السورية</p>
-    <p><button class="adm" onclick="adminGate()">دخول المدير</button> · <a class="adm" href="/daftar#emp">دخول الموظفين</a> · <span style="opacity:.6;font-size:.68rem">v26.07.25.3-bd</span></p>
+    <p><button class="adm" onclick="adminGate()">دخول المدير</button> · <a class="adm" href="/daftar#emp">دخول الموظفين</a> · <span style="opacity:.6;font-size:.68rem">v26.07.25.4-bd</span></p>
   </div>
 </footer>
 
@@ -643,19 +644,49 @@ function updateHeroDisc(){
   </div>
   <p>أسعار مخفضة على قطع مختارة — <b style="color:var(--gold);cursor:pointer" onclick="pickCat('الخصومات')">تسوق الخصومات ←</b></p>`;
 }
-/* ===== فيديو البطاقات: بيشتغل بس للبطاقات الظاهرة عالشاشة (توفير أداء) ===== */
+/* ===== فيديو البطاقات: يعرض الفيديو أول، بعدين يقلّب صور الألوان، وبيرجع للفيديو ===== */
+/* بيشتغل بس للبطاقات الظاهرة عالشاشة (توفير أداء) */
 let __vidObs=null;
+function cardImgs(pid){const p=S.products.find(x=>x.id===pid);return ((p&&p.imgs)||[]).map(x=>x.src).filter(Boolean)}
+function cardVideo(box){
+  const v=box.querySelector("video.pv-card"),img=box.querySelector("img.pv-after");if(!v)return;
+  clearTimeout(box.__t);clearInterval(box.__cyc);box.__cyc=null;
+  if(img)img.style.display="none";
+  v.style.display="";v.loop=false;
+  if(!v.src&&v.dataset.vidsrc)v.src=v.dataset.vidsrc;
+  try{v.currentTime=0}catch(_){}
+  v.onended=()=>cardColors(box);
+  v.onerror=()=>cardColors(box);
+  const p=S.products.find(x=>x.id===v.getAttribute("data-pid"));const dur=(p&&p.video&&p.video.dur)||0;
+  // مؤقت احتياطي: لو ما اشتغل الفيديو أو ما وصل حدث الانتهاء، انتقل للألوان
+  box.__t=setTimeout(()=>{if(v.style.display!=="none")cardColors(box)},Math.min(30000,Math.max(6000,(dur||10)*1000+1500)));
+  const pr=v.play&&v.play();if(pr&&pr.catch)pr.catch(()=>{});
+}
+function cardColors(box){
+  const v=box.querySelector("video.pv-card"),img=box.querySelector("img.pv-after");if(!v)return;
+  clearTimeout(box.__t);clearInterval(box.__cyc);box.__cyc=null;
+  try{v.pause()}catch(_){}
+  const imgs=cardImgs(v.getAttribute("data-pid"));
+  if(!img||imgs.length<2){ // ما في ألوان متعددة → رجّع الفيديو بعد فترة
+    box.__t=setTimeout(()=>cardVideo(box),3000);return;
+  }
+  v.style.display="none";img.style.display="block";img.src=imgs[0];
+  let i=0;
+  box.__cyc=setInterval(()=>{
+    i++;
+    img.style.opacity="0.35";
+    setTimeout(()=>{img.src=imgs[i%imgs.length];img.style.opacity="1"},170);
+    if(i>=imgs.length){clearInterval(box.__cyc);box.__cyc=null;box.__t=setTimeout(()=>cardVideo(box),1400)}
+  },1600);
+}
+function cardStop(box){const v=box.querySelector("video.pv-card");if(v){try{v.pause()}catch(_){}}clearTimeout(box.__t);clearInterval(box.__cyc);box.__cyc=null}
 function wireCardVideos(){
-  const vids=document.querySelectorAll("video.pv-card");
+  const vids=[...document.querySelectorAll("video.pv-card")];
   if(!vids.length)return;
-  if(!("IntersectionObserver" in window)){vids.forEach(v=>{if(!v.src&&v.dataset.vidsrc){v.src=v.dataset.vidsrc;v.play&&v.play().catch(()=>{})}});return}
+  if(!("IntersectionObserver" in window)){vids.forEach(v=>cardVideo(v.parentElement));return}
   if(!__vidObs){
     __vidObs=new IntersectionObserver((ents)=>{
-      ents.forEach(en=>{
-        const v=en.target;
-        if(en.isIntersecting){if(!v.src&&v.dataset.vidsrc)v.src=v.dataset.vidsrc;const pr=v.play&&v.play();if(pr&&pr.catch)pr.catch(()=>{})}
-        else{try{v.pause()}catch(_){}}
-      });
+      ents.forEach(en=>{const box=en.target.parentElement;if(!box)return;if(en.isIntersecting)cardVideo(box);else cardStop(box)});
     },{threshold:0.4});
   }
   vids.forEach(v=>{try{__vidObs.observe(v)}catch(_){}});
@@ -715,7 +746,7 @@ function discLeft(end){
   if(h>0)return "باقي "+h+" ساعة";
   return "بينتهي اليوم";
 }
-function prodCard(p){const src=pimg(p),multi=(p.imgs||[]).length>1;const media=hasVid(p)?`<video class="pv-card" data-vidsrc="${esc(vidURL(p))}" muted loop playsinline preload="none" ${src?`poster="${esc(src)}"`:""}></video><span class="vtag">▶ فيديو</span>`:(src?`<img data-cyc="${multi?p.id:""}" src="${esc(src)}" loading="lazy" style="transition:opacity .4s" onerror="this.outerHTML='<div class=noimg>🛍️</div>'">`:`<div class="noimg">🛍️</div>`);const cols=colorList(p);return `<div class="prod"><div class="im" onclick="prodView('${p.id}')">${media}${p.disc>0?`<span class="off">-${p.disc}%</span>`:""}${p.disc>0&&p.discEnd&&discLeft(p.discEnd)?`<span class="disc-timer">${discLeft(p.discEnd)}</span>`:""}${(p.createdAt||"").slice(0,10)===new Date().toISOString().slice(0,10)?`<span class="newb">جديد اليوم</span>`:""}${(window.__sold||{})[p.id]?`<span class="soldb" title="القطع المباعة">انباع ${(window.__sold)[p.id]}</span>`:""}</div><div class="bd"><div class="nm" onclick="prodView('${p.id}')">${esc(p.name)}</div><div class="cat-tag">${esc(p.cat)}${cols.length>1?" · "+cols.length+" ألوان":""}${(window.__reviews||{})[p.id]?` · ★ ${(window.__reviews)[p.id].avg}`:""}</div><div class="pr"><b class="num">${syp(price(p))}</b>${p.disc>0?`<s class="num">${fmt(p.price)}</s>`:""}</div><button class="add" onclick="addCart('${p.id}')">ضيف للسلة</button></div></div>`}
+function prodCard(p){const src=pimg(p),multi=(p.imgs||[]).length>1,cols=colorList(p);const media=hasVid(p)?`<video class="pv-card" data-pid="${p.id}" data-vidsrc="${esc(vidURL(p))}" muted playsinline preload="none" ${src?`poster="${esc(src)}"`:""}></video><img class="pv-after" data-pid="${p.id}" ${src?`src="${esc(src)}"`:""} loading="lazy" style="display:none" onerror="this.style.display='none'"><span class="vtag">▶ فيديو</span>`:(src?`<img data-cyc="${multi?p.id:""}" src="${esc(src)}" loading="lazy" style="transition:opacity .4s" onerror="this.outerHTML='<div class=noimg>🛍️</div>'">`:`<div class="noimg">🛍️</div>`);return `<div class="prod"><div class="im" onclick="prodView('${p.id}')">${media}${p.disc>0?`<span class="off">-${p.disc}%</span>`:""}${p.disc>0&&p.discEnd&&discLeft(p.discEnd)?`<span class="disc-timer">${discLeft(p.discEnd)}</span>`:""}${(p.createdAt||"").slice(0,10)===new Date().toISOString().slice(0,10)?`<span class="newb">جديد اليوم</span>`:""}${(window.__sold||{})[p.id]?`<span class="soldb" title="القطع المباعة">انباع ${(window.__sold)[p.id]}</span>`:""}</div><div class="bd"><div class="nm" onclick="prodView('${p.id}')">${esc(p.name)}</div><div class="cat-tag">${esc(p.cat)}${cols.length>1?" · "+cols.length+" ألوان":""}${(window.__reviews||{})[p.id]?` · ★ ${(window.__reviews)[p.id].avg}`:""}</div><div class="pr"><b class="num">${syp(price(p))}</b>${p.disc>0?`<s class="num">${fmt(p.price)}</s>`:""}</div><button class="add" onclick="addCart('${p.id}')">ضيف للسلة</button></div></div>`}
 function renderGrid(){
   const grid=document.getElementById("grid"),empty=document.getElementById("grid-empty");
   if(curCat==="الكل"){
