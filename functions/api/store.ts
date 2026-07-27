@@ -45,6 +45,7 @@ const BOXES_KEY = "boxes_plays";
 const EMP_KEY = "employees";
 const EMP_PAY_KEY = "emp_payments";
 const SITE_LIKES_KEY = "site_likes";
+const APP_KEY = "app_installs";
 const BOX_COUNTER_KEY = "box_counter";
 const BDAY_CLAIMS_KEY = "bday_claims";
 const MAX_FAILS = 5;
@@ -414,7 +415,9 @@ const handleAll: PagesFunction<Env> = async (context) => {
     const empPays = await readKey(env, EMP_PAY_KEY, []);
     const points = await readKey(env, POINTS_KEY, {});
     const referrals = await readKey(env, REFERRALS_KEY, {});
-    return json({ sv: 18, settings, otcAll, points, referrals, employees, empPays, ...catalog, reviews, analytics, abandoned, orders, siteReviews, rejectedReviews, sold, complaints, accounts, visitors });
+    const appI = ((await readKey(env, APP_KEY, {})) || {}) as { dlN?: number; opN?: number };
+    const app = { downloads: appI.dlN || 0, opens: appI.opN || 0 };
+    return json({ sv: 19, settings, otcAll, points, referrals, employees, empPays, app, ...catalog, reviews, analytics, abandoned, orders, siteReviews, rejectedReviews, sold, complaints, accounts, visitors });
     } catch (e) {
       return json({ sv: 18, fatal: String((e as Error)?.message || e) });
     }
@@ -540,22 +543,29 @@ const handleAll: PagesFunction<Env> = async (context) => {
             addr: String(body.addr || "").slice(0, 160),
             pay: String(body.pay || "").slice(0, 60),
             total: Number(body.total) || 0,
+            disc: Number(body.disc) || 0,
+            auto: Number(body.auto) || 0,
+            coupon: String(body.coupon || "").slice(0, 30),
+            couponGame: !!body.couponGame,
             status: STATUSES[0],
             history: [{ status: STATUSES[0], ts: Date.now() }],
             items: items.slice(0, 30).map((it) => {
               const o = (it && typeof it === "object" ? it : {}) as Record<string, unknown>;
               return {
+                id: String(o.id || "").slice(0, 40),
                 name: String(o.name || "").slice(0, 120),
                 qty: Number(o.qty) || 1,
                 color: String(o.color || "").slice(0, 40),
                 size: String(o.size || "").slice(0, 20),
+                cost: Number(o.cost) || 0,
               };
             }),
           };
           const ids = Object.keys(orders).sort(
             (x, y) => ((orders[x] as { ts: number }).ts || 0) - ((orders[y] as { ts: number }).ts || 0)
           );
-          while (ids.length > 200) delete orders[ids.shift() as string];
+          // ما منمسح طلبات قديمة — لازم تضل موجودة للتقارير الشهرية بدفتر التاجر
+          while (ids.length > 20000) delete orders[ids.shift() as string];
           await writeKey(env, ORDERS_KEY, orders);
           // عداد المبيعات المباشر
           const sold = ((await readKey(env, SOLD_KEY, {})) || {}) as Record<string, number>;
@@ -1004,6 +1014,24 @@ const handleAll: PagesFunction<Env> = async (context) => {
       }
       return json({ ok: true, likes: L.n });
     }
+    if (type === "app_event") {
+      // تتبّع تحميلات التطبيق واستعماله — كل جهاز بينعدّ مرة وحدة
+      const dev = String(body.dev || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 60);
+      const what = String(body.what || "") === "open" ? "open" : "download";
+      if (!dev) return json({ error: "bad_request" }, { status: 400 });
+      const A = ((await readKey(env, APP_KEY, { dl: [], op: [], dlN: 0, opN: 0 })) || {}) as
+        { dl: string[]; op: string[]; dlN: number; opN: number };
+      A.dl = Array.isArray(A.dl) ? A.dl : [];
+      A.op = Array.isArray(A.op) ? A.op : [];
+      const list = what === "open" ? A.op : A.dl;
+      if (!list.includes(dev)) {
+        list.push(dev);
+        if (list.length > 20000) list.shift();
+        if (what === "open") A.opN = (A.opN || 0) + 1; else A.dlN = (A.dlN || 0) + 1;
+        await writeKey(env, APP_KEY, A);
+      }
+      return json({ ok: true, downloads: A.dlN || 0, opens: A.opN || 0 });
+    }
 
     if (type === "emp_sale") {
       // الموظف بيسجل مبيعة باسمه وكلمة سره — بتنحسب بتارجته فوراً
@@ -1095,6 +1123,30 @@ const handleAll: PagesFunction<Env> = async (context) => {
     if (type === "clear_abandoned") {
       if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
       await writeKey(env, ABANDONED_KEY, {});
+      return json({ ok: true });
+    }
+
+    if (type === "order_del") {
+      // حذف طلب جراحياً (مثلاً طلب مضاف غلط من موظف) — بيرجّع عداد المبيعات لحاله
+      if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
+      const id = String(body.id || "");
+      if (!id) return json({ error: "bad_request" }, { status: 400 });
+      const orders = ((await readKey(env, ORDERS_KEY, {})) || {}) as Record<
+        string,
+        { items?: { id?: string; qty?: number }[] }
+      >;
+      const rec = orders[id];
+      if (!rec) return json({ error: "not_found" }, { status: 404 });
+      delete orders[id];
+      await writeKey(env, ORDERS_KEY, orders);
+      try {
+        const sold = ((await readKey(env, SOLD_KEY, {})) || {}) as Record<string, number>;
+        (rec.items || []).forEach((it) => {
+          const iid = String(it?.id || "").slice(0, 40);
+          if (iid && sold[iid]) sold[iid] = Math.max(0, sold[iid] - (Number(it?.qty) || 1));
+        });
+        await writeKey(env, SOLD_KEY, sold);
+      } catch (_) {}
       return json({ ok: true });
     }
 

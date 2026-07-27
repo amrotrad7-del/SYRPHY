@@ -288,6 +288,10 @@ small.hint{color:var(--muted); font-size:.7rem; display:block; margin-top:4px}
 </section>
 
 <!-- ============ التقارير ============ -->
+<section id="sec-live">
+  <div id="live-body"><div class="empty">عم نحمّل مبيعات الموقع...</div></div>
+</section>
+
 <section id="sec-rep">
   <div class="pills" id="rep-pills">
     <button class="on" onclick="repTab('day',this)">يومي</button>
@@ -303,6 +307,7 @@ small.hint{color:var(--muted); font-size:.7rem; display:block; margin-top:4px}
 
 <nav>
   <button class="on" onclick="go('home',this)"><span class="ic">🏠</span>الرئيسية</button>
+  <button onclick="go('live',this)"><span class="ic">📈</span>مبيعات الموقع</button>
   <button onclick="go('price',this)"><span class="ic">🏷️</span>التسعير</button>
   <button onclick="go('inv',this)"><span class="ic">🧾</span>الفواتير</button>
   <button onclick="go('cust',this)"><span class="ic">👥</span>الزبائن</button>
@@ -379,6 +384,7 @@ function go(id,btn){
   btn.classList.add('on');
   window.scrollTo(0,0);
   renderAll();
+  if(id==='live'&&window.renderLive)window.renderLive();
 }
 function priceTab(i,btn){
   document.querySelectorAll('#sec-price .pills button').forEach(b=>b.classList.remove('on'));
@@ -855,6 +861,158 @@ load();
   const fmt=n=>Math.round(Number(n)||0).toLocaleString("en-US");
   const pin=()=>sessionStorage.getItem("daftar-pin")||sessionStorage.getItem("syrphy-admin-pin")||"AMRO:1573";
   const post=(b)=>fetch(API,{method:"POST",headers:{"Content-Type":"application/json","x-admin-pin":pin()},body:JSON.stringify(b)}).then(r=>r.json());
+
+  /* ============ مبيعات الموقع الحقيقية + الأرباح + المخططات ============ */
+  const get=()=>fetch(API,{headers:{"x-admin-pin":pin()},cache:"no-store"}).then(r=>r.json());
+  const DONE=["تم التأكيد","جاري التجهيز","وصلت للمطار","وصلت لسوريا","تم التسليم"]; // طلبات محسوبة كمبيعات
+  const BIG_CODE_MIN_D=300000; // لازم يطابق BIG_CODE_MIN بملف index.html
+  const dayKey=ts=>new Date(ts).toISOString().slice(0,10);
+  const monKey=ts=>new Date(ts).toISOString().slice(0,7);
+  const arMon=["ك٢","شبا","آذا","نيس","أيا","حزي","تمو","آب","أيل","ت١","ت٢","ك١"];
+
+  // ربح الطلب = المبيع − تكلفة القطع (التكلفة محفوظة بالطلب وقت الشراء)
+  function orderProfit(o){
+    const items=Array.isArray(o.items)?o.items:[];
+    const cost=items.reduce((a,it)=>a+((Number(it.cost)||0)*(Number(it.qty)||1)),0);
+    if(!cost)return null;                       // ما منقدر نحسب — طلب قديم بلا تفاصيل
+    return (Number(o.total)||0)-cost;
+  }
+  function bars(map,keys,labels,color){
+    const vals=keys.map(k=>map[k]||0), mx=Math.max(...vals,1);
+    return `<div class="chart">${vals.map((v,i)=>`<div class="bar" title="${labels[i]}: ${fmt(v)}" style="height:${Math.max(3,Math.round(v/mx*100))}%${color?';background:'+color+'33;border-color:'+color+';border-bottom-color:'+color:''}"></div>`).join("")}</div>
+    <div class="chart-lbls">${labels.map(s=>`<span>${s}</span>`).join("")}</div>`;
+  }
+
+  window.renderLive=async function(){
+    const box=document.getElementById("live-body");if(!box)return;
+    box.innerHTML='<div class="empty">عم نحمّل مبيعات الموقع...</div>';
+    let d;try{d=await get()}catch(e){box.innerHTML='<div class="empty">⚠️ ما قدرنا نتصل بالسيرفر — تأكد إنك داخل كمدير</div>';return}
+    if(!d||d.error){box.innerHTML='<div class="empty">⚠️ صلاحية المدير مطلوبة لعرض المبيعات</div>';return}
+    const orders=Object.entries(d.orders||{}).map(([id,o])=>({id,...o})).filter(o=>DONE.includes(o.status));
+    const emps=d.employees||{};
+    if(!orders.length){
+      box.innerHTML=`<div class="card"><h2>📈 مبيعات الموقع</h2>
+        <div class="empty">ما في طلبات مؤكدة لهلق.<br><small>أول ما تأكّد طلب من لوحة المدير رح تشوف المبيعات والأرباح هون.</small></div></div>`;
+      return;
+    }
+    const today=new Date().toISOString().slice(0,10), month=new Date().toISOString().slice(0,7);
+    const dayS={},dayP={},monS={},monP={},empS={};
+    let noCost=0;
+    orders.forEach(o=>{
+      const ts=o.ts||0, dk=dayKey(ts), mk=monKey(ts), t=Number(o.total)||0, pf=orderProfit(o);
+      dayS[dk]=(dayS[dk]||0)+t; monS[mk]=(monS[mk]||0)+t;
+      if(pf===null)noCost++; else {dayP[dk]=(dayP[dk]||0)+pf; monP[mk]=(monP[mk]||0)+pf}
+      const e=o.emp||"—";
+      if(!empS[e])empS[e]={sales:0,profit:0,n:0};
+      empS[e].sales+=t; empS[e].n++; if(pf!==null)empS[e].profit+=pf;
+    });
+    // آخر ١٤ يوم + آخر ١٢ شهر
+    const dKeys=[],dLbl=[];
+    for(let i=13;i>=0;i--){const dt=new Date();dt.setDate(dt.getDate()-i);const k=dt.toISOString().slice(0,10);dKeys.push(k);dLbl.push(String(dt.getDate()))}
+    const mKeys=[],mLbl=[];
+    for(let i=11;i>=0;i--){const dt=new Date();dt.setMonth(dt.getMonth()-i,1);const k=dt.toISOString().slice(0,7);mKeys.push(k);mLbl.push(arMon[dt.getMonth()])}
+
+    const empRows=Object.entries(empS).sort((a,b)=>b[1].sales-a[1].sales).map(([id,v])=>{
+      const nm=id==="—"?"طلبات بلا موظف":((emps[id]&&emps[id].name)||id);
+      const pct=Number(emps[id]&&emps[id].pct)||0;
+      const comm=Math.round(v.sales*pct/100);
+      return `<tr><td>${nm}${pct?`<br><small style="color:var(--muted)">عمولة ${pct}%</small>`:""}</td>
+        <td class="num">${v.n}</td><td class="num">${fmt(v.sales)}</td>
+        <td class="num" style="color:var(--teal)">${fmt(v.profit)}</td>
+        <td class="num" style="color:var(--gold)">${comm?fmt(comm):"—"}</td></tr>`;
+    }).join("");
+
+    /* ===== تكلفة أكواد الألعاب مقابل الزبائن الجدد (هالشهر) ===== */
+    const allOrders=Object.entries(d.orders||{}).map(([id,o])=>({id,...o}));
+    const firstOrderMonth={}; // acc/phone -> شهر أول طلب إله عمره
+    allOrders.forEach(o=>{
+      const key=(o.acc||o.phone||"").trim(); if(!key)return;
+      const mk=monKey(o.ts||0);
+      if(!firstOrderMonth[key]||mk<firstOrderMonth[key])firstOrderMonth[key]=mk;
+    });
+    const newCustomersThisMonth=new Set(Object.entries(firstOrderMonth).filter(([,m])=>m===month).map(([k])=>k)).size;
+    const gamesCost=orders.filter(o=>o.couponGame).reduce((a,o)=>a+(Number(o.disc)||0),0);
+    const monSalesNow=monS[month]||0;
+    const gamesCostPct=monSalesNow?Math.round(gamesCost/monSalesNow*1000)/10:0;
+    const gamesWarn=gamesCostPct>5;
+
+    /* ===== أسوأ حالة: كود 50% + توصيل مجاني ===== */
+    const pr=(function(){try{return JSON.parse(localStorage.getItem("syrphy-pricing")||"{}")}catch(_){return{}}})();
+    const profitPct=Number(pr.profit)||40; // نسبة الربح الافتراضية المضافة فوق كلفة القطعة
+    const breakEvenDiscPct=Math.round((1-1/(1+profitPct/100))*1000)/10; // أعلى خصم بلا ما تخسر الكلفة
+    const worstLossPct=Math.round((50-breakEvenDiscPct)*10)/10;
+
+    /* ===== قائمة آخر الطلبات — حذف طلب غلط أضافه موظف ===== */
+    const recentOrders=allOrders.sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,60);
+    const orderRows=recentOrders.map(o=>{
+      const empName=o.emp?((emps[o.emp]&&emps[o.emp].name)||o.emp):"—";
+      return `<tr><td>${esc(o.name||"—")}<br><small style="color:var(--muted)">${new Date(o.ts||0).toLocaleDateString("ar-SY-u-nu-latn",{day:"numeric",month:"short"})} · ${esc(o.status||"")}</small></td>
+        <td>${esc(empName)}</td><td class="num">${fmt(o.total)}</td>
+        <td><button onclick="delSiteOrder('${o.id}')" style="padding:7px 12px;border:none;border-radius:9px;background:#B3261E;color:#fff;font-family:Cairo;font-size:.75rem;cursor:pointer">🗑 حذف</button></td></tr>`;
+    }).join("");
+
+    box.innerHTML=`
+    <div class="stats">
+      <div class="stat gold"><div class="lbl">مبيعات اليوم</div><div class="val num">${fmt(dayS[today]||0)}</div></div>
+      <div class="stat teal"><div class="lbl">أرباح اليوم</div><div class="val num">${fmt(dayP[today]||0)}</div></div>
+      <div class="stat"><div class="lbl">مبيعات هالشهر</div><div class="val num">${fmt(monS[month]||0)}</div></div>
+      <div class="stat teal"><div class="lbl">أرباح هالشهر</div><div class="val num">${fmt(monP[month]||0)}</div></div>
+      <div class="stat"><div class="lbl">طلبات مؤكدة</div><div class="val num">${orders.length}</div></div>
+      <div class="stat"><div class="lbl">متوسط الطلب</div><div class="val num">${fmt(orders.reduce((a,o)=>a+(Number(o.total)||0),0)/orders.length)}</div></div>
+    </div>
+
+    <div class="card"><h2>📅 مبيعات آخر ١٤ يوم</h2>${bars(dayS,dKeys,dLbl)}</div>
+    <div class="card"><h2>💚 أرباح آخر ١٤ يوم</h2>${bars(dayP,dKeys,dLbl,"#1FBF9C")}</div>
+    <div class="card"><h2>🗓️ مبيعات آخر ١٢ شهر</h2>${bars(monS,mKeys,mLbl)}</div>
+    <div class="card"><h2>💰 أرباح آخر ١٢ شهر</h2>${bars(monP,mKeys,mLbl,"#1FBF9C")}</div>
+
+    <div class="card"><h2>👥 مبيعات الموظفين</h2>
+      <div class="scroll-x"><table class="tbl">
+        <tr><th>الموظف</th><th>طلبات</th><th>مبيعات</th><th>أرباح</th><th>عمولة</th></tr>${empRows}
+      </table></div>
+    </div>
+
+    <div class="card"><h2>🎮 تكلفة الألعاب مقابل الزبائن الجدد — هالشهر (${month})</h2>
+      <div class="stats">
+        <div class="stat red"><div class="lbl">كلفة الأكواد (خصومات الألعاب)</div><div class="val num">${fmt(gamesCost)}</div></div>
+        <div class="stat"><div class="lbl">زبائن جدد هالشهر</div><div class="val num">${newCustomersThisMonth}</div></div>
+        <div class="stat ${gamesWarn?"red":"teal"}"><div class="lbl">نسبة الكلفة من المبيعات</div><div class="val num">${gamesCostPct}%</div></div>
+      </div>
+      ${gamesWarn
+        ?`<div class="warn">⚠️ كلفة الألعاب (${gamesCostPct}%) تجاوزت 5% من مبيعات الشهر — خفف نسب الجوائز (الدولاب/الصناديق) لحتى ترجع تحت 5%.</div>`
+        :`<div class="warn" style="border-color:#0B7A3E;color:#8fd6a8">✅ كلفة الألعاب (${gamesCostPct}%) لسا تحت حد الـ5% من المبيعات — وضعك منيح.</div>`}
+    </div>
+
+    <div class="card"><h2>🧮 أسوأ حالة: كود 50% + توصيل مجاني</h2>
+      <p style="color:var(--muted);font-size:.85rem;line-height:1.9">
+        نسبة الربح المضافة عالتكلفة حالياً: <b class="num" style="color:var(--gold)">${profitPct}%</b> —
+        يعني أعلى خصم فيك تعطيه بلا ما تخسر تكلفة القطعة نفسها هو <b class="num" style="color:var(--teal)">${breakEvenDiscPct}%</b>.<br>
+        كود الـ<b>50%</b> من الدولاب أعلى من هالحد بـ<b class="num" style="color:#ff8a80">${worstLossPct}%</b> —
+        يعني أي طلب فيه هالكود، بتخسر فيه جزء من تكلفة الشراء نفسها (مو بس ربحك). التوصيل مو مبلغ منفصل بالفاتورة (محسوب جوا السعر أصلاً) فما بيزيد الخسارة، بس خصم الـ50% لحاله كافي يخسّرك.<br>
+        <b style="color:#fff">لهيك حطينا حد أدنى للطلب (${fmt(BIG_CODE_MIN_D)} ل.س) على أي كود 30% فيما فوق</b> — منع الاستخدام على طلب صغير، وبننصحك: راقب نسبة كلفة الألعاب فوق، وإذا ضلت عم تتجاوز 5% بانتظام، خفف نسبة كود الـ50% أو قلل فرصة الفوز فيه.
+      </p>
+    </div>
+
+    ${noCost?`<div class="warn">ℹ️ ${noCost} طلب قديم بلا تفاصيل تكلفة — أرباحه مو محسوبة. الطلبات الجديدة رح تنحسب تلقائياً.</div>`:""}
+
+    <div class="card"><h2>🗑️ آخر الطلبات — حذف طلب غلط</h2>
+      <small style="color:var(--muted)">احذف أي طلب أضافه موظف غلط أو مكرر. الحذف بيرجّع عداد المبيعات لحاله.</small>
+      <div class="scroll-x"><table class="tbl" style="margin-top:8px">
+        <tr><th>الزبون</th><th>الموظف</th><th>المجموع</th><th></th></tr>${orderRows||'<tr><td colspan="4" style="text-align:center;color:var(--muted)">ما في طلبات بعد</td></tr>'}
+      </table></div>
+    </div>
+
+    <div style="text-align:center;margin:14px 0"><button onclick="renderLive()" style="padding:11px 24px;border:1px solid #345;border-radius:11px;background:none;color:#eee;font-family:Cairo;cursor:pointer">🔄 تحديث</button></div>`;
+  };
+
+  window.delSiteOrder=async function(id){
+    if(!confirm("حذف هالطلب نهائياً؟ ما فيك ترجعه بعدين."))return;
+    try{
+      const r=await post({type:"order_del",id});
+      if(r&&r.ok){renderLive()}
+      else alert("⚠️ تعذر الحذف: "+(r&&r.error||"?"));
+    }catch(e){alert("⚠️ ما في اتصال بالسيرفر")}
+  };
 
   // زر الزوار/الموظفين: دخول الموظف فقط (بلا أي إدارة)
   const fab=document.createElement("button");
