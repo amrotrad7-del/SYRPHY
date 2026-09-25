@@ -1,92 +1,52 @@
-// SYRPHY — Cloudflare Pages Function + D1
-// كامل منطق المتجر: كتالوج، زيارات، تواجد، سلات متروكة، طلبات وتتبع،
-// تقييمات، نقاط، أكواد لمرة وحدة، دولاب الحظ، قفل محاولات الدخول.
-
-export interface Env {
+interface Env {
   DB: D1Database;
 }
 
-type StoreData = { products: unknown[]; coupons: unknown[] };
+const ADMIN_CRED = "Amro:Amro@##123";
 
-const STORE_KEY = "catalog";
-const ANALYTICS_KEY = "analytics";
-const ABANDONED_KEY = "abandoned";
-const PRESENCE_KEY = "presence";
-const RATE_KEY = "ratelimit";
-const ORDERS_KEY = "orders";
-const SITE_REV_KEY = "site_reviews";
-const PROD_REV_KEY = "prod_reviews";
-const OTC_KEY = "otc_codes";
-const WHEEL_KEY = "wheel_spins";
-const POINTS_KEY = "points_ledger";
-const REJECTED_KEY = "rejected_reviews";
-const SOLD_KEY = "sold_counts";
-const ACCOUNTS_KEY = "accounts";
-const COMPLAINTS_KEY = "complaints";
-const DIS_COUNTER_KEY = "dis_counter";
-const REVIEW_DEVS_KEY = "review_reward_devs";
-const BAD_WORDS = ["كس","طيز","شرموط","عرص","خرا","خرة","زبالة","زباله","حقير","نصاب","حرامي","حرامية","كذاب","احتيال","نصب عليكن","غشاش","سيء","سيئ","سئ","زفت","تعبان","خايس","فاشل","اسوأ","أسوأ","اسوء","لا انصح","لا أنصح","ما بنصح","احذرو","احذروا","حذاري","قذر","وسخ","تافه","بشع","fuck","shit","scam","fraud","fake","worst"];
-function hasBadWords(t: string) {
-  const s = (t || "").toLowerCase();
-  return BAD_WORDS.some((w) => s.includes(w));
-}
+const PRICING_KEY = "saraya_pricing";
+const ORDERS_KEY = "saraya_orders";
+const VISITORS_KEY = "saraya_visitors";
+const SETTINGS_KEY = "saraya_settings";
 
-const ADMIN_CRED = "AMRO:1573";
-const USER_CRED = "USER:157";
-const ADMIN_ACC = "AMRO:971566135365"; // حساب أمرو — دخوله بالموقع بيفتح الصلاحيات
-const WINNER_COUNTER_KEY = "winner_counter";
-const WELCOME_COUNTER_KEY = "welcome_counter";
-const THANKS_COUNTER_KEY = "thanks_counter";
-const REFERRALS_KEY = "referrals";
-const VISITORS_KEY = "visitors_live";
-const SETTINGS_KEY = "site_settings";
-const BDAY_COUNTER_KEY = "bday_counter";
-const BOXES_KEY = "boxes_plays";
-const EMP_KEY = "employees";
-const EMP_PAY_KEY = "emp_payments";
-const SITE_LIKES_KEY = "site_likes";
-const APP_KEY = "app_installs";
-const BOX_COUNTER_KEY = "box_counter";
-const BDAY_CLAIMS_KEY = "bday_claims";
-const MAX_FAILS = 5;
-const LOCK_MS = 15 * 60 * 1000;
-const SPIN_COOLDOWN = 15 * 60 * 60 * 1000;
-const STATUSES = ["بانتظار التأكيد", "تم التأكيد", "جاري التجهيز", "وصلت للمطار", "وصلت لسوريا", "تم التسليم"];
+type Pricing = { basic: number; full: number; vip: number };
+type Order = {
+  id: string;
+  ts: number;
+  name: string;
+  phone: string;
+  template: string;
+  tier: string;
+  notes: string;
+  status: "pending" | "accepted" | "rejected" | "contacted";
+};
+type Visitors = { total: number; devs: string[] };
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, x-admin-pin",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS",
 };
 
-function json(body: unknown, init: ResponseInit = {}) {
-  return Response.json(body, {
-    ...init,
-    headers: { "Cache-Control": "no-store", ...CORS, ...(init.headers || {}) },
+function json(data: unknown, init: ResponseInit = {}) {
+  return new Response(JSON.stringify(data), {
+    status: init.status || 200,
+    headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", ...CORS, ...(init.headers || {}) },
   });
 }
 
-function rand4() {
-  return Math.random().toString(36).slice(2, 6).toUpperCase();
+async function ensureTable(env: Env) {
+  await env.DB.exec(
+    "CREATE TABLE IF NOT EXISTS store_items (key TEXT PRIMARY KEY, value TEXT, updated_at INTEGER)"
+  );
 }
 
-/* ===== D1: إنشاء الجدول تلقائياً + قراءة/كتابة ===== */
-let ready: Promise<unknown> | null = null;
-function ensureTable(env: Env) {
-  if (!ready) {
-    ready = env.DB.exec(
-      "CREATE TABLE IF NOT EXISTS store_items (key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at INTEGER)"
-    );
-  }
-  return ready;
-}
-
-async function readKey(env: Env, key: string, fallback: unknown) {
-  const row = await env.DB.prepare("SELECT value FROM store_items WHERE key = ?").bind(key).first<{ value: string }>();
-  if (!row || row.value == null) return fallback;
+async function readKey<T>(env: Env, key: string, fallback: T): Promise<T> {
   try {
-    return JSON.parse(row.value);
-  } catch {
+    const row = await env.DB.prepare("SELECT value FROM store_items WHERE key = ?").bind(key).first<{ value: string }>();
+    if (!row) return fallback;
+    return JSON.parse(row.value) as T;
+  } catch (_) {
     return fallback;
   }
 }
@@ -94,150 +54,26 @@ async function readKey(env: Env, key: string, fallback: unknown) {
 async function writeKey(env: Env, key: string, value: unknown) {
   await env.DB.prepare(
     "INSERT INTO store_items (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at"
-  )
-    .bind(key, JSON.stringify(value), Date.now())
-    .run();
+  ).bind(key, JSON.stringify(value), Date.now()).run();
 }
 
-/* ===== تخزين مجزأ للكتالوج =====
-   D1 عندها سقف لحجم الصف الواحد، وصور المنتجات (base64) بتتخطاه بسرعة.
-   فمنقسّم نص الكتالوج لقطع 600 ألف حرف، كل قطعة بصف مستقل. */
-const CHUNK = 600_000;
-
-async function writeBig(env: Env, key: string, value: unknown) {
-  const s = JSON.stringify(value);
-  const parts: string[] = [];
-  for (let i = 0; i < s.length; i += CHUNK) parts.push(s.slice(i, i + CHUNK));
-  if (!parts.length) parts.push("");
-  // ✂️ الكتابة بدفعات صغيرة (حد D1 = 32 ميغا للدفعة) — القطع أولاً والرأس آخر شي
-  const SQL = "INSERT INTO store_items (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at";
-  const BUDGET = 6 * 1024 * 1024; // ≈6 ميغا لكل دفعة
-  let batch: D1PreparedStatement[] = [];
-  let size = 0;
-  const flush = async () => {
-    if (batch.length) { await env.DB.batch(batch); batch = []; size = 0; }
-  };
-  for (let i = 0; i < parts.length; i++) {
-    batch.push(env.DB.prepare(SQL).bind(key + "__p" + i, parts[i], Date.now()));
-    size += parts[i].length;
-    if (size >= BUDGET || batch.length >= 12) await flush();
-  }
-  await flush();
-  // الرأس بالآخر: القراء ما بيشوفو النسخة الجديدة إلا بعد اكتمال كل القطع
-  await env.DB.prepare(SQL).bind(key, JSON.stringify({ __chunked: parts.length }), Date.now()).run();
-  // تنظيف قطع قديمة زائدة (بأمان: بس اللي رقمها >= عدد القطع الجديد)
-  try {
-    const old = await env.DB.prepare("SELECT key FROM store_items WHERE key GLOB ?1").bind(key + "__p*").all<{ key: string }>();
-    const stale = (old.results || [])
-      .map((r) => r.key)
-      .filter((k) => {
-        const n = Number(k.split("__p")[1]);
-        return Number.isFinite(n) && n >= parts.length;
-      });
-    if (stale.length) {
-      await env.DB.batch(stale.map((k) => env.DB.prepare("DELETE FROM store_items WHERE key = ?").bind(k)));
-    }
-  } catch (_) { /* ما بيوقف الحفظ */ }
+function checkPin(req: Request): "admin" | "guest" {
+  const pin = (req.headers.get("x-admin-pin") || "").trim();
+  return pin === ADMIN_CRED ? "admin" : "guest";
 }
 
-// حذف قيمة مجزأة بالكامل (الرأس + كل القطع) — بأمان
-async function delBig(env: Env, key: string) {
-  try {
-    await env.DB.prepare("DELETE FROM store_items WHERE key = ?1 OR key GLOB ?2").bind(key, key + "__p*").run();
-  } catch (_) { /* best effort */ }
+function clientIP(req: Request): string {
+  return req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for") || "unknown";
 }
 
-async function readBig(env: Env, key: string, fallback: unknown) {
-  const head = await readKey(env, key, null);
-  if (!head) return fallback;
-  const h = head as { __chunked?: number };
-  if (!h || typeof h.__chunked !== "number") return head; // نسخة قديمة غير مجزأة
-  const rows = await env.DB.prepare("SELECT key, value FROM store_items WHERE key GLOB ?1")
-    .bind(key + "__p*")
-    .all<{ key: string; value: string }>();
-  const map: Record<number, string> = {};
-  (rows.results || []).forEach((r) => {
-    const n = Number(String(r.key).split("__p")[1]);
-    if (Number.isFinite(n)) map[n] = r.value || "";
-  });
-  let s = "";
-  for (let i = 0; i < h.__chunked; i++) s += map[i] ?? "";
-  try {
-    return JSON.parse(s);
-  } catch {
-    return fallback;
-  }
-}
-
-function normalizeStore(value: unknown): StoreData {
-  const data = value && typeof value === "object" ? (value as Partial<StoreData>) : {};
-  return {
-    products: Array.isArray(data.products) ? data.products : [],
-    coupons: Array.isArray(data.coupons) ? data.coupons : [],
-  };
-}
-
-/* ===== قفل المحاولات ===== */
-type RateMap = Record<string, { fails: number; until: number; t: number }>;
-
-function clientIP(req: Request) {
-  return (req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for") || "unknown").split(",")[0].trim();
-}
-
-async function checkPin(env: Env, req: Request): Promise<"admin" | "user" | "none" | "locked"> {
-  const pin = req.headers.get("x-admin-pin") || "";
-  if (!pin) return "none";
-  const ip = clientIP(req);
-  const now = Date.now();
-  const rl = ((await readKey(env, RATE_KEY, {})) || {}) as RateMap;
-  const rec = rl[ip];
-  if (rec && rec.until > now) return "locked";
-  const cred = pin.replace(/\s+/g, "").toUpperCase();
-  if (cred === ADMIN_CRED || cred === USER_CRED || cred === ADMIN_ACC) {
-    if (rec) {
-      delete rl[ip];
-      await writeKey(env, RATE_KEY, rl);
-    }
-    return cred === USER_CRED ? "user" : "admin";
-  }
-  let fails = rec ? rec.fails : 0;
-  if (rec && rec.until && rec.until <= now) fails = 0;
-  fails += 1;
-  const until = fails >= MAX_FAILS ? now + LOCK_MS : 0;
-  rl[ip] = { fails: until ? 0 : fails, until, t: now };
-  const ips = Object.keys(rl).sort((a, b) => rl[a].t - rl[b].t);
-  while (ips.length > 200) delete rl[ips.shift() as string];
-  await writeKey(env, RATE_KEY, rl);
-  return "none";
-}
-
-type Analytics = {
-  total: number;
-  byDay: Record<string, number>;
-  byCountry: Record<string, number>;
-  orders?: {
-    total: number;
-    amount: number;
-    byMonth: Record<string, number>;
-    amountByMonth: Record<string, number>;
-    ids: string[];
-  };
-};
-type AbandonedMap = Record<
-  string,
-  { ts: number; name: string; phone: string; total: number; country: string; items: { name: string; qty: number; color: string }[] }
->;
-const emptyAnalytics = (): Analytics => ({ total: 0, byDay: {}, byCountry: {} });
+const DEFAULT_PRICING: Pricing = { basic: 15, full: 27, vip: 45 };
 
 export const onRequest: PagesFunction<Env> = async (context) => {
   try {
     return await handleAll(context);
   } catch (e) {
     const err = e as Error;
-    return new Response(JSON.stringify({ error: "crash", detail: String(err?.message || e), at: String(err?.stack || "").split("\n")[1] || "" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
-    });
+    return json({ error: "crash", detail: String(err?.message || e), at: String(err?.stack || "").split("\n")[1] || "" }, { status: 500 });
   }
 };
 
@@ -245,1139 +81,106 @@ const handleAll: PagesFunction<Env> = async (context) => {
   const req = context.request;
   const env = context.env;
 
-  // 🔬 فحص مباشر عبر الرابط: ?diag=emps / ?diag=addemp (بكلمة سر المدير)
-  {
-    const u = new URL(req.url);
-    const diag = u.searchParams.get("diag");
-    if (diag) {
-      const dpin = String(u.searchParams.get("pin") || "").replace(/\s+/g, "").toUpperCase();
-      if (dpin !== "AMRO:1573" && dpin !== "AMRO:971566135365") {
-        return new Response(JSON.stringify({ error: "bad_pin" }), { status: 401, headers: { "Content-Type": "application/json" } });
-      }
-      try {
-        if (diag === "addemp") {
-          const emps = ((await readKey(env, EMP_KEY, {})) || {}) as Record<string, unknown>;
-          const id = "e" + Date.now().toString(36);
-          emps[id] = { name: String(u.searchParams.get("name") || "تجربة"), pass: String(u.searchParams.get("pass") || "1"), target: Number(u.searchParams.get("target")) || 0, pct: Number(u.searchParams.get("pct")) || 5, ts: Date.now() };
-          await writeKey(env, EMP_KEY, emps);
-          const back = ((await readKey(env, EMP_KEY, {})) || {}) as Record<string, unknown>;
-          return new Response(JSON.stringify({ ok: true, added: id, count_after_readback: Object.keys(back).length, names: Object.values(back).map((e) => (e as { name: string }).name) }), { headers: { "Content-Type": "application/json; charset=utf-8" } });
-        }
-        if (diag === "purge") {
-          try {
-            const cacheKey = new Request(new URL(req.url).origin + "/api/store#public", { method: "GET" });
-            if (typeof caches !== "undefined") await caches.default.delete(cacheKey);
-          } catch (_) {}
-          return new Response(JSON.stringify({ ok: true, purged: true }), { headers: { "Content-Type": "application/json" } });
-        }
-        if (diag === "imgstatus") {
-          const cat = normalizeStore(await readBig(env, STORE_KEY, {})) as { products?: { id: string; name?: string; imgs?: { src?: string }[] }[] };
-          const rows = (cat.products || []).map((p) => {
-            const t = (p.imgs || []).map((im) => (im.src || "").startsWith("data:") ? "صورة✓" : (im.src || "").startsWith("/api/img") ? "رابط✗" : "فاضي");
-            return { id: p.id, name: p.name, imgs: t };
-          });
-          const bkInfo: Record<string, number> = {};
-          for (const bk of ["catalog_bk1", "catalog_bk2", "catalog_day0", "catalog_day1", "catalog_day2", "catalog_day3", "catalog_day4", "catalog_day5", "catalog_day6"]) {
-            try {
-              const b = normalizeStore(await readBig(env, bk, {})) as { products?: { imgs?: { src?: string }[] }[] };
-              bkInfo[bk] = (b.products || []).filter((p) => (p.imgs || []).some((im) => (im.src || "").startsWith("data:"))).length;
-            } catch (_) { bkInfo[bk] = -1; }
-          }
-          return new Response(JSON.stringify({ current: rows, backups_with_real_images: bkInfo }, null, 1), { headers: { "Content-Type": "application/json; charset=utf-8" } });
-        }
-        if (diag === "fiximgs") {
-          // 🚑 مصلح ذاتي: بيرجّع الصور الحقيقية من أي نسخة احتياطية فيها
-          const cat = normalizeStore(await readBig(env, STORE_KEY, {})) as { products?: { id: string; imgs?: { src?: string }[]; img?: string }[] };
-          const sources: Record<string, { id: string; imgs?: { src?: string }[]; img?: string }>[] = [];
-          for (const bk of ["catalog_bk1", "catalog_bk2", "catalog_day0", "catalog_day1", "catalog_day2", "catalog_day3", "catalog_day4", "catalog_day5", "catalog_day6"]) {
-            try {
-              const b = normalizeStore(await readBig(env, bk, {})) as { products?: { id: string; imgs?: { src?: string }[]; img?: string }[] };
-              const m: Record<string, { id: string; imgs?: { src?: string }[]; img?: string }> = {};
-              (b.products || []).forEach((p) => { m[p.id] = p; });
-              sources.push(m);
-            } catch (_) {}
-          }
-          let fixed = 0, still = 0;
-          (cat.products || []).forEach((p) => {
-            (p.imgs || []).forEach((im, i) => {
-              if (im.src && !im.src.startsWith("data:")) {
-                let real = "";
-                for (const src of sources) {
-                  const bp = src[p.id];
-                  const cand = bp ? (bp.imgs && bp.imgs[i] && bp.imgs[i].src) || bp.img : "";
-                  if (cand && cand.startsWith("data:")) { real = cand; break; }
-                }
-                if (real) { im.src = real; fixed++; } else still++;
-              }
-            });
-            if (p.img && !p.img.startsWith("data:")) {
-              const firstReal = (p.imgs || []).find((im) => (im.src || "").startsWith("data:"));
-              if (firstReal) p.img = firstReal.src as string;
-            }
-          });
-          await writeBig(env, STORE_KEY, cat);
-          try {
-            const cacheKey = new Request(new URL(req.url).origin + "/api/store#public", { method: "GET" });
-            if (typeof caches !== "undefined") await caches.default.delete(cacheKey);
-          } catch (_) {}
-          return new Response(JSON.stringify({ ok: true, fixed_images: fixed, unrecoverable: still }), { headers: { "Content-Type": "application/json; charset=utf-8" } });
-        }
-        if (diag === "emps") {
-          const emps = ((await readKey(env, EMP_KEY, {})) || {}) as Record<string, unknown>;
-          return new Response(JSON.stringify({ count: Object.keys(emps).length, employees: emps }), { headers: { "Content-Type": "application/json; charset=utf-8" } });
-        }
-        return new Response(JSON.stringify({ error: "unknown_diag" }), { status: 400, headers: { "Content-Type": "application/json" } });
-      } catch (e) {
-        return new Response(JSON.stringify({ error: "diag_crash", detail: String((e as Error)?.message || e), at: String((e as Error)?.stack || "").split("\n")[1] || "" }), { status: 500, headers: { "Content-Type": "application/json" } });
-      }
-    }
-  }
-
-  const purgePublicCache = async () => {
-    try {
-      const cacheKey = new Request(new URL(req.url).origin + "/api/store#public", { method: "GET" });
-      if (typeof caches !== "undefined") await caches.default.delete(cacheKey);
-    } catch (_) {}
-  };
-
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
-  if (!env.DB) return json({ error: "D1_binding_missing" }, { status: 500 });
+
   await ensureTable(env);
+  const role = checkPin(req);
 
-  /* ============ GET ============ */
   if (req.method === "GET") {
-    const role = await checkPin(env, req);
-
-
-
-    // كاش الحافة للزوار العاديين — توفير هائل بالطلبات
-    if (role !== "admin") {
-      if (typeof caches === "undefined") { /* بيئة بلا كاش */ }
-      const cache = (typeof caches !== "undefined") ? caches.default : { match: async () => null, put: async () => {} };
-      const cacheKey = new Request(new URL(req.url).origin + "/api/store#public", { method: "GET" });
-      const hit = await cache.match(cacheKey);
-      if (hit) return hit;
-
-      const catalog = normalizeStore(await readBig(env, STORE_KEY, {}));
-      const pr = ((await readKey(env, PROD_REV_KEY, {})) || {}) as Record<string, { s: number; c: string; ts: number }[]>;
-      const reviews: Record<string, { avg: number; count: number; last: { s: number; c: string; ts: number }[] }> = {};
-      Object.keys(pr).forEach((pid) => {
-        const list = pr[pid] || [];
-        if (!list.length) return;
-        const avg = list.reduce((a, r) => a + (r.s || 0), 0) / list.length;
-        reviews[pid] = { avg: Math.round(avg * 10) / 10, count: list.length, last: list.slice(-5).reverse() };
-      });
-      const sold = await readKey(env, SOLD_KEY, {});
-      const srAll = ((await readKey(env, SITE_REV_KEY, [])) || []) as { s: number; c: string; ts: number }[];
-      const siteRev = srAll.slice(-12).reverse();
-      const siteRevAvg = srAll.length ? Math.round((srAll.reduce((a, r) => a + (r.s || 0), 0) / srAll.length) * 10) / 10 : 0;
-      const settings = await readKey(env, SETTINGS_KEY, { team: true, mix: true });
-      const L = ((await readKey(env, SITE_LIKES_KEY, { n: 0 })) || { n: 0 }) as { n: number };
-      // 🚀 تخفيف: الصور بتتحول لروابط — الكتالوج بينزل بأجزاء من الثانية
-      type Img = { color?: string; src?: string };
-      const lightProducts = (catalog.products as { id: string; imgs?: Img[]; img?: string }[]).map((p) => {
-        const conv = (src: string | undefined, i: number) =>
-          src && src.startsWith("data:") ? "/api/img?id=" + encodeURIComponent(p.id) + "&i=" + i : src;
-        return {
-          ...p,
-          imgs: (p.imgs || []).map((im, i) => ({ ...im, src: conv(im.src, i) })),
-          img: conv(p.img, 0),
-        };
-      });
-      const res = json({ sv: 19, build: "surg2", likes: L.n || 0, settings, ...catalog, products: lightProducts, reviews, sold, siteRev, siteRevAvg, siteRevCount: srAll.length }, { headers: { "Cache-Control": "public, s-maxage=120" } });
-      context.waitUntil(cache.put(cacheKey, res.clone()));
-      return res;
+    const pricing = await readKey<Pricing>(env, PRICING_KEY, DEFAULT_PRICING);
+    const visitors = await readKey<Visitors>(env, VISITORS_KEY, { total: 0, devs: [] });
+    const settings = await readKey<Record<string, unknown>>(env, SETTINGS_KEY, {});
+    const base: Record<string, unknown> = { ok: true, pricing, visitors: visitors.total, settings, role };
+    if (role === "admin") {
+      const orders = await readKey<Order[]>(env, ORDERS_KEY, []);
+      base.orders = orders.slice().reverse();
     }
-
-    // المدير: كل شي بلا كاش
-    try {
-    const catalog = normalizeStore(await readBig(env, STORE_KEY, {}));
-    const pr = ((await readKey(env, PROD_REV_KEY, {})) || {}) as Record<string, { s: number; c: string; ts: number }[]>;
-    const reviews: Record<string, { avg: number; count: number; last: { s: number; c: string; ts: number }[] }> = {};
-    Object.keys(pr).forEach((pid) => {
-      const list = pr[pid] || [];
-      if (!list.length) return;
-      const avg = list.reduce((a, r) => a + (r.s || 0), 0) / list.length;
-      reviews[pid] = { avg: Math.round(avg * 10) / 10, count: list.length, last: list.slice(-5).reverse() };
-    });
-    const analytics = (await readKey(env, ANALYTICS_KEY, emptyAnalytics())) as Analytics;
-    const abandoned = (await readKey(env, ABANDONED_KEY, {})) as AbandonedMap;
-    const orders = await readKey(env, ORDERS_KEY, {});
-    const siteReviews = await readKey(env, SITE_REV_KEY, []);
-    const rejectedReviews = await readKey(env, REJECTED_KEY, []);
-    const sold = await readKey(env, SOLD_KEY, {});
-    const complaints = await readKey(env, COMPLAINTS_KEY, []);
-    const accounts = await readKey(env, ACCOUNTS_KEY, {});
-    const visitors = await readKey(env, VISITORS_KEY, {});
-    const settings = await readKey(env, SETTINGS_KEY, { team: true, mix: true });
-    const otcAll = await readKey(env, OTC_KEY, {});
-    const employees = await readKey(env, EMP_KEY, {});
-    const empPays = await readKey(env, EMP_PAY_KEY, []);
-    const points = await readKey(env, POINTS_KEY, {});
-    const referrals = await readKey(env, REFERRALS_KEY, {});
-    const appI = ((await readKey(env, APP_KEY, {})) || {}) as { dlN?: number; opN?: number };
-    const app = { downloads: appI.dlN || 0, opens: appI.opN || 0 };
-    return json({ sv: 19, settings, otcAll, points, referrals, employees, empPays, app, ...catalog, reviews, analytics, abandoned, orders, siteReviews, rejectedReviews, sold, complaints, accounts, visitors });
-    } catch (e) {
-      return json({ sv: 18, fatal: String((e as Error)?.message || e) });
-    }
+    return json(base);
   }
 
-  /* ============ POST ============ */
-  if (req.method === "POST") {
-    const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
-    const type = typeof body.type === "string" ? body.type : "";
+  if (req.method !== "POST") return json({ error: "method_not_allowed" }, { status: 405 });
 
-    if (type === "visit") {
-      // سجل الزوار: زائر واحد بعدد زياراته — بيتصفر يومياً 12:00AM
-      try {
-        const today = new Date(Date.now() + 3 * 3600 * 1000).toISOString().slice(0, 10); // توقيت دمشق تقريباً
-        const dayMark = String(await readKey(env, "visitors_day", ""));
-        let vmap = ((await readKey(env, VISITORS_KEY, {})) || {}) as Record<string, { visits: number; first: number; last: number; country?: string; city?: string; name?: string; phone?: string }>;
-        if (dayMark !== today) {
-          vmap = {};
-          await writeKey(env, "visitors_day", today);
-        }
-        const phone = String(body.phone || "").slice(0, 20);
-        const vkey = (phone || "ip:" + clientIP(req)).slice(0, 40);
-        const prev = vmap[vkey];
-        vmap[vkey] = {
-          visits: (prev?.visits || 0) + 1,
-          first: prev?.first || Date.now(),
-          last: Date.now(),
-          country: String(body.country || "").slice(0, 40) || prev?.country,
-          city: String(body.city || "").slice(0, 60) || prev?.city,
-          name: String(body.name || "").slice(0, 60) || prev?.name,
-          phone: phone || prev?.phone,
-        };
-        const vk = Object.keys(vmap);
-        if (vk.length > 500) {
-          vk.sort((a, b) => (vmap[a].last || 0) - (vmap[b].last || 0));
-          while (vk.length > 500) delete vmap[vk.shift() as string];
-        }
-        await writeKey(env, VISITORS_KEY, vmap);
-      } catch (_) {}
-      const a = ((await readKey(env, ANALYTICS_KEY, emptyAnalytics())) || emptyAnalytics()) as Analytics;
-      a.total = (a.total || 0) + 1;
-      a.byDay = a.byDay || {};
-      const day = new Date().toISOString().slice(0, 10);
-      a.byDay[day] = (a.byDay[day] || 0) + 1;
-      const days = Object.keys(a.byDay).sort();
-      while (days.length > 120) delete a.byDay[days.shift() as string];
-      a.byCountry = a.byCountry || {};
-      const country = String(body.country || "غير معروف").slice(0, 40) || "غير معروف";
-      a.byCountry[country] = (a.byCountry[country] || 0) + 1;
-      await writeKey(env, ANALYTICS_KEY, a);
-      return json({ ok: true });
-    }
+  let body: Record<string, unknown> = {};
+  try {
+    body = (await req.json()) as Record<string, unknown>;
+  } catch (_) {
+    return json({ error: "bad_json" }, { status: 400 });
+  }
+  const type = String(body.type || "");
 
-    if (type === "visit_end") {
-      try {
-        const vmap = ((await readKey(env, VISITORS_KEY, {})) || {}) as Record<string, { time?: number; last?: number }>;
-        const phone = String(body.phone || "").slice(0, 20);
-        const vkey = (phone || "ip:" + clientIP(req)).slice(0, 40);
-        const dur = Math.min(Math.max(Number(body.dur) || 0, 0), 6 * 3600);
-        if (vmap[vkey]) {
-          vmap[vkey].time = (vmap[vkey].time || 0) + dur;
-          await writeKey(env, VISITORS_KEY, vmap);
-        }
-      } catch (_) {}
-      return json({ ok: true });
+  if (type === "visit") {
+    const dev = String(body.dev || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 60);
+    const key = dev || "ip:" + clientIP(req);
+    const visitors = await readKey<Visitors>(env, VISITORS_KEY, { total: 0, devs: [] });
+    if (!visitors.devs.includes(key)) {
+      visitors.devs.push(key);
+      if (visitors.devs.length > 20000) visitors.devs.shift();
+      visitors.total = (visitors.total || 0) + 1;
+      await writeKey(env, VISITORS_KEY, visitors);
     }
-
-    if (type === "presence") {
-      const id = String(body.id || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 80);
-      if (!id) return json({ error: "bad_request" }, { status: 400 });
-      const now = Date.now();
-      const activeAfter = now - 150_000;
-      const p = ((await readKey(env, PRESENCE_KEY, {})) || {}) as Record<string, number>;
-      Object.keys(p).forEach((k) => {
-        if (!Number.isFinite(p[k]) || p[k] < activeAfter) delete p[k];
-      });
-      p[id] = now;
-      await writeKey(env, PRESENCE_KEY, p);
-      return json({ ok: true, online: Object.keys(p).length });
-    }
-
-    if (type === "abandoned") {
-      const id = String(body.id || "").slice(0, 40);
-      if (!id) return json({ error: "bad_request" }, { status: 400 });
-      const ab = ((await readKey(env, ABANDONED_KEY, {})) || {}) as AbandonedMap;
-      const items = Array.isArray(body.items) ? body.items : [];
-      ab[id] = {
-        ts: Date.now(),
-        name: String(body.name || "").slice(0, 80),
-        phone: String(body.phone || "").slice(0, 30),
-        total: Number(body.total) || 0,
-        country: String(body.country || "").slice(0, 40),
-        items: items.slice(0, 30).map((it) => {
-          const o = (it && typeof it === "object" ? it : {}) as Record<string, unknown>;
-          return { name: String(o.name || "").slice(0, 120), qty: Number(o.qty) || 1, color: String(o.color || "").slice(0, 40) };
-        }),
-      };
-      const ids = Object.keys(ab).sort((x, y) => (ab[x].ts || 0) - (ab[y].ts || 0));
-      while (ids.length > 60) delete ab[ids.shift() as string];
-      await writeKey(env, ABANDONED_KEY, ab);
-      return json({ ok: true });
-    }
-
-    if (type === "order_done") {
-      const id = String(body.id || "");
-      const usedCode = String(body.coupon || "").trim().toUpperCase();
-      if (usedCode) {
-        const otc = ((await readKey(env, OTC_KEY, {})) || {}) as Record<string, { pct: number; used: boolean }>;
-        if (otc[usedCode] && !otc[usedCode].used) {
-          otc[usedCode].used = true;
-          await writeKey(env, OTC_KEY, otc);
-        }
-      }
-      if (id) {
-        const orders = ((await readKey(env, ORDERS_KEY, {})) || {}) as Record<string, unknown>;
-        if (!orders[id]) {
-          const items = Array.isArray(body.items) ? body.items : [];
-          orders[id] = {
-            ts: Date.now(),
-            acc: String(body.acc || "").replace(/[^0-9]/g, "").slice(0, 20),
-            name: String(body.name || "").slice(0, 80),
-            phone: String(body.phone || "").slice(0, 30),
-            addr: String(body.addr || "").slice(0, 160),
-            pay: String(body.pay || "").slice(0, 60),
-            total: Number(body.total) || 0,
-            disc: Number(body.disc) || 0,
-            auto: Number(body.auto) || 0,
-            coupon: String(body.coupon || "").slice(0, 30),
-            couponGame: !!body.couponGame,
-            status: STATUSES[0],
-            history: [{ status: STATUSES[0], ts: Date.now() }],
-            items: items.slice(0, 30).map((it) => {
-              const o = (it && typeof it === "object" ? it : {}) as Record<string, unknown>;
-              return {
-                id: String(o.id || "").slice(0, 40),
-                name: String(o.name || "").slice(0, 120),
-                qty: Number(o.qty) || 1,
-                color: String(o.color || "").slice(0, 40),
-                size: String(o.size || "").slice(0, 20),
-                cost: Number(o.cost) || 0,
-              };
-            }),
-          };
-          const ids = Object.keys(orders).sort(
-            (x, y) => ((orders[x] as { ts: number }).ts || 0) - ((orders[y] as { ts: number }).ts || 0)
-          );
-          // ما منمسح طلبات قديمة — لازم تضل موجودة للتقارير الشهرية بدفتر التاجر
-          while (ids.length > 20000) delete orders[ids.shift() as string];
-          await writeKey(env, ORDERS_KEY, orders);
-          // عداد المبيعات المباشر
-          const sold = ((await readKey(env, SOLD_KEY, {})) || {}) as Record<string, number>;
-          items.slice(0, 30).forEach((it) => {
-            const o = (it && typeof it === "object" ? it : {}) as Record<string, unknown>;
-            const iid = String(o.id || "").slice(0, 40);
-            if (iid) sold[iid] = (sold[iid] || 0) + (Number(o.qty) || 1);
-          });
-          await writeKey(env, SOLD_KEY, sold);
-        }
-      }
-      const ab = ((await readKey(env, ABANDONED_KEY, {})) || {}) as AbandonedMap;
-      if (id && ab[id]) {
-        delete ab[id];
-        await writeKey(env, ABANDONED_KEY, ab);
-      }
-        return json({ ok: true });
-    }
-
-    if (type === "site_review") {
-      const stars = Math.min(Math.max(Number(body.stars) || 0, 1), 5);
-      const comment = String(body.comment || "").slice(0, 300);
-      const dev = String(body.dev || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 60);
-      const accR = String(body.acc || "").replace(/[^0-9]/g, "");
-      const rewardKey = accR || dev;
-      if (stars <= 3 || hasBadWords(comment)) {
-        const rej = ((await readKey(env, REJECTED_KEY, [])) || []) as unknown[];
-        rej.push({ s: stars, c: comment, ts: Date.now(), src: "site" });
-        while (rej.length > 300) rej.shift();
-        await writeKey(env, REJECTED_KEY, rej);
-        return json({ ok: true, hidden: true });
-      }
-      const rname = String(body.name || "").trim().slice(0, 40);
-      let list = ((await readKey(env, SITE_REV_KEY, [])) || []) as { s: number; c: string; ts: number; n?: string }[];
-      // إزالة المكرر: نفس النص + نفس الاسم
-      const seenRev = new Set<string>();
-      list = list.filter((r) => {
-        const k = (r.n || "") + "|" + (r.c || "");
-        if (seenRev.has(k)) return false;
-        seenRev.add(k);
-        return true;
-      });
-      const dupKey = rname + "|" + comment;
-      if (!seenRev.has(dupKey)) list.push({ s: stars, c: comment, ts: Date.now(), n: rname });
-      while (list.length > 300) list.shift();
-      await writeKey(env, SITE_REV_KEY, list);
-      let code = "";
-      if (rewardKey) {
-        const devs = ((await readKey(env, REVIEW_DEVS_KEY, {})) || {}) as Record<string, number>;
-        if (!devs[rewardKey]) {
-          const counter = Number(await readKey(env, DIS_COUNTER_KEY, 1)) || 1;
-          if (counter <= 1500) {
-            code = "DIS" + counter;
-            const otc = ((await readKey(env, OTC_KEY, {})) || {}) as Record<string, { pct: number; used: boolean; ts: number }>;
-            otc[code] = { pct: 5, used: false, ts: Date.now() };
-            await writeKey(env, OTC_KEY, otc);
-            await writeKey(env, DIS_COUNTER_KEY, counter + 1);
-            devs[rewardKey] = Date.now();
-            const dk = Object.keys(devs);
-            while (dk.length > 3000) delete devs[dk.shift() as string];
-            await writeKey(env, REVIEW_DEVS_KEY, devs);
-          }
-        }
-      }
-      return json({ ok: true, code });
-    }
-
-    if (type === "prod_review") {
-      const pid = String(body.pid || "").slice(0, 40);
-      if (!pid) return json({ error: "bad_request" }, { status: 400 });
-      const stars = Math.min(Math.max(Number(body.stars) || 0, 1), 5);
-      const comment = String(body.comment || "").slice(0, 200);
-      if (stars <= 3 || hasBadWords(comment)) {
-        const rej = ((await readKey(env, REJECTED_KEY, [])) || []) as unknown[];
-        rej.push({ s: stars, c: comment, ts: Date.now(), src: "prod", pid });
-        while (rej.length > 300) rej.shift();
-        await writeKey(env, REJECTED_KEY, rej);
-        return json({ ok: true, hidden: true });
-      }
-      const rimg = String(body.img || "");
-      const imgOk = rimg.startsWith("data:image/") && rimg.length < 300000 ? rimg : "";
-      const pr = ((await readKey(env, PROD_REV_KEY, {})) || {}) as Record<string, { s: number; c: string; ts: number; img?: string }[]>;
-      pr[pid] = pr[pid] || [];
-      pr[pid].push({ s: stars, c: comment, ts: Date.now(), img: imgOk });
-      while (pr[pid].length > 50) pr[pid].shift();
-      const pids = Object.keys(pr);
-      while (pids.length > 300) delete pr[pids.shift() as string];
-      await writeKey(env, PROD_REV_KEY, pr);
-      return json({ ok: true });
-    }
-
-    if (type === "check_coupon") {
-      const code = String(body.code || "").trim().toUpperCase();
-      if (!code) return json({ error: "not_found" }, { status: 404 });
-      const catalog = normalizeStore(await readBig(env, STORE_KEY, {}));
-      const cp = (catalog.coupons as { code: string; pct: number }[]).find((x) => String(x.code).toUpperCase() === code);
-      if (cp) return json({ pct: Number(cp.pct) || 0 });
-      const otc = ((await readKey(env, OTC_KEY, {})) || {}) as Record<string, { pct: number; used: boolean }>;
-      const oc = otc[code] as { pct: number; used: boolean; nodisc?: boolean; exp?: number } | undefined;
-      if (oc && !oc.used) {
-        if (oc.exp && Date.now() > oc.exp) return json({ error: "expired" }, { status: 410 });
-        return json({ pct: oc.pct, otc: true, nodisc: !!oc.nodisc });
-      }
-      return json({ error: "not_found" }, { status: 404 });
-    }
-
-    if (type === "my_points" || type === "redeem_points") {
-      const dev = String(body.dev || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 60);
-      const acc = String(body.acc || "").replace(/[^0-9]/g, "");
-      const idk = acc || dev; // هوية الحساب أولاً
-      const ids = (Array.isArray(body.ids) ? body.ids : []).map((x) => String(x)).slice(0, 40);
-      if (!idk) return json({ error: "bad_request" }, { status: 400 });
-      const orders = ((await readKey(env, ORDERS_KEY, {})) || {}) as Record<string, { status?: string; acc?: string; items?: { qty?: number }[] }>;
-      let earned = 0;
-      const seen = new Set<string>();
-      const countO = (id: string) => {
-        const o = orders[id];
-        if (o && !seen.has(id) && o.status && o.status !== "بانتظار التأكيد") {
-          seen.add(id);
-          earned += 10 * (o.items || []).reduce((a, it) => a + (Number(it.qty) || 1), 0);
-        }
-      };
-      ids.forEach(countO);
-      if (acc) Object.keys(orders).forEach((id) => { if (orders[id].acc === acc) countO(id); });
-      const ledger = ((await readKey(env, POINTS_KEY, {})) || {}) as Record<string, number>;
-      const redeemed = ledger[idk] || 0;
-      const balance = Math.max(earned - redeemed, 0);
-      if (type === "my_points") return json({ earned, redeemed, balance });
-      if (balance < 100) return json({ error: "not_enough", balance }, { status: 400 });
-      ledger[idk] = redeemed + 100;
-      await writeKey(env, POINTS_KEY, ledger);
-      const otc = ((await readKey(env, OTC_KEY, {})) || {}) as Record<string, { pct: number; used: boolean; ts: number }>;
-      const code = "MABROK10-" + rand4();
-      otc[code] = { pct: 10, used: false, ts: Date.now() };
-      const codes = Object.keys(otc).sort((a, b) => (otc[a].ts || 0) - (otc[b].ts || 0));
-      while (codes.length > 500) delete otc[codes.shift() as string];
-      await writeKey(env, OTC_KEY, otc);
-      return json({ ok: true, code, balance: balance - 100 });
-    }
-
-    if (type === "spin") {
-      const dev = String(body.dev || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 60);
-      const acc = String(body.acc || "").replace(/[^0-9]/g, "");
-      const idk = acc || dev;
-      if (!idk) return json({ error: "bad_request" }, { status: 400 });
-      // قفل الـ 15 ساعة: بالحساب + الجهاز + عنوان الشبكة
-      const ip = clientIP(req);
-      const now = Date.now();
-      const w = ((await readKey(env, WHEEL_KEY, {})) || {}) as Record<string, number>;
-      const last = Math.max(w[idk] || 0, w[dev] || 0, w["ip:" + ip] || 0);
-      if (now - last < SPIN_COOLDOWN) {
-        return json({ error: "cooldown", waitMs: SPIN_COOLDOWN - (now - last) }, { status: 429 });
-      }
-      w[idk] = now;
-      if (dev) w[dev] = now;
-      w["ip:" + ip] = now;
-      const keys = Object.keys(w).sort((a, b) => w[a] - w[b]);
-      while (keys.length > 3000) delete w[keys.shift() as string];
-      await writeKey(env, WHEEL_KEY, w);
-
-      const issueCode = async (counterKey: string, prefix: string, pct: number, expMs?: number) => {
-        const counter = Number(await readKey(env, counterKey, 1)) || 1;
-        if (counter > 1500) return "";
-        const codeStr = prefix + counter;
-        const otc = ((await readKey(env, OTC_KEY, {})) || {}) as Record<string, { pct: number; used: boolean; ts: number; nodisc?: boolean; exp?: number }>;
-        otc[codeStr] = { pct, used: false, ts: Date.now(), nodisc: true, exp: expMs ? Date.now() + expMs : undefined };
-        await writeKey(env, OTC_KEY, otc);
-        await writeKey(env, counterKey, counter + 1);
-        return codeStr;
-      };
-
-      // الدولاب: 50%→0.1 · 20%→0.02 · 10%→20 · الباقي حظ أوفر
-      // النسب: 50%→0.9 · 20%→5 · 10%→25 · الباقي حظ أوفر
-      const r = Math.random() * 100;
-      let prize: number | null = null;
-      if (r < 0.9) prize = 50;
-      else if (r < 5.9) prize = 20;
-      else if (r < 30.9) prize = 10;
-      let code = "";
-      if (prize) code = await issueCode(WINNER_COUNTER_KEY, "WINNER", prize, 24 * 3600 * 1000);
-      if (!code) prize = null;
-      return json({ prize, code, cooldownMs: SPIN_COOLDOWN });
-    }
-
-    if (type === "register") {
-      const dev = String(body.dev || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 60);
-      const name = String(body.name || "").trim().slice(0, 60);
-      const cc = String(body.cc || "").replace(/[^0-9+]/g, "").slice(0, 5);
-      const phone = String(body.phone || "").replace(/[^0-9]/g, "");
-      if (!dev || !name || name.length < 2 || !cc || phone.length < 7 || phone.length > 12) {
-        return json({ error: "bad_data" }, { status: 400 });
-      }
-      const accounts = ((await readKey(env, ACCOUNTS_KEY, {})) || {}) as Record<string, { name: string; ts: number }>;
-      const akey = cc + phone;
-      if (accounts[akey]) return json({ error: "exists" }, { status: 409 });
-      const email = String(body.email || "").trim().slice(0, 80);
-      const bday = String(body.bday || "").slice(0, 10); // YYYY-MM-DD
-      accounts[akey] = { name, ts: Date.now(), email, bday };
-      const ks = Object.keys(accounts);
-      while (ks.length > 5000) delete accounts[ks.shift() as string];
-      await writeKey(env, ACCOUNTS_KEY, accounts);
-      const adminAcc = ("AMRO:" + akey) === ADMIN_ACC;
-      // 🎁 كود ترحيب 10% (للمنتجات بلا خصم فقط) — مرة وحدة لكل رقم
-      let welcomeCode = "";
-      const wc = Number(await readKey(env, WELCOME_COUNTER_KEY, 1)) || 1;
-      if (wc <= 2000) {
-        welcomeCode = "WELCOME" + wc;
-        const otc = ((await readKey(env, OTC_KEY, {})) || {}) as Record<string, { pct: number; used: boolean; ts: number; nodisc?: boolean }>;
-        otc[welcomeCode] = { pct: 10, used: false, ts: Date.now(), nodisc: true };
-        await writeKey(env, OTC_KEY, otc);
-        await writeKey(env, WELCOME_COUNTER_KEY, wc + 1);
-      }
-      // تسجيل الإحالة إذا جا عن طريق معرّف صديق
-      const refBy = String(body.ref || "").replace(/[^0-9]/g, "").slice(0, 20);
-      if (refBy && refBy !== akey) {
-        const refs = ((await readKey(env, REFERRALS_KEY, {})) || {}) as Record<string, string[]>;
-        refs[refBy] = refs[refBy] || [];
-        if (!refs[refBy].includes(akey)) refs[refBy].push(akey);
-        await writeKey(env, REFERRALS_KEY, refs);
-        // وصل 10 محالين؟ كود THANKS 20%
-        if (refs[refBy].length === 10) {
-          const tc = Number(await readKey(env, THANKS_COUNTER_KEY, 1)) || 1;
-          if (tc <= 2000) {
-            const tCode = "THANKS" + tc;
-            const otc2 = ((await readKey(env, OTC_KEY, {})) || {}) as Record<string, { pct: number; used: boolean; ts: number; nodisc?: boolean }>;
-            otc2[tCode] = { pct: 20, used: false, ts: Date.now(), nodisc: true };
-            await writeKey(env, OTC_KEY, otc2);
-            await writeKey(env, THANKS_COUNTER_KEY, tc + 1);
-            const accs = ((await readKey(env, ACCOUNTS_KEY, {})) || {}) as Record<string, { thanks?: string[] }>;
-            if (accs[refBy]) { accs[refBy].thanks = accs[refBy].thanks || []; accs[refBy].thanks!.push(tCode); await writeKey(env, ACCOUNTS_KEY, accs); }
-          }
-        }
-      }
-      return json({ ok: true, admin: adminAcc && name.trim().toUpperCase() === "AMRO", welcome: welcomeCode });
-    }
-
-    if (type === "login") {
-      const name = String(body.name || "").trim();
-      const cc = String(body.cc || "").replace(/[^0-9+]/g, "").slice(0, 5);
-      const phone = String(body.phone || "").replace(/[^0-9]/g, "");
-      const akey = cc + phone;
-      const accounts = ((await readKey(env, ACCOUNTS_KEY, {})) || {}) as Record<string, { name: string }>;
-      const acc = accounts[akey];
-      const norm = (s: string) => s.replace(/\s+/g, " ").trim().toLowerCase();
-      if (!acc || norm(acc.name) !== norm(name)) return json({ error: "not_found" }, { status: 404 });
-      const adminAcc = name.trim().toUpperCase() === "AMRO" && akey === "971566135365";
-      return json({ ok: true, name: acc.name, admin: adminAcc });
-    }
-
-    if (type === "complaint") {
-      const text = String(body.text || "").trim().slice(0, 600);
-      if (text.length < 5) return json({ error: "bad_data" }, { status: 400 });
-      const list = ((await readKey(env, COMPLAINTS_KEY, [])) || []) as unknown[];
-      list.push({
-        text,
-        name: String(body.name || "").slice(0, 60),
-        phone: String(body.phone || "").slice(0, 20),
-        ts: Date.now(),
-        id: Math.random().toString(36).slice(2, 10),
-      });
-      while (list.length > 300) list.shift();
-      await writeKey(env, COMPLAINTS_KEY, list);
-      return json({ ok: true });
-    }
-
-    if (type === "review_like") {
-      const ts = Number(body.ts) || 0;
-      const dev = String(body.dev || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 60);
-      const list = ((await readKey(env, SITE_REV_KEY, [])) || []) as { ts: number; l?: number; ld?: string[] }[];
-      const r = list.find((x) => x.ts === ts);
-      if (!r) return json({ error: "not_found" }, { status: 404 });
-      r.ld = r.ld || [];
-      if (dev && !r.ld.includes(dev)) {
-        r.ld.push(dev);
-        if (r.ld.length > 500) r.ld.shift();
-        r.l = (r.l || 0) + 1;
-        await writeKey(env, SITE_REV_KEY, list);
-      }
-      return json({ ok: true, l: r.l || 0 });
-    }
-
-    if (type === "review_reply") {
-      if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
-      const ts = Number(body.ts) || 0;
-      const text = String(body.text || "").trim().slice(0, 200);
-      const list = ((await readKey(env, SITE_REV_KEY, [])) || []) as { ts: number; reply?: string }[];
-      const r = list.find((x) => x.ts === ts);
-      if (!r) return json({ error: "not_found" }, { status: 404 });
-      r.reply = text;
-      await writeKey(env, SITE_REV_KEY, list);
-      return json({ ok: true });
-    }
-
-        if (type === "boxes") {
-      const dev = String(body.dev || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 60);
-      const acc = String(body.acc || "").replace(/[^0-9]/g, "");
-      const idk = acc || dev;
-      if (!idk) return json({ error: "bad_request" }, { status: 400 });
-      const ip = clientIP(req);
-      const now = Date.now();
-      const w = ((await readKey(env, BOXES_KEY, {})) || {}) as Record<string, number>;
-      const last = Math.max(w[idk] || 0, w[dev] || 0, w["ip:" + ip] || 0);
-      const COOL = 15 * 3600 * 1000;
-      if (now - last < COOL) return json({ error: "cooldown", waitMs: COOL - (now - last) }, { status: 429 });
-      w[idk] = now; if (dev) w[dev] = now; w["ip:" + ip] = now;
-      const wk = Object.keys(w).sort((a, b) => w[a] - w[b]);
-      while (wk.length > 3000) delete w[wk.shift() as string];
-      await writeKey(env, BOXES_KEY, w);
-      // فرصة الربح 30%
-      const win = Math.random() < 0.30;
-      let code = "";
-      if (win) {
-        const n = Number(await readKey(env, BOX_COUNTER_KEY, 1)) || 1;
-        if (n <= 1500) {
-          code = "BOX" + n;
-          const otc = ((await readKey(env, OTC_KEY, {})) || {}) as Record<string, { pct: number; used: boolean; ts: number; nodisc?: boolean; exp?: number }>;
-          otc[code] = { pct: 15, used: false, ts: Date.now(), nodisc: true, exp: Date.now() + 12 * 3600 * 1000 };
-          await writeKey(env, OTC_KEY, otc);
-          await writeKey(env, BOX_COUNTER_KEY, n + 1);
-        }
-      }
-      return json({ win: !!code, code, prize: 15, cooldownMs: COOL });
-    }
-
-    if (type === "birthday_check") {
-      const acc = String(body.acc || "").replace(/[^0-9]/g, "");
-      if (!acc) return json({ error: "bad_request" }, { status: 400 });
-      const accounts = ((await readKey(env, ACCOUNTS_KEY, {})) || {}) as Record<string, { name?: string; bday?: string }>;
-      const a = accounts[acc];
-      if (!a || !a.bday) return json({ ok: false });
-      const today = new Date();
-      const b = new Date(a.bday + "T00:00:00");
-      if (b.getMonth() !== today.getMonth() || b.getDate() !== today.getDate()) return json({ ok: false });
-      const year = String(today.getFullYear());
-      const claims = ((await readKey(env, BDAY_CLAIMS_KEY, {})) || {}) as Record<string, string>;
-      if (claims[acc] === year) return json({ ok: false, already: true });
-      const n = Number(await readKey(env, BDAY_COUNTER_KEY, 1)) || 1;
-      if (n > 1500) return json({ ok: false });
-      const code = "HAPPYBIRTHDAY" + n;
-      const otc = ((await readKey(env, OTC_KEY, {})) || {}) as Record<string, { pct: number; used: boolean; ts: number; nodisc?: boolean; exp?: number }>;
-      otc[code] = { pct: 50, used: false, ts: Date.now(), nodisc: true, exp: Date.now() + 48 * 3600 * 1000 };
-      await writeKey(env, OTC_KEY, otc);
-      await writeKey(env, BDAY_COUNTER_KEY, n + 1);
-      claims[acc] = year;
-      await writeKey(env, BDAY_CLAIMS_KEY, claims);
-      return json({ ok: true, code, name: a.name || "", hours: 48 });
-    }
-
-    if (type === "my_referrals") {
-      const acc = String(body.acc || "").replace(/[^0-9]/g, "");
-      if (!acc) return json({ error: "bad_request" }, { status: 400 });
-      const refs = ((await readKey(env, REFERRALS_KEY, {})) || {}) as Record<string, string[]>;
-      const accs = ((await readKey(env, ACCOUNTS_KEY, {})) || {}) as Record<string, { thanks?: string[] }>;
-      return json({ count: (refs[acc] || []).length, thanks: (accs[acc] || {}).thanks || [] });
-    }
-
-    if (type === "my_orders") {
-      const ids = (Array.isArray(body.ids) ? body.ids : []).map((x) => String(x)).slice(0, 20);
-      const acc = String(body.acc || "").replace(/[^0-9]/g, "");
-      const orders = ((await readKey(env, ORDERS_KEY, {})) || {}) as Record<string, { acc?: string }>;
-      const mine: Record<string, unknown> = {};
-      ids.forEach((id) => {
-        if (orders[id]) mine[id] = orders[id];
-      });
-      if (acc) Object.keys(orders).forEach((id) => { if (orders[id].acc === acc) mine[id] = orders[id]; });
-      return json({ orders: mine });
-    }
-
-    /* أوامر المدير والمستخدمين */
-    const role = await checkPin(env, req);
-
-// ===== نظام الموظفين =====
-    if (type === "emp_add") {
-      if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
-      const emps = ((await readKey(env, EMP_KEY, {})) || {}) as Record<string, { name: string; pass: string; target: number; pct: number; ts: number }>;
-      try {
-        const id = "e" + Date.now().toString(36);
-        const nm = String(body.name || "").trim().slice(0, 40);
-        if (!nm) return json({ error: "no_name" }, { status: 400 });
-        emps[id] = { name: nm, pass: String(body.pass || "").slice(0, 30), target: Number(body.target) || 0, pct: Number(body.pct) || 0, ts: Date.now() };
-        await writeKey(env, EMP_KEY, emps);
-        return json({ ok: true, id, count: Object.keys(emps).length });
-      } catch (e) {
-        return json({ error: "emp_add_failed", detail: String((e as Error)?.message || e) }, { status: 500 });
-      }
-    }
-    if (type === "emp_update") {
-      if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
-      const emps = ((await readKey(env, EMP_KEY, {})) || {}) as Record<string, { name: string; pass: string; target: number; pct: number }>;
-      const e = emps[String(body.id || "")];
-      if (!e) return json({ error: "not_found" }, { status: 404 });
-      if (body.target !== undefined) e.target = Number(body.target) || 0;
-      if (body.pct !== undefined) e.pct = Number(body.pct) || 0;
-      if (body.pass) e.pass = String(body.pass).slice(0, 30);
-      await writeKey(env, EMP_KEY, emps);
-      return json({ ok: true });
-    }
-    if (type === "emp_del") {
-      if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
-      const emps = ((await readKey(env, EMP_KEY, {})) || {}) as Record<string, unknown>;
-      delete emps[String(body.id || "")];
-      await writeKey(env, EMP_KEY, emps);
-      return json({ ok: true });
-    }
-    if (type === "emp_pay") {
-      if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
-      const pays = ((await readKey(env, EMP_PAY_KEY, [])) || []) as unknown[];
-      pays.push({ id: String(body.id || ""), amount: Number(body.amount) || 0, ts: Date.now(), note: String(body.note || "").slice(0, 100) });
-      while (pays.length > 1000) pays.shift();
-      await writeKey(env, EMP_PAY_KEY, pays);
-      return json({ ok: true });
-    }
-    if (type === "set_emp") {
-      if (role !== "admin" && role !== "user") return json({ error: "unauthorized" }, { status: 401 });
-      const orders = ((await readKey(env, ORDERS_KEY, {})) || {}) as Record<string, { emp?: string }>;
-      const o = orders[String(body.id || "")];
-      if (!o) return json({ error: "not_found" }, { status: 404 });
-      o.emp = String(body.emp || "");
-      await writeKey(env, ORDERS_KEY, orders);
-      return json({ ok: true });
-    }
-    if (type === "emp_price") {
-      // حاسبة تسعير للموظفين: بترجع السعر النهائي فقط بلا كشف المعادلة
-      // العملة: دولار / يورو / ريال سعودي — بتنحول للدرهم داخلياً
-      const AED_RATES: Record<string, number> = { USD: 3.6725, EUR: 4.3, SAR: 0.98, AED: 1 };
-      const cur = String(body.cur || "USD").toUpperCase();
-      const rate = AED_RATES[cur] || AED_RATES.USD;
-      const amount = Math.max(0, Number(body.aed) || 0);
-      const aed = amount * rate;
-      const s = ((await readKey(env, SETTINGS_KEY, {})) || {}) as { pricing?: { rate: number; profit: number; weight: number; perKg: number; uae: number; syr: number } };
-      const p = s.pricing || { rate: 3400, profit: 40, weight: 0.2, perKg: 27, uae: 2, syr: 3 };
-      const w = Number(body.weight) > 0 ? Number(body.weight) : p.weight;
-      const total = aed + aed * p.profit / 100 + w * p.perKg + p.uae + p.syr;
-      return json({ syp: Math.round(total * p.rate) });
-    }
-
-    if (type === "site_like") {
-      const dev = String(body.dev || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 60);
-      if (!dev) return json({ error: "bad_request" }, { status: 400 });
-      const L = ((await readKey(env, SITE_LIKES_KEY, { n: 0, devs: [] })) || { n: 0, devs: [] }) as { n: number; devs: string[] };
-      if (!L.devs.includes(dev)) {
-        L.devs.push(dev);
-        if (L.devs.length > 20000) L.devs.shift();
-        L.n = (L.n || 0) + 1;
-        await writeKey(env, SITE_LIKES_KEY, L);
-      }
-      return json({ ok: true, likes: L.n });
-    }
-    if (type === "app_event") {
-      // تتبّع تحميلات التطبيق واستعماله — كل جهاز بينعدّ مرة وحدة
-      const dev = String(body.dev || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 60);
-      const what = String(body.what || "") === "open" ? "open" : "download";
-      if (!dev) return json({ error: "bad_request" }, { status: 400 });
-      const A = ((await readKey(env, APP_KEY, { dl: [], op: [], dlN: 0, opN: 0 })) || {}) as
-        { dl: string[]; op: string[]; dlN: number; opN: number };
-      A.dl = Array.isArray(A.dl) ? A.dl : [];
-      A.op = Array.isArray(A.op) ? A.op : [];
-      const list = what === "open" ? A.op : A.dl;
-      if (!list.includes(dev)) {
-        list.push(dev);
-        if (list.length > 20000) list.shift();
-        if (what === "open") A.opN = (A.opN || 0) + 1; else A.dlN = (A.dlN || 0) + 1;
-        await writeKey(env, APP_KEY, A);
-      }
-      return json({ ok: true, downloads: A.dlN || 0, opens: A.opN || 0 });
-    }
-
-    if (type === "emp_sale") {
-      // الموظف بيسجل مبيعة باسمه وكلمة سره — بتنحسب بتارجته فوراً
-      const nm = String(body.name || "").trim().toLowerCase();
-      const ps = String(body.pass || "");
-      const emps = ((await readKey(env, EMP_KEY, {})) || {}) as Record<string, { name: string; pass: string }>;
-      const empId = Object.keys(emps).find((k) => emps[k].name.trim().toLowerCase() === nm && emps[k].pass === ps) || "";
-      if (!empId) return json({ error: "unauthorized" }, { status: 401 });
-      const item = String(body.item || "").slice(0, 80);
-      const total = Math.max(0, Number(body.total) || 0);
-      if (!item || !total) return json({ error: "bad_request" }, { status: 400 });
-      const orders = ((await readKey(env, ORDERS_KEY, {})) || {}) as Record<string, unknown>;
-      const oid = "EMPS-" + Date.now().toString(36);
-      orders[oid] = {
-        ts: Date.now(),
-        name: "مبيعة موظف: " + emps[empId].name,
-        phone: "-",
-        addr: "-",
-        pay: "مباشر",
-        total,
-        items: [{ name: item, qty: 1, price: total }],
-        status: "تم التأكيد",
-        emp: empId,
-        counted: true,
-        history: [{ status: "تم التأكيد", ts: Date.now() }],
-      };
-      const ks = Object.keys(orders);
-      while (ks.length > 500) delete orders[ks.shift() as string];
-      await writeKey(env, ORDERS_KEY, orders);
-      // بتنحسب بالمبيعات العامة كمان
-      const a = ((await readKey(env, ANALYTICS_KEY, emptyAnalytics())) || emptyAnalytics()) as Analytics;
-      a.orders = a.orders || { total: 0, amount: 0, byMonth: {}, amountByMonth: {}, ids: [] };
-      const month = new Date().toISOString().slice(0, 7);
-      a.orders.total += 1;
-      a.orders.amount += total;
-      a.orders.byMonth[month] = (a.orders.byMonth[month] || 0) + 1;
-      a.orders.amountByMonth[month] = (a.orders.amountByMonth[month] || 0) + total;
-      await writeKey(env, ANALYTICS_KEY, a);
-      return json({ ok: true, id: oid });
-    }
-
-    if (type === "emp_login" || type === "emp_stats") {
-      const emps = ((await readKey(env, EMP_KEY, {})) || {}) as Record<string, { name: string; pass: string; target: number; pct: number }>;
-      let id = String(body.id || "");
-      if (type === "emp_login") {
-        const nm = String(body.name || "").trim().toLowerCase();
-        const ps = String(body.pass || "");
-        id = Object.keys(emps).find((k) => emps[k].name.trim().toLowerCase() === nm && emps[k].pass === ps) || "";
-        if (!id) return json({ error: "not_found" }, { status: 404 });
-      }
-      const e = emps[id];
-      if (!e) return json({ error: "not_found" }, { status: 404 });
-      const month = new Date().toISOString().slice(0, 7);
-      const orders = ((await readKey(env, ORDERS_KEY, {})) || {}) as Record<string, { emp?: string; status?: string; total?: number; ts?: number }>;
-      let sold = 0, cnt = 0;
-      Object.values(orders).forEach((o) => {
-        if (o.emp === id && o.status === "تم التأكيد" && new Date(o.ts || 0).toISOString().slice(0, 7) === month) { sold += Number(o.total) || 0; cnt++; }
-      });
-      const pays = ((await readKey(env, EMP_PAY_KEY, [])) || []) as { id: string; amount: number }[];
-      const paid = pays.filter((p) => p.id === id).reduce((a, p) => a + (Number(p.amount) || 0), 0);
-      const profit = Math.round(sold * (e.pct || 0) / 100);
-      return json({ ok: true, id, name: e.name, target: e.target, pct: e.pct, sold, cnt, profit, paid, month });
-    }
-    if (role === "locked") return json({ error: "locked" }, { status: 429 });
-
-    if (type === "import_data") {
-      if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
-      // 🛡️ الاستيراد ممنوع يمسح أي شي — بيدمج بس
-      const imported: string[] = [];
-      if (body.orders && typeof body.orders === "object") {
-        await writeKey(env, ORDERS_KEY, body.orders);
-        imported.push("orders");
-      }
-      if (body.analytics && typeof body.analytics === "object") {
-        await writeKey(env, ANALYTICS_KEY, body.analytics);
-        imported.push("analytics");
-      }
-      if (body.abandoned && typeof body.abandoned === "object") {
-        await writeKey(env, ABANDONED_KEY, body.abandoned);
-        imported.push("abandoned");
-      }
-      if (Array.isArray(body.siteReviews)) {
-        await writeKey(env, SITE_REV_KEY, body.siteReviews);
-        imported.push("siteReviews");
-      }
-      return json({ ok: true, imported });
-    }
-
-    if (type === "clear_abandoned") {
-      if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
-      await writeKey(env, ABANDONED_KEY, {});
-      return json({ ok: true });
-    }
-
-    if (type === "order_del") {
-      // حذف طلب جراحياً (مثلاً طلب مضاف غلط من موظف) — بيرجّع عداد المبيعات لحاله
-      if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
-      const id = String(body.id || "");
-      if (!id) return json({ error: "bad_request" }, { status: 400 });
-      const orders = ((await readKey(env, ORDERS_KEY, {})) || {}) as Record<
-        string,
-        { items?: { id?: string; qty?: number }[] }
-      >;
-      const rec = orders[id];
-      if (!rec) return json({ error: "not_found" }, { status: 404 });
-      delete orders[id];
-      await writeKey(env, ORDERS_KEY, orders);
-      try {
-        const sold = ((await readKey(env, SOLD_KEY, {})) || {}) as Record<string, number>;
-        (rec.items || []).forEach((it) => {
-          const iid = String(it?.id || "").slice(0, 40);
-          if (iid && sold[iid]) sold[iid] = Math.max(0, sold[iid] - (Number(it?.qty) || 1));
-        });
-        await writeKey(env, SOLD_KEY, sold);
-      } catch (_) {}
-      return json({ ok: true });
-    }
-
-    if (type === "set_status") {
-      if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
-      const id = String(body.id || "");
-      const status = String(body.status || "");
-      if (!STATUSES.includes(status)) return json({ error: "bad_status" }, { status: 400 });
-      const orders = ((await readKey(env, ORDERS_KEY, {})) || {}) as Record<
-        string,
-        { status: string; history: { status: string; ts: number }[] }
-      >;
-      if (!orders[id]) return json({ error: "not_found" }, { status: 404 });
-      orders[id].status = status;
-      orders[id].history = orders[id].history || [];
-      orders[id].history.push({ status, ts: Date.now() });
-      const rec = orders[id] as unknown as { counted?: boolean; total?: number };
-      if (status === "تم التأكيد" && !rec.counted) {
-        rec.counted = true;
-        const a = ((await readKey(env, ANALYTICS_KEY, emptyAnalytics())) || emptyAnalytics()) as Analytics;
-        a.orders = a.orders || { total: 0, amount: 0, byMonth: {}, amountByMonth: {}, ids: [] };
-        const month = new Date().toISOString().slice(0, 7);
-        const amount = Number(rec.total) || 0;
-        a.orders.total += 1;
-        a.orders.amount += amount;
-        a.orders.byMonth[month] = (a.orders.byMonth[month] || 0) + 1;
-        a.orders.amountByMonth[month] = (a.orders.amountByMonth[month] || 0) + amount;
-        await writeKey(env, ANALYTICS_KEY, a);
-      }
-      await writeKey(env, ORDERS_KEY, orders);
-      return json({ ok: true });
-    }
-
-    if (type === "del_complaint") {
-      if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
-      const id = String(body.id || "");
-      const list = ((await readKey(env, COMPLAINTS_KEY, [])) || []) as { id?: string }[];
-      const next = list.filter((x) => x.id !== id);
-      await writeKey(env, COMPLAINTS_KEY, next);
-      return json({ ok: true });
-    }
-
-    if (type === "list_backups") {
-      if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
-      const cur = normalizeStore(await readBig(env, STORE_KEY, {}));
-      const list: { key: string; label: string; count: number; ts: number }[] = [];
-      const marker = ((await readKey(env, "catalog_day_marker", {})) || {}) as Record<string, string>;
-      const names = ["الأحد", "الاتنين", "التلات", "الأربعا", "الخميس", "الجمعة", "السبت"];
-      for (const k of ["catalog_bk1", "catalog_bk2"]) {
-        const b = normalizeStore(await readBig(env, k, {}));
-        if (b.products.length) list.push({ key: k, label: k === "catalog_bk1" ? "آخر نسخة (قبل آخر حفظ)" : "النسخة اللي قبلها", count: b.products.length, ts: 0 });
-      }
-      for (let d = 0; d < 7; d++) {
-        const b = normalizeStore(await readBig(env, "catalog_day" + d, {}));
-        if (b.products.length) list.push({ key: "catalog_day" + d, label: "نسخة يوم " + names[d] + (marker[String(d)] ? " (" + marker[String(d)] + ")" : ""), count: b.products.length, ts: 0 });
-      }
-      return json({ current: cur.products.length, list });
-    }
-
-    if (type === "prod_save") {
-      // حفظ/تعديل منتج واحد بدل رفع الكتالوج كله
-      if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
-      const p = body.product as { id?: string; name?: string };
-      if (!p || !p.name) return json({ error: "bad_request" }, { status: 400 });
-      const cat = normalizeStore(await readBig(env, STORE_KEY, {})) as { products: { id: string }[]; coupons: unknown[] };
-      const idx = p.id ? cat.products.findIndex((x) => x.id === p.id) : -1;
-      if (idx >= 0) cat.products[idx] = { ...cat.products[idx], ...p } as { id: string };
-      else cat.products.unshift(p as { id: string });
-      await writeBig(env, STORE_KEY, cat);
-      try {
-        const cacheKey = new Request(new URL(req.url).origin + "/api/store#public", { method: "GET" });
-        if (typeof caches !== "undefined") await caches.default.delete(cacheKey);
-      } catch (_) {}
-      return json({ ok: true, id: (p as { id: string }).id, count: cat.products.length });
-    }
-    if (type === "prod_del") {
-      // حذف منتج واحد جراحياً
-      if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
-      const pid = String(body.id || "");
-      if (!pid) return json({ error: "bad_request" }, { status: 400 });
-      const cat = normalizeStore(await readBig(env, STORE_KEY, {})) as { products: { id: string }[] };
-      const before = cat.products.length;
-      cat.products = cat.products.filter((x) => x.id !== pid);
-      if (cat.products.length === before) return json({ error: "not_found" }, { status: 404 });
-      await writeBig(env, STORE_KEY, cat);
-      await delBig(env, "vid_" + pid); // امسح فيديو المنتج المخزّن منفصل
-      try {
-        const cacheKey = new Request(new URL(req.url).origin + "/api/store#public", { method: "GET" });
-        if (typeof caches !== "undefined") await caches.default.delete(cacheKey);
-      } catch (_) {}
-      return json({ ok: true, count: cat.products.length });
-    }
-    if (type === "vid_save") {
-      // حفظ فيديو منتج منفصل عن الكتالوج (عشان القراءة العامة تبقى خفيفة)
-      if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
-      const vid = String(body.id || "");
-      const src = String(body.src || "");
-      const dur = Math.max(0, Math.min(600, Number(body.dur) || 0));
-      if (!vid || !src.startsWith("data:")) return json({ error: "bad_request" }, { status: 400 });
-      try {
-        await writeBig(env, "vid_" + vid, { src, dur });
-      } catch (e) {
-        return json({ error: "save_failed", detail: String((e as Error)?.message || e) }, { status: 500 });
-      }
-      return json({ ok: true, v: Date.now() });
-    }
-    if (type === "vid_del") {
-      if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
-      const vid = String(body.id || "");
-      if (!vid) return json({ error: "bad_request" }, { status: 400 });
-      await delBig(env, "vid_" + vid);
-      return json({ ok: true });
-    }
-
-    if (type === "restore_backup") {
-      if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
-      const raw = String(body.which || "catalog_bk1");
-      const which = /^catalog_(bk1|bk2|day[0-6])$/.test(raw) ? raw : "catalog_bk1";
-      const bk = normalizeStore(await readBig(env, which, {}));
-      if (!bk.products.length) return json({ error: "empty_backup" }, { status: 404 });
-      await writeBig(env, STORE_KEY, bk);
-      await purgePublicCache();
-      return json({ ok: true, restored: bk.products.length });
-    }
-
-    if (type === "set_setting") {
-      if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
-      const s = ((await readKey(env, SETTINGS_KEY, { team: true, mix: true })) || {}) as Record<string, unknown>;
-      const key = String(body.key || "");
-      if (!["team", "mix", "pricing"].includes(key)) return json({ error: "bad_key" }, { status: 400 });
-      if (key === "pricing") {
-        const v = (body.value || {}) as Record<string, unknown>;
-        s.pricing = { rate: Number(v.rate) || 3400, profit: Number(v.profit) || 0, weight: Number(v.weight) || 0.2, perKg: Number(v.perKg) || 0, uae: Number(v.uae) || 0, syr: Number(v.syr) || 0 };
-      } else s[key] = !!body.value;
-      await writeKey(env, SETTINGS_KEY, s);
-      return json({ ok: true, settings: s });
-    }
-
-    if (type === "del_order") {
-      if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
-      const id = String(body.id || "");
-      const orders = ((await readKey(env, ORDERS_KEY, {})) || {}) as Record<string, unknown>;
-      if (orders[id]) {
-        delete orders[id];
-        await writeKey(env, ORDERS_KEY, orders);
-      }
-      return json({ ok: true });
-    }
-
-    if (role !== "admin" && role !== "user") {
-      return json({ error: "unauthorized" }, { status: 401 });
-    }
-    return json({ ok: true, role });
+    return json({ ok: true, total: visitors.total });
   }
 
-  /* ============ PUT ============ */
-  if (req.method === "PUT") {
-    const role = await checkPin(env, req);
-    if (role === "locked") return json({ error: "locked" }, { status: 429 });
-    if (role !== "admin" && role !== "user") return json({ error: "unauthorized" }, { status: 401 });
-    const data = normalizeStore(await req.json().catch(() => ({})));
-    if (role === "user") {
-      const existing = normalizeStore(await readBig(env, STORE_KEY, {}));
-      data.coupons = existing.coupons;
-    }
-    const existing = normalizeStore(await readBig(env, STORE_KEY, {}));
-    const body2 = (data as unknown) as { force?: boolean };
-
-    // 🛡️ حماية: ممنوع الكتابة الفاضية أو حذف أكتر من نص المنتجات دفعة وحدة
-    if (existing.products.length > 0) {
-      if (data.products.length === 0) {
-        return json({ error: "refuse_empty", have: existing.products.length }, { status: 409 });
-      }
-      if (data.products.length < existing.products.length / 2 && !body2.force) {
-        return json(
-          { error: "refuse_big_delete", have: existing.products.length, incoming: data.products.length },
-          { status: 409 }
-        );
-      }
-    }
-
-    // 🗄️ نسخ احتياطية: قبل كل حفظ + نسخة يومية دوّارة (7 أيام)
-    try {
-      if (existing.products.length) {
-        const b1 = await readBig(env, "catalog_bk1", null);
-        if (b1) await writeBig(env, "catalog_bk2", b1);
-        await writeBig(env, "catalog_bk1", existing);
-        // نسخة اليوم (بتنكتب مرة وحدة باليوم — فبتضل أقدم نسخة سليمة لليوم)
-        const day = new Date().getDay(); // 0-6
-        const dayKey = "catalog_day" + day;
-        const marker = ((await readKey(env, "catalog_day_marker", {})) || {}) as Record<string, string>;
-        const today = new Date().toISOString().slice(0, 10);
-        if (marker[String(day)] !== today) {
-          await writeBig(env, dayKey, existing);
-          marker[String(day)] = today;
-          await writeKey(env, "catalog_day_marker", marker);
-        }
-      }
-    } catch (_) { /* النسخة الاحتياطية ما بتوقف الحفظ */ }
-
-    // 🛡️ حماية الصور: إذا وصلت روابط /api/img بدل الصور الفعلية (نسخة خفيفة انحفظت بالغلط)
-    // منستبدلها بالصور الحقيقية الموجودة بالقاعدة قبل الكتابة — الصور ما بتنمحي أبداً
-    try {
-      const currentCat = normalizeStore(await readBig(env, STORE_KEY, {})) as { products?: { id: string; imgs?: { src?: string }[]; img?: string }[] };
-      const curMap: Record<string, { imgs?: { src?: string }[]; img?: string }> = {};
-      (currentCat.products || []).forEach((p) => { curMap[p.id] = p; });
-      const dp = data as { products?: { id: string; imgs?: { src?: string; color?: string }[]; img?: string }[] };
-      (dp.products || []).forEach((p) => {
-        const cur = curMap[p.id];
-        if (!cur) return;
-        (p.imgs || []).forEach((im, i) => {
-          if (im.src && im.src.startsWith("/api/img")) {
-            const real = cur.imgs && cur.imgs[i] ? cur.imgs[i].src : cur.img;
-            if (real && real.startsWith("data:")) im.src = real;
-          }
-        });
-        if (p.img && p.img.startsWith("/api/img")) {
-          const real = (cur.imgs && cur.imgs[0] ? cur.imgs[0].src : cur.img) || "";
-          if (real.startsWith("data:")) p.img = real;
-        }
-      });
-    } catch (_) { /* الحماية ما بتوقف الحفظ */ }
-
-    try {
-      await writeBig(env, STORE_KEY, data);
-    } catch (e) {
-      return json({ error: "save_failed", detail: String((e as Error)?.message || e) }, { status: 500 });
-    }
-    await purgePublicCache();
-    return json(data);
+  if (type === "admin_check") {
+    const pin = String(body.pin || "").trim();
+    return json({ ok: pin === ADMIN_CRED });
   }
 
-  return json({ error: "method_not_allowed" }, { status: 405 });
+  if (type === "set_price") {
+    if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
+    const tier = String(body.tier || "");
+    if (!["basic", "full", "vip"].includes(tier)) return json({ error: "bad_tier" }, { status: 400 });
+    const price = Number(body.price);
+    if (!Number.isFinite(price) || price < 0) return json({ error: "bad_price" }, { status: 400 });
+    const pricing = await readKey<Pricing>(env, PRICING_KEY, DEFAULT_PRICING);
+    (pricing as unknown as Record<string, number>)[tier] = Math.round(price * 100) / 100;
+    await writeKey(env, PRICING_KEY, pricing);
+    return json({ ok: true, pricing });
+  }
+
+  if (type === "set_setting") {
+    if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
+    const key = String(body.key || "").slice(0, 60);
+    if (!key) return json({ error: "bad_key" }, { status: 400 });
+    const settings = await readKey<Record<string, unknown>>(env, SETTINGS_KEY, {});
+    settings[key] = body.value ?? "";
+    await writeKey(env, SETTINGS_KEY, settings);
+    return json({ ok: true, settings });
+  }
+
+  if (type === "order_create") {
+    const name = String(body.name || "").trim().slice(0, 80);
+    const phone = String(body.phone || "").trim().slice(0, 30);
+    if (!name || !phone) return json({ error: "bad_request" }, { status: 400 });
+    const order: Order = {
+      id: "ORD-" + Date.now().toString(36).toUpperCase(),
+      ts: Date.now(),
+      name,
+      phone,
+      template: String(body.template || "").slice(0, 60),
+      tier: String(body.tier || "").slice(0, 20),
+      notes: String(body.notes || "").slice(0, 300),
+      status: "pending",
+    };
+    const orders = await readKey<Order[]>(env, ORDERS_KEY, []);
+    orders.push(order);
+    while (orders.length > 500) orders.shift();
+    await writeKey(env, ORDERS_KEY, orders);
+    return json({ ok: true, id: order.id });
+  }
+
+  if (type === "order_status") {
+    if (role !== "admin") return json({ error: "unauthorized" }, { status: 401 });
+    const id = String(body.id || "");
+    const status = String(body.status || "");
+    if (!["pending", "accepted", "rejected", "contacted"].includes(status)) return json({ error: "bad_status" }, { status: 400 });
+    const orders = await readKey<Order[]>(env, ORDERS_KEY, []);
+    const o = orders.find((x) => x.id === id);
+    if (!o) return json({ error: "not_found" }, { status: 404 });
+    o.status = status as Order["status"];
+    await writeKey(env, ORDERS_KEY, orders);
+    return json({ ok: true });
+  }
+
+  return json({ error: "unknown_type" }, { status: 400 });
 };
