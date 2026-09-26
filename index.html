@@ -127,9 +127,14 @@
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(258px,1fr));gap:22px}
   .card{border:1px solid var(--line);border-radius:4px;overflow:hidden;background:var(--panel);transition:transform .25s ease}
   .card:hover{transform:translateY(-4px)}
-  .card-media{position:relative;height:190px;overflow:hidden;background:var(--ivory-deep)}
+  .card-media{position:relative;aspect-ratio:3/4;overflow:hidden;background:var(--ivory-deep)}
+  .tpl-frame{position:absolute;inset:0;width:100%;height:100%;border:0;pointer-events:none}
+  .card-desc{font-size:12.5px;color:var(--charcoal-soft);margin:-8px 0 14px;line-height:1.7}
+  .stage.stage-live{height:min(78vh,640px);background:#000}
+  .live-frame{width:100%;height:100%;border:0;display:block}
+  .modal-box{max-width:390px}
   .card-media svg{width:100%;height:100%;transition:transform .4s ease}
-  .card:hover .card-media svg{transform:scale(1.05)}
+  
   .card-badge{position:absolute;top:10px;right:10px;background:var(--gold);color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:3px}
   .card-badge.new{background:var(--rose-deep)}
   .card-overlay{
@@ -390,7 +395,7 @@
     </div>
     <div class="stat-row">
       <div class="stat"><b id="statVisitors">—</b><span>زائر للموقع</span></div>
-      <div class="stat"><b>١٠</b><span>قوالب متاحة</span></div>
+      <div class="stat"><b>٨</b><span>قوالب متاحة</span></div>
     </div>
   </div>
 </section>
@@ -398,15 +403,11 @@
 <section id="gallery">
   <div class="wrap">
     <h2 class="section-h">اختر الشكل الذي يشبه فرحتكم</h2>
-    <p class="section-sub">عشرة قوالب بشخصيات مختلفة، بهوية ألوان واحدة — اضغطوا "معاينة" لتجربة كل قالب بحركته الكاملة.</p>
+    <p class="section-sub">كل قالب تجربة فتح مختلفة — اضغطوا "معاينة" وافتحوا الدعوة بأنفسكم متل ما رح يفتحها ضيوفكم.</p>
     <div class="tabs" id="tabs">
       <button class="tab on" data-cat="all">الكل</button>
       <button class="tab" data-cat="wedding">زفاف</button>
       <button class="tab" data-cat="engagement">خطوبة</button>
-      <button class="tab" data-cat="graduation">تخرج</button>
-      <button class="tab" data-cat="birthday">عيد ميلاد</button>
-      <button class="tab" data-cat="newborn">مواليد</button>
-      <button class="tab" data-cat="other">مناسبات أخرى</button>
     </div>
     <div class="grid" id="grid"></div>
   </div>
@@ -750,26 +751,14 @@
   loadInitialState();
 
   var TEMPLATES = [
-    {id:'gate', name:'بوابة الفرح', cat:'wedding', catLabel:'زفاف', badge:'الأكثر طلبًا', mech:'door',
-     sample:{names:'ريان × لمى', date:'الجمعة، ١١ كانون الأول', venue:'قاعة سرايا الكبرى'}},
-    {id:'envelope', name:'المظروف', cat:'wedding', catLabel:'زفاف', mech:'envelope',
-     sample:{names:'عمر × هبة', date:'السبت، ٢٠ شباط', venue:'حديقة النسيم'}},
-    {id:'ring', name:'صندوق الخاتم', cat:'engagement', catLabel:'خطوبة', badge:'الأكثر طلبًا', mech:'iris',
-     sample:{names:'خطوبة زينة و كريم', date:'الخميس، ٥ آذار', venue:'صالون الأمل'}},
-    {id:'curtain', name:'الستارة المخملية', cat:'wedding', catLabel:'زفاف', mech:'curtain',
-     sample:{names:'ياسين × ديما', date:'الجمعة، ٣ نيسان', venue:'قاعة الأميرة'}},
-    {id:'book', name:'كتاب الحكاية', cat:'wedding', catLabel:'زفاف', badge:'جديد', mech:'book',
-     sample:{names:'سامر و رند', date:'الأحد، ١٢ أيار', venue:'مسرح الحدائق'}},
-    {id:'arch', name:'قوس الياسمين', cat:'engagement', catLabel:'خطوبة', mech:'door',
-     sample:{names:'نور و طارق', date:'السبت، ٢٥ نيسان', venue:'بيت الياسمين'}},
-    {id:'grad', name:'وسام النجاح', cat:'graduation', catLabel:'تخرج', badge:'جديد', mech:'book',
-     sample:{names:'تخرّج لينا أحمد', date:'الثلاثاء، ١٦ حزيران', venue:'قاعة الجامعة الكبرى'}},
-    {id:'candle', name:'شعلة الشموع', cat:'birthday', catLabel:'عيد ميلاد', mech:'curtain',
-     sample:{names:'عيد ميلاد وائل', date:'الجمعة، ٩ تشرين الأول', venue:'روفتوب لالا'}},
-    {id:'cradle', name:'المهد الصغير', cat:'newborn', catLabel:'مواليد', mech:'curtain',
-     sample:{names:'أهلاً يا جود', date:'الاثنين، ٢ تشرين الثاني', venue:'استقبال العائلة'}},
-    {id:'star', name:'النجمة الذهبية', cat:'other', catLabel:'مناسبات أخرى', mech:'envelope',
-     sample:{names:'افتتاح بيتنا الجديد', date:'السبت، ١٤ تشرين الثاني', venue:'المنزل الجديد'}}
+    {id:'bab',  name:'باب الدار',     cat:'wedding',    catLabel:'زفاف',  badge:'الأكثر طلبًا', desc:'ثلاث دقّات وينفتح الباب على النور'},
+    {id:'lake', name:'رسالة البحيرة', cat:'wedding',    catLabel:'زفاف',  badge:'الأكثر طلبًا', desc:'ختم ينكسر ومظروف يُفتح عند البحيرة'},
+    {id:'ring', name:'علبة الخاتم',   cat:'engagement', catLabel:'خطوبة', desc:'علبة مخمل تنفتح على خاتم يلمع'},
+    {id:'hall', name:'ليلة الثريّات', cat:'wedding',    catLabel:'زفاف',  badge:'جديد', desc:'باب يُدفع على قاعة من الثريّات'},
+    {id:'dove', name:'بوابة الحمام',  cat:'wedding',    catLabel:'زفاف',  desc:'بوابة مشبّكة ينطلق منها الحمام'},
+    {id:'tear', name:'صفحة الفرح',    cat:'wedding',    catLabel:'زفاف',  desc:'ورقة تنشقّ عن حديقة وقت الغروب'},
+    {id:'nour', name:'نوران',          cat:'wedding',    catLabel:'زفاف',  badge:'جديد', desc:'نوران يلتقيان في آخر الممرّ'},
+    {id:'arch', name:'القوس العاجي',  cat:'wedding',    catLabel:'زفاف',  desc:'مظروف عاجي يُفتح على قوس منقوش'}
   ];
 
   function thumbSVG(mech, seed){
@@ -904,15 +893,15 @@
     grid.innerHTML = TEMPLATES.filter(function(t){ return filter === 'all' || t.cat === filter; }).map(function(t, i){
       var badge = t.badge ? '<span class="card-badge'+(t.badge === 'جديد' ? ' new' : '')+'">'+t.badge+'</span>' : '';
       return '<div class="card" data-id="'+t.id+'">'+
-        '<div class="card-media">'+badge+ thumbSVG(t.mech, i) +
+        '<div class="card-media">'+badge+ '<iframe class="tpl-frame" src="invite.html?t='+t.id+'&thumb=1" loading="lazy" tabindex="-1" aria-hidden="true" title=""></iframe>' +
           '<div class="card-overlay"><button class="btn btn-sm preview-btn" data-id="'+t.id+'">معاينة</button></div>'+
         '</div>'+
         '<div class="card-body">'+
           '<p class="card-cat">'+t.catLabel+'</p>'+
-          '<p class="card-name brand-font">'+t.name+'</p>'+
+          '<p class="card-name brand-font">'+t.name+'</p>'+'<p class="card-desc">'+t.desc+'</p>'+
           '<div class="card-actions">'+
             '<button class="btn btn-line btn-sm preview-btn" data-id="'+t.id+'">معاينة</button>'+
-            '<button class="btn btn-gold btn-sm use-btn" data-id="'+t.id+'">استخدم هذا القالب</button>'+
+            '<button class="btn btn-gold btn-sm use-btn" data-id="'+t.id+'">اطلب القالب</button>'+
           '</div>'+
         '</div>'+
       '</div>';
@@ -936,8 +925,8 @@
     var t = TEMPLATES.find(function(x){ return x.id === id; });
     if(!t) return;
     currentTpl = t;
-    stage.className = 'stage';
-    stage.innerHTML = stageHTML(t.mech, t.sample);
+    stage.className = 'stage stage-live';
+    stage.innerHTML = '<iframe class="live-frame" src="invite.html?t='+t.id+'&embed=1" title="معاينة '+t.name+'"></iframe>';
     modalWrap.classList.add('show');
     document.body.style.overflow = 'hidden';
     requestAnimationFrame(function(){
@@ -958,11 +947,8 @@
   document.getElementById('modalBackdrop').addEventListener('click', closeModal);
   document.getElementById('replayBtn').addEventListener('click', function(){
     if(!currentTpl) return;
-    stage.classList.remove('revealed');
-    void stage.offsetWidth;
-    requestAnimationFrame(function(){
-      requestAnimationFrame(function(){ stage.classList.add('revealed'); });
-    });
+    var fr = stage.querySelector('iframe');
+    if(fr) fr.src = fr.src;
   });
   document.getElementById('useTplBtn').addEventListener('click', function(){
     closeModal();
